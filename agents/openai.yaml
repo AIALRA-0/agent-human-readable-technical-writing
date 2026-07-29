@@ -1,0 +1,4 @@
+interface:
+  display_name: "人类可读技术写作"
+  short_description: "按因果顺序和自然中文语序重写技术内容并检查列表结构"
+  default_prompt: "使用 $human-readable-technical-writing 按因果顺序和自然中文语序重写这份技术内容；"
