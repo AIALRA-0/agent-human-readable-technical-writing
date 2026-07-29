@@ -13,7 +13,7 @@ jobs: # 定义需要执行的独立检查任务
     runs-on: windows-latest # 使用自带 PowerShell 的 Windows 执行环境
     steps: # 按顺序准备仓库并执行检查
       - name: Check out repository # 把当前提交下载到临时执行环境
-        uses: actions/checkout@v4 # 使用官方仓库下载步骤
+        uses: actions/checkout@v5 # 使用基于当前运行环境的官方仓库下载步骤
       - name: Run rule checks # 验证正确写法能够通过并拦截错误写法
         shell: pwsh # 使用 PowerShell 执行项目脚本
         run: ./scripts/Test-HumanReadableChinese.Tests.ps1 # 执行全部规则正反测试
