@@ -1,0 +1,22 @@
+name: Quality checks # 在仓库页面显示这组自动检查的名称
+
+on: # 指定哪些仓库事件会触发检查
+  push: # 每次推送后验证默认分支仍然通过
+  pull_request: # 每次合并请求变更后验证候选内容
+  workflow_dispatch: # 允许维护者从仓库页面手动运行
+
+permissions: # 限制自动任务能够使用的仓库权限
+  contents: read # 只允许读取代码，不允许修改仓库内容
+
+jobs: # 定义需要执行的独立检查任务
+  writing-quality: # 运行规则测试和完整问答测试
+    runs-on: windows-latest # 使用自带 PowerShell 的 Windows 执行环境
+    steps: # 按顺序准备仓库并执行检查
+      - name: Check out repository # 把当前提交下载到临时执行环境
+        uses: actions/checkout@v4 # 使用官方仓库下载步骤
+      - name: Run rule checks # 验证正确写法能够通过并拦截错误写法
+        shell: pwsh # 使用 PowerShell 执行项目脚本
+        run: ./scripts/Test-HumanReadableChinese.Tests.ps1 # 执行全部规则正反测试
+      - name: Run full answer evaluation # 验证多行业完整回答和样本差异
+        shell: pwsh # 使用 PowerShell 执行项目脚本
+        run: ./evals/Invoke-QualityEvaluation.20260729.ps1 # 执行二十六组完整问答测试

@@ -60,6 +60,11 @@ $cases = @(
         ExpectedStatus = 'PASS'
     },
     @{
+        Name = '徽章和表格结构通过'
+        Text = "[![Quality checks](https://example.com/badge.svg)](https://example.com/checks)`n`n| 项目 | 内容 |`n|---|---|`n| 状态、原因和后果 | 原始证据 |"
+        ExpectedStatus = 'PASS'
+    },
+    @{
         Name = '缩写映射通过'
         Text = 'DNS 域名系统（Domain Name System）负责把网站名称转换成网络地址；转换失败后，新网页无法找到服务器'
         ExpectedStatus = 'PASS'

@@ -1,64 +1,247 @@
-# Codex 中文技术写作技能
+<div align="center">
 
-这个仓库提供一套面向第一次阅读者的中文技术写作规则
+# 人类可读中文技术写作
 
-它重点解决下面几类问题：
+**让技术内容第一次就能被读懂、核对并执行**
 
-- 技术词首次出现时没有解释
-- 结论缺少原因和后果
-- 多个事实挤在同一行
-- 条件分支没有缩进
-- 内部状态名称被当作自然语言使用
-- 代码缺少帮助理解的注释
+[![Quality checks](https://github.com/AIALRA-0/codex-human-readable-chinese/actions/workflows/quality.yml/badge.svg)](https://github.com/AIALRA-0/codex-human-readable-chinese/actions/workflows/quality.yml)
+[![MIT License](https://img.shields.io/badge/license-MIT-315c4c.svg)](LICENSE)
+[![53 rule checks](https://img.shields.io/badge/rule_checks-53-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
+[![26 full answers](https://img.shields.io/badge/full_QA_cases-26-657067.svg)](QA-CASES.md)
+[![Local first](https://img.shields.io/badge/data-local_first-6b5b95.svg)](#隐私边界)
 
-## 文件说明
+[快速开始](#快速开始) · [真实改写](#真实改写) · [工作原理](#工作原理) · [完整案例](QA-CASES.md) · [写作细则](references/style-rules.md) · [质量检查](#质量检查)
 
-- `SKILL.md` 是 Codex 按需读取的核心技能
-- `AGENTS.example.md` 是可以复制到个人配置中的全局规则模板
-- `references/style-rules.md` 保存详细写作规则和示例
-- `scripts/Test-HumanReadableChinese.ps1` 检查机械写作错误
-- `scripts/Test-HumanReadableChinese.Tests.ps1` 验证检查脚本的正反案例
-- `evals/Invoke-QualityEvaluation.20260729.ps1` 保存二十六组完整问答测试
-- `QA-CASES.md` 展示全部问题和完整回答
+</div>
 
-## 安装方式
+Codex 编程智能体（Codex，作用解释：按照指令读取、分析和修改内容的智能工具）可以通过这个技能生成更容易理解的中文技术内容
 
-把仓库复制到个人技能目录：
+它把只有项目内部人员才能看懂的内部写法，改成能够说明具体事实和下一步行动的普通中文
+
+项目不会用更长的术语解释原来的术语；它要求回答先解决读者真正需要判断的问题，再补充正式名称和可复核证据
+
+## 真实改写
+
+下面三个例子展示项目最核心的变化：
+
+| 原始表达 | 默认可读表达 |
+|---|---|
+| `FLOW_VALIDATED` | 本轮软件流程已经跑通，但真实设备尚未测试，因此流程可以关闭，产品仍不能发布 |
+| `strict ImplementationGate` | 所有实现检查必须同时通过；任何一项失败都会阻止候选进入可接受结果 |
+| `Cpk dropped to 1.08` | 生产结果比以前更容易越过允许边界，因此不合格品风险正在增加 |
+
+改写后的内容让读者直接知道三件事：
+
+- 发生了什么
+- 为什么重要
+- 接下来能够做什么
+
+这三项信息缺少任何一项，技术名称就仍然在替作者承担解释工作
+
+## 它约束什么
+
+项目把写作要求拆成六项可以检查的承诺
+
+### 术语必须解释
+
+陌生词首次出现时必须先说明它是什么，再解释为什么重要以及失败后果
+
+### 判断必须有依据
+
+各种判断必须先给出具体原因，再说明实际后果和下一步行动
+
+### 并列必须可见
+
+两个以上能够分别理解的内容必须换行展示，避免读者在长句中自行拆分
+
+### 分支必须清楚
+
+一个条件只有一个结果时保持在同一行；一个条件对应多个结果时，后续结果换行缩进
+
+### 边界必须区分
+
+下面三种完成状态必须分别说明：
+
+- 软件流程是否跑通
+- 真实设备是否完成验证
+- 产品是否允许发布
+
+一个完成状态不能替代另外两项结论
+
+### 代码必须解释
+
+代码使用下面两种注释方式：
+
+- 命令和配置采用逐行同行注释
+- 连续逻辑采用段落开头注释
+
+连续逻辑是需要结合上下文理解的一组代码
+
+注释说明代码为什么存在和会产生什么结果，不复述代码字面内容
+
+## 快速开始
+
+把技能安装到个人技能目录：
 
 ```powershell
-git clone https://github.com/AIALRA-0/codex-human-readable-chinese.git "$HOME\.codex\skills\human-readable-technical-writing" # 下载技能并放入个人技能目录
-Copy-Item "$HOME\.codex\skills\human-readable-technical-writing\AGENTS.example.md" "$HOME\.codex\AGENTS.md" # 把全局规则模板复制到个人配置目录
+git clone https://github.com/AIALRA-0/codex-human-readable-chinese.git "$HOME\.codex\skills\human-readable-technical-writing" # 下载技能并保留稳定的内部技能名称
+Copy-Item "$HOME\.codex\skills\human-readable-technical-writing\AGENTS.example.md" "$HOME\.codex\AGENTS.example.md" # 复制全局规则模板，避免直接覆盖现有个人规则
 ```
 
-如果个人配置目录已经存在 `AGENTS.md`，先人工合并内容，避免覆盖原有规则
+如果个人配置目录已经存在 `AGENTS.md`，把模板内容人工合并进去，不要直接覆盖
 
-## 调用方式
-
-普通中文技术写作任务可以由 Codex 自动匹配技能
+普通中文技术写作任务可以由智能体自动匹配技能
 
 需要强制调用时，在问题开头加入：
 
 > 使用 `$human-readable-technical-writing`，按照我的中文技术写作规范回答；交付前运行写作检查，检查失败就先修改再回答
 
-## 验证方式
+## 工作原理
 
-运行规则测试：
-
-```powershell
-pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行全部正反规则测试
-pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # 执行二十六组完整问答质量测试
-pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # 重新生成完整问答案例文档
+```mermaid
+%% 这条流程展示规则怎样从用户问题进入最终回答
+flowchart LR
+    A["用户问题"] --> B["全局写作边界"]
+    B --> C["按需加载核心技能"]
+    C --> D["识别术语、因果和分支"]
+    D --> E["生成第一次可读的回答"]
+    E --> F["机械规则检查"]
+    F --> G["多行业完整问答测试"]
+    G --> H["可读、可核对、可执行的结果"]
 ```
 
-当前版本包含：
+项目采用分层加载，避免每次回答都读取全部示例：
 
-- 五十二组规则测试
+| 层级 | 什么时候读取 | 负责什么 |
+|---|---|---|
+| 全局规则模板 | 每次中文写作 | 保存不可违反的表达边界 |
+| 核心技能 | 技术写作任务触发时 | 组织因果、术语、列表和代码注释 |
+| 详细写作细则 | 复杂报告或争议案例需要时 | 提供边界条件和完整示例 |
+| 质量测试语料 | 运行测试时 | 检查规则是否只适合少数短回答 |
+
+大型测试语料不会自动进入普通对话，因此案例数量增加不会等量增加每次回答的输入成本
+
+## 完整案例
+
+[完整问答案例](QA-CASES.md)公开展示全部二十六个问题和完整回答，不用评分摘要代替实际内容
+
+案例覆盖下面五种长度：
+
+- 极短回答
+- 短回答
+- 中等回答
+- 长回答
+- 完整报告
+
+案例还覆盖下面这些差异：
+
+- 普通提问
+- 愤怒质疑
+- 紧急操作
+- 混乱材料整理
+- 专业审查
+- 新手解释
+- 表格比较
+- 公式说明
+- 代码审查
+- 完整交接报告
+
+读者可以直接检查每一个答案，而不是只相信通过数量
+
+## 质量检查
+
+当前版本必须同时通过机械规则检查和样本差异检查
+
+机械规则检查会拦截下面这些问题：
+
+- 中文句号
+- 行尾中文分号
+- 未解释的英文缩写
+- 拥挤在一行的并列内容
+- 没有缩进的多结果分支
+- 抽象结论先出现、具体原因后补充
+- 没有注释的代码段
+- 没有使用数学公式排版语法的上下标和公式符号
+
+样本差异检查防止项目只对少数案例表现良好
+
+当前公开证据：
+
+- 五十三组规则正反测试
 - 二十六组完整问答测试
 - 五种回答长度
 - 二十六个内容方向
 - 二十二种表达语气
+- 十七类目标读者
+- 十七类任务
 - 十六种内容结构
+
+运行全部检查：
+
+```powershell
+pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行五十三组规则正反测试
+pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # 执行二十六组完整问答质量测试
+pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # 从已经通过检查的测试结果重新生成案例文档
+```
+
+自动检查不能证明每个判断都正确；它只能发现可机械识别的写作错误
+
+重要报告仍然需要人工核对内容是否真实，并确认结论没有超过现有证据
+
+## 文件结构
+
+| 路径 | 内容 |
+|---|---|
+| `SKILL.md` | 智能体按需读取的核心技能 |
+| `AGENTS.example.md` | 可以合并到个人配置中的全局规则模板 |
+| `references/style-rules.md` | 详细规则、失败模式和代码注释示例 |
+| `scripts/Test-HumanReadableChinese.ps1` | 检查机械写作错误 |
+| `scripts/Test-HumanReadableChinese.Tests.ps1` | 验证检查器能接受正确写法并拒绝错误写法 |
+| `scripts/Export-QualityCases.ps1` | 从正式测试结果生成完整案例文档 |
+| `evals/Invoke-QualityEvaluation.20260729.ps1` | 保存多行业完整问答和样本差异要求 |
+| `QA-CASES.md` | 展示全部问题和完整回答 |
+
+## 隐私边界
+
+这个仓库不收集遥测数据，不读取私人项目，也不向外部服务发送回答内容
+
+公开案例使用通用或合成场景，不包含下面这些信息：
+
+- 密钥
+- 访问令牌
+- 服务器地址
+- 个人电子邮箱
+- 私人项目路径
+- 客户资料
+
+发布前的敏感信息扫描结果为零匹配
+
+规则可以降低无意暴露内部名称的概率，但不能替代发布前的人工脱敏检查
+
+## 贡献方式
+
+提交问题时，请同时提供下面三项内容：
+
+- 原始问题
+- 不理想的实际回答
+- 你希望第一次阅读者最终理解或执行什么
+
+新增规则必须同时提供正确案例和错误案例，避免只修复一句话却破坏其他写作场景
+
+## 后续计划
+
+- 增加英文技术内容转写成中文的成对测试
+- 增加更长的多文件项目报告
+- 增加真实用户阅读后的追问数量记录
+- 增加可选的悬停术语解释输出
+- 为其他智能体工具提供安装模板
+
+## 当前状态
+
+当前版本已经能够作为个人写作技能使用，并且全部公开测试通过
+
+它仍然属于持续迭代的写作约束，不保证事实自动正确，也不替代任何专业判断
 
 ## 许可证
 
-本仓库使用 MIT 开源许可证（MIT License，作用解释：允许使用、修改和分发，但需要保留许可证说明）
+本仓库使用 MIT 开源许可证（MIT License，作用解释：允许他人自由使用这个项目，但必须保留许可证说明）

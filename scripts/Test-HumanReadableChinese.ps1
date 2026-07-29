@@ -38,7 +38,9 @@ function Hide-NonNarrativeZones([string]$Value) {
     $masked = $Value
     $masked = [regex]::Replace($masked, '\$\$.*?\$\$|\$(?:\\.|[^$\r\n])+\$', ${function:Hide-Match})
     $masked = [regex]::Replace($masked, '`[^`]*`', ${function:Hide-Match})
+    $masked = [regex]::Replace($masked, '!\[[^\]]*\]\([^)]+\)', ${function:Hide-Match})
     $masked = [regex]::Replace($masked, '\]\([^)]+\)', ${function:Hide-Match})
+    $masked = [regex]::Replace($masked, '</?[A-Za-z][^>\r\n]*>', ${function:Hide-Match})
     $masked = [regex]::Replace($masked, 'https?://\S+|www\.\S+', ${function:Hide-Match})
     $masked = [regex]::Replace($masked, '（[^）]*）|\([^)]*\)', ${function:Hide-Match})
     $masked = [regex]::Replace(
@@ -116,6 +118,7 @@ $paragraphCommentPatterns = @{
     css = '^\s*/\*'
     scss = '^\s*/\*'
     jsonc = '^\s*(?://|/\*)'
+    mermaid = '^\s*%%'
 }
 
 foreach ($block in $codeBlockMatches) {
@@ -257,7 +260,7 @@ foreach ($lineMatch in $lineMatches) {
         continue
     }
 
-    if ($line -match '^\s*>') {
+    if ($line -match '^\s*(?:>|\|)') {
         continue
     }
 
