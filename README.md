@@ -6,7 +6,7 @@
 
 [![Quality checks](https://github.com/AIALRA-0/codex-human-readable-chinese/actions/workflows/quality.yml/badge.svg)](https://github.com/AIALRA-0/codex-human-readable-chinese/actions/workflows/quality.yml)
 [![MIT License](https://img.shields.io/badge/license-MIT-315c4c.svg)](LICENSE)
-[![53 rule checks](https://img.shields.io/badge/rule_checks-53-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
+[![55 rule checks](https://img.shields.io/badge/rule_checks-55-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
 [![26 full answers](https://img.shields.io/badge/full_QA_cases-26-657067.svg)](QA-CASES.md)
 [![Local first](https://img.shields.io/badge/data-local_first-6b5b95.svg)](#隐私边界)
 
@@ -14,7 +14,7 @@
 
 </div>
 
-Codex 编程智能体（Codex，作用解释：按照指令读取、分析和修改内容的智能工具）可以通过这个技能生成更容易理解的中文技术内容
+这个技能约束编程智能体的中文写作，让第一次接触项目的人也能理解技术内容
 
 它把只有项目内部人员才能看懂的内部写法，改成能够说明具体事实和下一步行动的普通中文
 
@@ -40,7 +40,7 @@ Codex 编程智能体（Codex，作用解释：按照指令读取、分析和修
 
 ## 它约束什么
 
-项目把写作要求拆成六项可以检查的承诺
+项目把写作要求拆成七项可以检查的承诺
 
 ### 术语必须解释
 
@@ -78,6 +78,12 @@ Codex 编程智能体（Codex，作用解释：按照指令读取、分析和修
 连续逻辑是需要结合上下文理解的一组代码
 
 注释说明代码为什么存在和会产生什么结果，不复述代码字面内容
+
+### 流程必须顺着阅读
+
+流程关系优先使用文本流程图（Mermaid）
+
+图中的节点默认从上到下排列，让阅读顺序和执行顺序保持一致
 
 ## 快速开始
 
@@ -244,4 +250,6 @@ pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # 从已经通过检�
 
 ## 许可证
 
-本仓库使用 MIT 开源许可证（MIT License，作用解释：允许他人自由使用这个项目，但必须保留许可证说明）
+本仓库使用 MIT 开源许可证（MIT License）
+
+其他人可以自由使用这个项目，但必须保留许可证说明

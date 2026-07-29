@@ -302,6 +302,23 @@ foreach ($lineMatch in $lineMatches) {
         ${function:Hide-Match}
     )
     $withoutInlineCode = [regex]::Replace($line, '`[^`]*`', ${function:Hide-Match})
+    $fieldLabelLine = [regex]::Replace(
+        $withoutInlineCode,
+        '[“"][^”"\r\n]{1,100}[”"]',
+        ${function:Hide-Match}
+    )
+
+    $fieldLabelMatches = [regex]::Matches(
+        $fieldLabelLine,
+        '(?<term>作用解释\s*[：:]|名称由来\s*[：:]|[（(][^）)\r\n]{0,80}(?:类型|含义|影响)\s*[：:][^）)\r\n]{0,80}[）)])'
+    )
+    foreach ($match in $fieldLabelMatches) {
+        $issues.Add([pscustomobject]@{
+            rule = 'FIELD_LABEL_EXPLANATION_SHOULD_BE_NATURAL_PROSE'
+            line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
+            excerpt = Get-Excerpt $withoutCodeBlocks ($lineMatch.Index + $match.Index) $match.Length
+        })
+    }
 
     $stockPhraseMatches = [regex]::Matches(
         $structuralLine,
@@ -504,9 +521,8 @@ foreach ($lineMatch in $lineMatches) {
         } else {
             ''
         }
-        $hasInternalMapping = $tail -match '^\s*（[^）]*类型：[^）]*含义：[^）]*影响：[^）]*）'
         $hasAbbreviationMapping = $tail -match '^\s*[一-龥][^（\r\n]{0,40}（[^）]*[A-Za-z][^）]*）'
-        if (-not $hasInternalMapping -and -not $hasAbbreviationMapping) {
+        if (-not $hasAbbreviationMapping) {
             $issues.Add([pscustomobject]@{
                 rule = 'POSSIBLY_UNEXPLAINED_FIRST_ENGLISH_TERM'
                 line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)

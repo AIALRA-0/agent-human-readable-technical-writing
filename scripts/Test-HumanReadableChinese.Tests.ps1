@@ -71,7 +71,12 @@ $cases = @(
     },
     @{
         Name = '内部名称映射通过'
-        Text = 'FLOW_VALIDATED（类型：流程状态；含义：规定流程已经跑通；影响：允许结束流程验证，但不代表产品发布）'
+        Text = '规定流程已经跑通，可以结束流程验证；原始记录中的 `FLOW_VALIDATED` 只证明流程完成，不代表产品发布'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '竖向流程图通过'
+        Text = "流程图按照执行顺序从上到下排列：`n`n${fence}mermaid`n%% 从输入开始展示完整处理顺序`nflowchart TD`n    A[读取输入] --> B[检查内容]`n    B --> C[输出结果]`n${fence}`n`n竖向排列让阅读顺序和执行顺序保持一致"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -218,6 +223,11 @@ $cases = @(
         Name = '括号过载失败'
         Text = '结果（第一项）（第二项）（第三项）；'
         ExpectedRule = 'PARENTHESIS_OVERLOAD'
+    },
+    @{
+        Name = '字段标签式解释失败'
+        Text = 'Codex 编程智能体（Codex，作用解释：按照指令处理内容的工具）可以完成任务'
+        ExpectedRule = 'FIELD_LABEL_EXPLANATION_SHOULD_BE_NATURAL_PROSE'
     },
     @{
         Name = '小写英文正文失败'
