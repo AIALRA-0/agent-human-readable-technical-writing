@@ -1,4 +1,4 @@
 interface:
-  display_name: "面向智能体的人类可读中文写作"
-  short_description: "让智能体生成的中文内容第一次就能被读懂、核对并直接执行"
+  display_name: "面向智能体的人类可读技术写作"
+  short_description: "让智能体生成的中文技术内容第一次就能被读懂、核对并直接执行"
   default_prompt: "使用 $human-readable-technical-writing 按因果顺序、明确主语和自然中文语序重写这份内容"

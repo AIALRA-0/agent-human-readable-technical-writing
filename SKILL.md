@@ -3,7 +3,7 @@ name: human-readable-technical-writing
 description: Create, rewrite, review, or validate user-facing Chinese prose for first-time readers, especially technical content. Use for reports, summaries, plans, status updates, notes, tables, and explanations containing technical terms, internal identifiers, causal conclusions, lists, procedures, figures, citations, code, or decision branches
 ---
 
-# 面向智能体的人类可读中文写作
+# 面向智能体的人类可读技术写作
 
 ## 1 执行方法
 

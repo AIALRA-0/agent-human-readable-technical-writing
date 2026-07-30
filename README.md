@@ -1,10 +1,10 @@
 <div align="center">
 
-# 面向智能体的人类可读中文写作
+# `agent-human-readable-technical-writing`
 
-**让智能体生成的中文第一次就能被读懂、核对并执行**
+**让智能体生成的中文技术内容第一次就能被读懂、核对并执行**
 
-[![Quality checks](https://github.com/AIALRA-0/agent-human-readable-chinese/actions/workflows/quality.yml/badge.svg)](https://github.com/AIALRA-0/agent-human-readable-chinese/actions/workflows/quality.yml)
+[![Quality checks](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml/badge.svg)](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml)
 [![MIT License](https://img.shields.io/badge/license-MIT-315c4c.svg)](LICENSE)
 [![108 rule checks](https://img.shields.io/badge/rule_checks-108-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
 [![32 full answers](https://img.shields.io/badge/full_QA_cases-32-657067.svg)](QA-CASES.md)
@@ -171,7 +171,7 @@ Vivado 芯片设计套件（Vivado Design Suite）负责完成芯片设计处理
 先把仓库复制到个人技能目录：
 
 ```powershell
-git clone https://github.com/AIALRA-0/agent-human-readable-chinese.git "$HOME\.codex\skills\human-readable-technical-writing" # 下载技能并保留稳定的内部技能名称
+git clone https://github.com/AIALRA-0/agent-human-readable-technical-writing.git "$HOME\.codex\skills\human-readable-technical-writing" # 下载技能并保留稳定的内部技能名称
 Copy-Item "$HOME\.codex\skills\human-readable-technical-writing\AGENTS.example.md" "$HOME\.codex\AGENTS.example.md" # 复制规则模板，避免直接覆盖现有个人配置
 ```
 
