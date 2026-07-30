@@ -1,6 +1,6 @@
 <div align="center">
 
-# `agent-human-readable-technical-writing`
+# 面向智能体的中文可读技术写作
 
 **让智能体生成的中文技术内容第一次就能被读懂、核对并执行**
 
