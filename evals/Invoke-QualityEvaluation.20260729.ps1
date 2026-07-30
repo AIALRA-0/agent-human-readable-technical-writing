@@ -543,6 +543,8 @@ return ProfileResult.Found(user.Profile.City);
 
 总使用成本表示从购买到报废期间实际花掉的全部费用；本次把购买后直到报废的全部费用计入
 
+<div align="center">
+
 | 比较项目 | 甲方案 | 乙方案 |
 |---|---:|---:|
 | 机器价格 | 8000元 | 10000元 |
@@ -551,6 +553,8 @@ return ProfileResult.Found(user.Profile.City);
 | 三年合计 | 38000元 | 29000元 |
 
 表 1 三年成本比较
+
+</div>
 
 乙方案虽然购买时多花两千元，但三年合计少花九千元，因此预计打印量能够实现时应选乙方案
 
@@ -1508,7 +1512,7 @@ API 应用程序接口（Application Programming Interface）负责在不同系�
     },
     [pscustomobject]@{
         Id = 'long-fpga-environment-report'
-        Length = 'long'
+        Length = 'very-long'
         Difficulty = 'expert'
         Direction = 'hardware-verification'
         Tone = 'technical-friendly'
@@ -1547,6 +1551,8 @@ CDC 时钟区域跨越检查（Clock Domain Crossing）负责发现信号跨越�
 
 ## 3 结果
 
+<div align="center">
+
 | 检查项目 | 结果 | 能够证明的范围 |
 |---|---|---|
 | 综合 | 通过 | 设计能够转换成目标逻辑结构 |
@@ -1557,11 +1563,15 @@ CDC 时钟区域跨越检查（Clock Domain Crossing）负责发现信号跨越�
 
 表 3.1 本轮验证结果
 
+</div>
+
 注：软件检查通过不等于真实板卡已经完成验证
 
 ## 4 复现
 
-下面的流程图按照复现顺序展示检查关系，图题放在流程图下方，这个位置同时符合个人文档偏好和正式技术文稿惯例 [1]
+下面的流程图按照复现顺序展示检查关系，流程图和图题共同居中，图题仍然放在流程图下方 [1]
+
+<div align="center">
 
 ```mermaid
 %% 从固定环境开始展示完整复现顺序
@@ -1574,6 +1584,8 @@ flowchart TD
 ```
 
 图 4.1 芯片软件流程复现顺序
+
+</div>
 
 复现者需要使用相同工具版本和目标器件，再逐项比较输出记录；任何强制检查失败，本轮结果都不能接受
 
@@ -1648,6 +1660,8 @@ npm run build # 生成交付文件，并确认项目能够完成构建
 
 ## 1 本周验证结果
 
+<div align="center">
+
 | 检查项目 | 结果 | 后续处理 |
 |---|---|---|
 | 登录 | 通过 | 保留测试记录 |
@@ -1655,6 +1669,8 @@ npm run build # 生成交付文件，并确认项目能够完成构建
 | 导出 | 通过 | 核对文件格式 |
 
 表 1.1 本周功能验证结果
+
+</div>
 
 三项检查全部通过，说明当前测试环境能够完成主要操作
 
@@ -1682,12 +1698,16 @@ npm run build # 生成交付文件，并确认项目能够完成构建
 
 ## 1 试验结果
 
+<div align="center">
+
 表 1.1 两种处理方法的时间比较
 
 | 处理方法 | 平均时间 | 失败次数 |
 |---|---:|---:|
 | 方法一 | 42秒 | 3次 |
 | 方法二 | 31秒 | 1次 |
+
+</div>
 
 注：平均时间只统计成功完成的任务
 
@@ -1755,6 +1775,31 @@ $$
 三天属于经验估计，适用条件是测试环境持续可用，而且没有新增缺陷；任一条件变化后，项目负责人需要重新估计完成时间
 
 项目负责人应在报告中同时保留项目看板导出时间、任务筛选条件和五次历史发布记录，否则读者无法重新计算完成率，也无法判断三天估计是否适用于本次发布
+'@
+    },
+    [pscustomobject]@{
+        Id = 'short-centered-image'
+        Length = 'short'
+        Difficulty = 'easy'
+        Direction = 'image-layout'
+        Tone = 'instructional'
+        Audience = 'product-document-author'
+        TaskType = 'image-caption-layout'
+        InputShape = 'image-plus-caption-request'
+        Structure = 'centered-image-caption'
+        Prompt = '写一段产品说明并插入设备正面图，图片和图题都要在页面中间'
+        Response = @'
+设备正面图用于帮助读者确认接口位置，因此图片需要保留能够说明内容的替代文字
+
+<div align="center">
+
+![设备正面接口位置](https://example.com/device-front.png)
+
+图 1 设备正面接口位置
+
+</div>
+
+图片和图题共同居中后，读者可以直接把图形与名称对应起来；交付到不支持页面居中的纯文本阅读器时，需要明确说明阅读器会忽略版式设置
 '@
     }
 )

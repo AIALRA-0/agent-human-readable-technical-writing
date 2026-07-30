@@ -6,8 +6,8 @@
 
 [![Quality checks](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml/badge.svg)](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml)
 [![MIT License](https://img.shields.io/badge/license-MIT-315c4c.svg)](LICENSE)
-[![113 rule checks](https://img.shields.io/badge/rule_checks-113-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
-[![32 full answers](https://img.shields.io/badge/full_QA_cases-32-657067.svg)](QA-CASES.md)
+[![119 rule checks](https://img.shields.io/badge/rule_checks-119-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
+[![33 full answers](https://img.shields.io/badge/full_QA_cases-33-657067.svg)](QA-CASES.md)
 [![Local first](https://img.shields.io/badge/data-local_first-6b5b95.svg)](#9-隐私边界)
 
 [查看改写效果](#1-改写效果) · [开始使用](#3-开始使用) · [了解处理过程](#4-处理过程) · [检查完整案例](QA-CASES.md) · [阅读详细规则](references/style-rules.md) · [运行质量检查](#7-质量检查)
@@ -63,6 +63,8 @@
 
 改写后的正文把内部状态还原成读者真正需要的判断：
 
+<div align="center">
+
 | 读者需要判断的事情 | 改写后能够获得的信息 |
 |---|---|
 | 哪部分已经完成 | 芯片软件实现流程已经完成 |
@@ -73,11 +75,13 @@
 
 表 1.1 技术状态改写后形成的判断信息
 
+</div>
+
 真正的改写会补齐证据、边界、责任人和下一步行动，让第一次阅读的人能够直接判断和执行
 
 ## 2 写作规则
 
-这个技能把写作要求整理成十六项能够检查的规则
+这个技能把写作要求整理成十七项能够检查的规则
 
 ### 2.1 正式术语需要保留并解释
 
@@ -191,13 +195,23 @@ Vivado 芯片设计套件（Vivado Design Suite）负责完成芯片设计处理
 
 用户明确要求论文、期刊、会议或其他出版格式时，才采用表题在上、图题在下的出版惯例 [1]
 
-### 2.15 引用需要顺序编码
+### 2.15 图表需要共同居中
+
+表格、图片、流程图及其题注默认在页面中共同居中，读者可以直接看出题注属于哪个对象
+
+支持网页标签的 Markdown 轻量标记语言（Markdown）文档使用 `<div align="center">` 包住对象和题注
+
+Word 文字处理文档（Microsoft Word）、PDF 便携式文档格式（Portable Document Format）、幻灯片和网页使用目标格式提供的原生居中设置
+
+纯轻量标记语言阅读器可能忽略网页标签，交付时需要说明这个版式限制，并继续保留完整内容和题注
+
+### 2.16 引用需要顺序编码
 
 正文按照来源第一次出现的顺序使用 `[1]`、`[2]`
 
 文末按照相同编号列出完整来源，重复引用同一来源时沿用原编号
 
-### 2.16 否定需要保持直接
+### 2.17 否定需要保持直接
 
 `不能不处理` 需要先消化两次否定，改成“必须处理”后能够直接理解
 
@@ -226,6 +240,8 @@ Copy-Item "$HOME\.codex\skills\human-readable-technical-writing\AGENTS.example.m
 
 下面的流程图展示一份材料怎样变成能够直接阅读的结果：
 
+<div align="center">
+
 ```mermaid
 %% 从原始材料开始展示完整处理顺序
 flowchart TD
@@ -240,6 +256,8 @@ flowchart TD
 
 图 4.1 中文技术内容处理流程
 
+</div>
+
 这个过程先解决读者的问题，再补充正式名称和原始证据
 
 技术名称不会被删除，但它们也不会继续承担解释工作
@@ -247,6 +265,8 @@ flowchart TD
 ## 5 规则读取方式
 
 项目把不同用途的内容分开保存，普通回答不需要读取全部测试材料
+
+<div align="center">
 
 | 内容 | 什么时候读取 | 解决什么问题 |
 |---|---|---|
@@ -257,11 +277,13 @@ flowchart TD
 
 表 5.1 规则材料的读取时机
 
+</div>
+
 完整测试材料不会自动进入普通对话，因此增加测试案例不会等量增加每次回答需要读取的内容
 
 ## 6 完整案例
 
-读者需要亲自判断实际回答是否自然、清楚并且有足够依据，所以[完整问答案例](QA-CASES.md)公开展示三十二个问题和对应回答
+读者需要亲自判断实际回答是否自然、清楚并且有足够依据，所以[完整问答案例](QA-CASES.md)公开展示三十三个问题和对应回答
 
 案例覆盖五种长度：
 
@@ -319,6 +341,7 @@ flowchart TD
 - 图表编号与所属章节不匹配
 - 图表使用零编号或进入新章节后没有重新计数
 - 个人文档和出版格式使用了错误的表题位置
+- 表格、图片、流程图或对应题注没有共同居中
 - 非问答内容使用疑问句标题
 - 不符合顺序编码格式的引用
 - 双重否定
@@ -332,21 +355,21 @@ flowchart TD
 
 当前公开测试包含下面这些差异：
 
-- 一百一十三组规则正反测试
-- 三十二组完整问答测试
+- 一百一十九组规则正反测试
+- 三十三组完整问答测试
 - 十六组原始术语保留问答测试
 - 五种回答长度
-- 三十二个内容方向
+- 三十三个内容方向
 - 二十七种表达语气
-- 二十三类目标读者
-- 二十三类任务
-- 二十二种内容结构
+- 二十四类目标读者
+- 二十四类任务
+- 二十三种内容结构
 
 运行全部检查：
 
 ```powershell
-pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行一百一十三组规则正反测试
-pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # 执行三十二组完整问答质量测试
+pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行一百一十九组规则正反测试
+pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # 执行三十三组完整问答质量测试
 pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # 使用已经通过检查的结果重新生成案例文档
 ```
 
@@ -355,6 +378,8 @@ pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # 使用已经通过�
 重要报告仍然需要人工核对原始证据，并确认结论没有超过证据能够证明的范围
 
 ## 8 文件说明
+
+<div align="center">
 
 | 路径 | 内容 |
 |---|---|
@@ -368,6 +393,8 @@ pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # 使用已经通过�
 | `QA-CASES.md` | 展示全部问题和完整回答 |
 
 表 8.1 仓库文件说明
+
+</div>
 
 这些文件按照实际用途分开保存，既保留验证证据，也避免普通任务读取无关内容
 

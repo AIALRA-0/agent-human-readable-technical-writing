@@ -63,6 +63,24 @@ function Hide-NonNarrativeZones([string]$Value) {
     return $masked
 }
 
+function Test-InCenteredContainer([string]$Value, [int]$Index) {
+    # 解析当前位置之前仍未闭合的容器，确认对象或题注处于页面居中区域
+    $prefix = $Value.Substring(0, [Math]::Min($Index, $Value.Length))
+    $containerStack = [Collections.Generic.List[bool]]::new()
+    $containerMatches = [regex]::Matches($prefix, '(?is)<div\b[^>]*>|</div\s*>')
+    foreach ($containerMatch in $containerMatches) {
+        if ($containerMatch.Value -match '(?is)^</div') {
+            if ($containerStack.Count -gt 0) {
+                $containerStack.RemoveAt($containerStack.Count - 1)
+            }
+            continue
+        }
+        $isCentered = $containerMatch.Value -match '(?i)\balign\s*=\s*(?:"center"|''center''|center)'
+        $containerStack.Add($isCentered)
+    }
+    return $containerStack.Contains($true)
+}
+
 function Get-NumberedChapterAtIndex([string]$Value, [int]$Index) {
     # 图表编号使用最近的二级章节编号，文档没有编号章节时返回空值
     $beforeObject = $Value.Substring(0, [Math]::Min($Index, $Value.Length))
@@ -362,17 +380,39 @@ $tableMatches = [regex]::Matches(
 $globalExpectedTableNumber = 1
 $expectedTableNumberByChapter = @{}
 foreach ($tableMatch in $tableMatches) {
+    if (-not (Test-InCenteredContainer $withoutCodeBlocks $tableMatch.Index)) {
+        $issues.Add([pscustomobject]@{
+            rule = 'TABLE_SHOULD_BE_CENTERED'
+            line = Get-LineNumber $withoutCodeBlocks $tableMatch.Index
+            excerpt = $tableMatch.Groups['header'].Value
+        })
+    }
+
     # 同时读取表格前后的题注，才能区分题注缺失和题注位置错误
     $beforeTable = $withoutCodeBlocks.Substring(0, $tableMatch.Index)
-    $previousLines = @($beforeTable -split '\r?\n')
-    $previousNonblank = @($previousLines | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Last 1)
-    $previousTitle = if ($previousNonblank.Count -eq 1) { $previousNonblank[0].Trim() } else { '' }
+    # 允许表题与表格之间只隔着居中容器开标签，以便识别容器外的出版表题
+    $previousTitleCandidate = [regex]::Match(
+        $beforeTable,
+        '(?is)(?<title>表\s+\d+(?:[.-]\d+)?\s+[^\r\n]+)\s*(?:<div\b[^>]*>\s*)*$'
+    )
+    $previousTitle = if ($previousTitleCandidate.Success) {
+        $previousTitleCandidate.Groups['title'].Value.Trim()
+    } else {
+        ''
+    }
     $previousTitleMatch = [regex]::Match($previousTitle, '^表\s+(?<number>\d+(?:[.-]\d+)?)\s+\S')
 
     $afterTable = $withoutCodeBlocks.Substring($tableMatch.Index + $tableMatch.Length)
-    $nextLines = @($afterTable -split '\r?\n')
-    $nextNonblank = @($nextLines | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -First 1)
-    $nextTitle = if ($nextNonblank.Count -eq 1) { $nextNonblank[0].Trim() } else { '' }
+    # 允许表格结束后先闭合居中容器，以便识别容器外的个人文档表题
+    $nextTitleCandidate = [regex]::Match(
+        $afterTable,
+        '(?is)^\s*(?:</div\s*>\s*)*(?<title>表\s+\d+(?:[.-]\d+)?\s+[^\r\n]+)'
+    )
+    $nextTitle = if ($nextTitleCandidate.Success) {
+        $nextTitleCandidate.Groups['title'].Value.Trim()
+    } else {
+        ''
+    }
     $nextTitleMatch = [regex]::Match($nextTitle, '^表\s+(?<number>\d+(?:[.-]\d+)?)\s+\S')
 
     # 根据文档用途选择题注位置，默认采用个人文档的视觉统一方案
@@ -380,11 +420,21 @@ foreach ($tableMatch in $tableMatches) {
         $title = $previousTitle
         $titleMatch = $previousTitleMatch
         $oppositeTitleMatch = $nextTitleMatch
+        $titleIndex = if ($previousTitleCandidate.Success) {
+            $previousTitleCandidate.Groups['title'].Index
+        } else {
+            -1
+        }
     }
     else {
         $title = $nextTitle
         $titleMatch = $nextTitleMatch
         $oppositeTitleMatch = $previousTitleMatch
+        $titleIndex = if ($nextTitleCandidate.Success) {
+            $tableMatch.Index + $tableMatch.Length + $nextTitleCandidate.Groups['title'].Index
+        } else {
+            -1
+        }
     }
 
     if (-not $titleMatch.Success) {
@@ -400,6 +450,14 @@ foreach ($tableMatch in $tableMatches) {
             excerpt = if ($oppositeTitleMatch.Success) { $oppositeTitleMatch.Value } else { $tableMatch.Groups['header'].Value }
         })
         continue
+    }
+
+    if ($titleIndex -lt 0 -or -not (Test-InCenteredContainer $withoutCodeBlocks $titleIndex)) {
+        $issues.Add([pscustomobject]@{
+            rule = 'VISUAL_CAPTION_SHOULD_BE_CENTERED'
+            line = Get-LineNumber $withoutCodeBlocks $tableMatch.Index
+            excerpt = $title
+        })
     }
 
     # 编号章节中的表格使用“章节号.本章序号”，无章节短文继续使用单一序号
@@ -492,10 +550,25 @@ foreach ($block in $codeBlockMatches) {
 $globalExpectedFigureNumber = 1
 $expectedFigureNumberByChapter = @{}
 foreach ($figure in @($figureCandidates | Sort-Object Index)) {
+    if (-not (Test-InCenteredContainer $Text $figure.Index)) {
+        $issues.Add([pscustomobject]@{
+            rule = 'FIGURE_SHOULD_BE_CENTERED'
+            line = Get-LineNumber $Text $figure.Index
+            excerpt = $figure.Excerpt
+        })
+    }
+
     $afterFigure = $Text.Substring($figure.End)
-    $nextLines = @($afterFigure -split '\r?\n')
-    $nextNonblank = @($nextLines | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -First 1)
-    $caption = if ($nextNonblank.Count -eq 1) { $nextNonblank[0].Trim() } else { '' }
+    # 允许先结束图形自己的居中容器，再读取容器外的图题，以便准确报告题注没有共同居中
+    $followingCaptionMatch = [regex]::Match(
+        $afterFigure,
+        '(?is)^\s*(?:</div\s*>\s*)*(?<caption>图\s+\d+(?:[.-]\d+)?\s+[^\r\n]+)'
+    )
+    $caption = if ($followingCaptionMatch.Success) {
+        $followingCaptionMatch.Groups['caption'].Value.Trim()
+    } else {
+        ''
+    }
     $captionMatch = [regex]::Match($caption, '^图\s+(?<number>\d+(?:[.-]\d+)?)\s+\S')
     if (-not $captionMatch.Success) {
         $issues.Add([pscustomobject]@{
@@ -504,6 +577,19 @@ foreach ($figure in @($figureCandidates | Sort-Object Index)) {
             excerpt = $figure.Excerpt
         })
         continue
+    }
+
+    $captionIndex = if ($followingCaptionMatch.Success) {
+        $figure.End + $followingCaptionMatch.Groups['caption'].Index
+    } else {
+        -1
+    }
+    if ($captionIndex -lt 0 -or -not (Test-InCenteredContainer $Text $captionIndex)) {
+        $issues.Add([pscustomobject]@{
+            rule = 'VISUAL_CAPTION_SHOULD_BE_CENTERED'
+            line = Get-LineNumber $Text $figure.Index
+            excerpt = $caption
+        })
     }
 
     # 图形采用与表格相同的章节编号规则，但两类对象分别计算本章序号

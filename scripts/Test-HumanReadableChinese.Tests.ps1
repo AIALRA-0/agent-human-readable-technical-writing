@@ -113,7 +113,7 @@ $cases = @(
     },
     @{
         Name = '徽章和表格结构通过'
-        Text = "[![Quality checks](https://example.com/badge.svg)](https://example.com/checks)`n`n| 项目 | 内容 |`n|---|---|`n| 状态、原因和后果 | 原始证据 |`n`n表 1 检查结果"
+        Text = "[![Quality checks](https://example.com/badge.svg)](https://example.com/checks)`n`n<div align=`"center`">`n`n| 项目 | 内容 |`n|---|---|`n| 状态、原因和后果 | 原始证据 |`n`n表 1 检查结果`n`n</div>"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -135,7 +135,7 @@ $cases = @(
     },
     @{
         Name = '竖向流程图通过'
-        Text = "流程图按照执行顺序从上到下排列：`n`n${fence}mermaid`n%% 从输入开始展示完整处理顺序`nflowchart TD`n    A[读取输入] --> B[检查内容]`n    B --> C[输出结果]`n${fence}`n`n图 1 内容处理顺序`n`n竖向排列让阅读顺序和执行顺序保持一致"
+        Text = "流程图按照执行顺序从上到下排列：`n`n<div align=`"center`">`n`n${fence}mermaid`n%% 从输入开始展示完整处理顺序`nflowchart TD`n    A[读取输入] --> B[检查内容]`n    B --> C[输出结果]`n${fence}`n`n图 1 内容处理顺序`n`n</div>`n`n竖向排列让阅读顺序和执行顺序保持一致"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -155,12 +155,12 @@ $cases = @(
     },
     @{
         Name = '图表独立编号通过'
-        Text = "| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 1 第一轮结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二轮 | 通过 |`n`n表 2 第二轮结果`n`n![处理结果](https://example.com/result.png)`n`n图 1 处理结果`n`n![复查结果](https://example.com/review.png)`n`n图 2 复查结果"
+        Text = "<div align=`"center`">`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 1 第一轮结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二轮 | 通过 |`n`n表 2 第二轮结果`n`n![处理结果](https://example.com/result.png)`n`n图 1 处理结果`n`n![复查结果](https://example.com/review.png)`n`n图 2 复查结果`n`n</div>"
         ExpectedStatus = 'PASS'
     },
     @{
         Name = '出版格式表题在上通过'
-        Text = "表 1 检查结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |"
+        Text = "<div align=`"center`">`n`n表 1 检查结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n</div>"
         CaptionStyle = 'Publication'
         ExpectedStatus = 'PASS'
     },
@@ -177,7 +177,7 @@ $cases = @(
     },
     @{
         Name = '按章节重新编号图表通过'
-        Text = "## 1 第一章`n`n| 项目 | 结果 |`n|---|---|`n| 第一项 | 通过 |`n`n表 1.1 第一项结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二项 | 通过 |`n`n表 1.2 第二项结果`n`n![第一章结果](https://example.com/one.png)`n`n图 1.1 第一章结果`n`n## 2 第二章`n`n| 项目 | 结果 |`n|---|---|`n| 第三项 | 通过 |`n`n表 2.1 第三项结果`n`n![第二章结果](https://example.com/two.png)`n`n图 2.1 第二章结果"
+        Text = "## 1 第一章`n`n<div align=`"center`">`n`n| 项目 | 结果 |`n|---|---|`n| 第一项 | 通过 |`n`n表 1.1 第一项结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二项 | 通过 |`n`n表 1.2 第二项结果`n`n![第一章结果](https://example.com/one.png)`n`n图 1.1 第一章结果`n`n</div>`n`n## 2 第二章`n`n<div align=`"center`">`n`n| 项目 | 结果 |`n|---|---|`n| 第三项 | 通过 |`n`n表 2.1 第三项结果`n`n![第二章结果](https://example.com/two.png)`n`n图 2.1 第二章结果`n`n</div>"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -532,6 +532,37 @@ $cases = @(
         Name = '图片缺少编号图题失败'
         Text = '![处理结果](https://example.com/result.png)'
         ExpectedRule = 'FIGURE_REQUIRES_NUMBERED_CAPTION'
+    },
+    @{
+        Name = '表格没有页面居中失败'
+        Text = "| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 1 第一轮结果"
+        ExpectedRule = 'TABLE_SHOULD_BE_CENTERED'
+    },
+    @{
+        Name = '图片没有页面居中失败'
+        Text = "![处理结果](https://example.com/result.png)`n`n图 1 处理结果"
+        ExpectedRule = 'FIGURE_SHOULD_BE_CENTERED'
+    },
+    @{
+        Name = '流程图没有页面居中失败'
+        Text = "${fence}mermaid`nflowchart TD`n    A[开始] --> B[结束]`n${fence}`n`n图 1 处理流程"
+        ExpectedRule = 'FIGURE_SHOULD_BE_CENTERED'
+    },
+    @{
+        Name = '图题没有随图片居中失败'
+        Text = "<div align=`"center`">`n`n![处理结果](https://example.com/result.png)`n`n</div>`n`n图 1 处理结果"
+        ExpectedRule = 'VISUAL_CAPTION_SHOULD_BE_CENTERED'
+    },
+    @{
+        Name = '个人文档表题没有随表格居中失败'
+        Text = "<div align=`"center`">`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n</div>`n`n表 1 第一轮结果"
+        ExpectedRule = 'VISUAL_CAPTION_SHOULD_BE_CENTERED'
+    },
+    @{
+        Name = '出版文档表题没有随表格居中失败'
+        Text = "表 1 第一轮结果`n`n<div align=`"center`">`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n</div>"
+        CaptionStyle = 'Publication'
+        ExpectedRule = 'VISUAL_CAPTION_SHOULD_BE_CENTERED'
     },
     @{
         Name = 'Windows换行流程图缺少图题失败'
