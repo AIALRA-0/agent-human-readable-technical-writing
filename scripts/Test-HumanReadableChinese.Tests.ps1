@@ -9,14 +9,30 @@ $lintPath = Join-Path $PSScriptRoot 'Test-HumanReadableChinese.ps1'
 function Invoke-Lint(
     [string]$Value,
     [string]$CaptionStyle = 'Personal',
-    [bool]$AllowQuestionHeadings = $false
+    [bool]$AllowQuestionHeadings = $false,
+    [string[]]$RequiredTerms = @()
 ) {
     # 把正文安全传给独立检查进程，避免测试文字被 PowerShell 当成命令解释
     $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($Value))
+    $encodedTerms = @(
+        $RequiredTerms |
+            Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } |
+            ForEach-Object {
+                [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes([string]$_))
+            }
+    )
+    $termExpressions = @($encodedTerms | ForEach-Object {
+        "[Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('$_'))"
+    })
+    $requiredTermSetup = if ($termExpressions.Count -gt 0) {
+        "`$requiredTerms = @(" + ($termExpressions -join ',') + ")`n"
+    } else {
+        "`$requiredTerms = @()`n"
+    }
     $questionHeadingArgument = if ($AllowQuestionHeadings) { ' -AllowQuestionHeadings' } else { '' }
     $child = @"
 `$text = [Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('$encoded'))
-& '$lintPath' -Text `$text -CaptionStyle '$CaptionStyle'$questionHeadingArgument
+$requiredTermSetup& '$lintPath' -Text `$text -CaptionStyle '$CaptionStyle' -RequiredTerm `$requiredTerms$questionHeadingArgument
 "@
     $output = & pwsh -NoLogo -NoProfile -NonInteractive -Command $child 2>&1
     $exitCode = $LASTEXITCODE
@@ -33,6 +49,11 @@ $cases = @(
     @{
         Name = '完整因果链通过'
         Text = '根据订单系统记录，每100笔订单约有9笔没有按时足量交付；继续积压会增加投诉，因此今天需要介入'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '原因先行的直接转折通过'
+        Text = '真实硬件验证尚未完成，因此产品仍不能发布'
         ExpectedStatus = 'PASS'
     },
     @{
@@ -98,6 +119,13 @@ $cases = @(
     @{
         Name = '缩写映射通过'
         Text = 'DNS 域名系统（Domain Name System）负责把网站名称转换成网络地址；转换失败后，新网页无法找到服务器'
+        RequiredTerms = @('DNS')
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '内部名称与解释共同保留通过'
+        Text = '项目把当前状态记录为 `FLOW_VALIDATED`；这个内部状态表示本轮软件流程已经完成'
+        RequiredTerms = @('FLOW_VALIDATED')
         ExpectedStatus = 'PASS'
     },
     @{
@@ -343,6 +371,18 @@ $cases = @(
         ExpectedRule = 'POSSIBLY_UNEXPLAINED_FIRST_ENGLISH_TERM'
     },
     @{
+        Name = '原始术语被替换失败'
+        Text = '域名系统负责把网站名称转换成网络地址'
+        RequiredTerms = @('DNS')
+        ExpectedRule = 'ORIGINAL_TERM_MUST_BE_RETAINED'
+    },
+    @{
+        Name = '原始术语缺少解释失败'
+        Text = '项目状态为 `FLOW_VALIDATED`'
+        RequiredTerms = @('FLOW_VALIDATED')
+        ExpectedRule = 'ORIGINAL_TERM_REQUIRES_EXPLANATION'
+    },
+    @{
         Name = '单位映射顺序失败'
         Text = '单位每升（U/L，表示样本活性）；'
         ExpectedRule = 'UNIT_ABBREVIATION_MUST_LEAD_MAPPING'
@@ -549,6 +589,11 @@ $cases = @(
         ExpectedRule = 'DOUBLE_NEGATIVE_SHOULD_BE_SIMPLIFIED'
     },
     @{
+        Name = '不是而是否定先行失败'
+        Text = '阻塞产品发布的不是本轮实现结果，而是真实硬件验证尚未完成'
+        ExpectedRule = 'NEGATIVE_FIRST_CONTRAST_SHOULD_BE_DIRECT'
+    },
+    @{
         Name = '简单键值拆行失败'
         Text = "项目 Vivado 冻结版本为：`n2024.1"
         ExpectedRule = 'SIMPLE_KEY_VALUE_SHOULD_STAY_INLINE'
@@ -581,7 +626,8 @@ foreach ($case in $cases) {
     # 每个案例可以单独声明出版题注或问答标题，未声明时使用个人文档默认值
     $captionStyle = if ($case.ContainsKey('CaptionStyle')) { $case.CaptionStyle } else { 'Personal' }
     $allowQuestionHeadings = $case.ContainsKey('AllowQuestionHeadings') -and $case.AllowQuestionHeadings
-    $run = Invoke-Lint -Value $case.Text -CaptionStyle $captionStyle -AllowQuestionHeadings $allowQuestionHeadings
+    $requiredTerms = if ($case.ContainsKey('RequiredTerms')) { @($case.RequiredTerms) } else { @() }
+    $run = Invoke-Lint -Value $case.Text -CaptionStyle $captionStyle -AllowQuestionHeadings $allowQuestionHeadings -RequiredTerms $requiredTerms
     if ($case.ContainsKey('ExpectedStatus') -and $case.ExpectedStatus -eq 'PASS') {
         $passed = $run.Result.status -eq 'PASS'
         $caseResults.Add([pscustomobject]@{

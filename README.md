@@ -6,7 +6,7 @@
 
 [![Quality checks](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml/badge.svg)](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml)
 [![MIT License](https://img.shields.io/badge/license-MIT-315c4c.svg)](LICENSE)
-[![108 rule checks](https://img.shields.io/badge/rule_checks-108-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
+[![113 rule checks](https://img.shields.io/badge/rule_checks-113-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
 [![32 full answers](https://img.shields.io/badge/full_QA_cases-32-657067.svg)](QA-CASES.md)
 [![Local first](https://img.shields.io/badge/data-local_first-6b5b95.svg)](#9-隐私边界)
 
@@ -24,7 +24,9 @@
 
 ## 1 改写效果
 
-好的改写不是把 `FLOW_VALIDATED` 换成 `流程已经验证`，而是让不认识内部名称的读者也能判断完成范围、证据边界、实际风险和下一步行动
+好的改写需要让不认识内部名称的读者直接判断完成范围、证据边界、实际风险和下一步行动
+
+如果只把 `FLOW_VALIDATED` 换成 `流程已经验证`，读者仍然得不到这些信息
 
 下面使用同一份芯片验证记录展示改写前后的差别
 
@@ -42,15 +44,22 @@
 
 ### 1.2 改写后的输出
 
-> 芯片本轮的软件实现流程已经完成
+> `S01-F` 是本次芯片验证阶段的内部编号
 >
-> 最终日志记录显示，设计已经成功转换成芯片能够实现的连接，并完成芯片内部的位置安排和连线
+> 项目把当前状态记录为 `FLOW_VALIDATED`；这个内部状态表示本轮软件实现流程和规定检查已经完成，但它只关闭软件流程
 >
-> 芯片规则检查没有发现违规连接或布局，跨时钟检查也没有发现已知的信号不稳定风险；两项检查都留下了能够重新核对的记录，因此本轮软件实现结果具备通过证据
+> `strict ImplementationGate` 严格实现门禁（Strict Implementation Gate）已经通过；这个门禁要求所有强制检查同时通过，任一检查失败都会阻止本轮结果进入交付
 >
-> 真实板卡尚未进行运行测试，因此现有证据不能证明芯片在真实设备上能够稳定工作，产品也不能据此获准发布
+> 最终日志还记录了两项检查结果
 >
-> 项目负责人现在可以归档本轮软件流程和检查记录；板级负责人仍需单独完成真实板卡测试，并根据测试结果决定是否进入产品发布
+> - `DRC` 设计规则检查（Design Rule Check）没有发现违规连接或布局
+> - `CDC` 时钟域交叉检查（Clock Domain Crossing）没有发现已知的信号不稳定风险
+>
+> 两项检查都留下了能够重新核对的记录，因此本轮软件实现结果具备通过证据
+>
+> `HostCompletion V5` 是项目的主机完成状态记录；其中 `NOT_RELEASED` 表示真实板卡尚未完成运行测试，现有证据仍不允许产品发布
+>
+> 项目负责人现在可以归档本轮软件流程和检查记录；板级负责人仍需完成真实板卡测试，并根据测试结果决定是否进入产品发布
 
 改写后的正文把内部状态还原成读者真正需要的判断：
 
@@ -64,17 +73,21 @@
 
 表 1.1 技术状态改写后形成的判断信息
 
-真正的改写不是把英文状态换成中文状态，而是补齐证据、边界、责任人和下一步行动，让第一次阅读的人能够直接判断和执行
+真正的改写会补齐证据、边界、责任人和下一步行动，让第一次阅读的人能够直接判断和执行
 
 ## 2 写作规则
 
 这个技能把写作要求整理成十六项能够检查的规则
 
-### 2.1 陌生词需要自然解释
+### 2.1 正式术语需要保留并解释
 
-陌生词首次出现时，正文先说明它是什么，再解释为什么重要以及失败后果
+原文已经使用的正式术语、英文缩写和内部名称继续保留，读者可以使用原名称搜索日志、核对配置并与专业人员沟通
 
-正文不会使用字段标签拼接括号定义
+术语首次出现后，正文立即说明它是什么、为什么重要以及失败会造成什么
+
+术语和解释共同构成完整内容；术语不能独自承担说明任务，通俗解释也不能抹掉原始名称
+
+正文使用自然短句解释，不使用字段标签拼接括号定义
 
 ### 2.2 判断需要事实支撑
 
@@ -319,8 +332,9 @@ flowchart TD
 
 当前公开测试包含下面这些差异：
 
-- 一百零八组规则正反测试
+- 一百一十三组规则正反测试
 - 三十二组完整问答测试
+- 十六组原始术语保留问答测试
 - 五种回答长度
 - 三十二个内容方向
 - 二十七种表达语气
@@ -331,7 +345,7 @@ flowchart TD
 运行全部检查：
 
 ```powershell
-pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行一百零八组规则正反测试
+pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行一百一十三组规则正反测试
 pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # 执行三十二组完整问答质量测试
 pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # 使用已经通过检查的结果重新生成案例文档
 ```

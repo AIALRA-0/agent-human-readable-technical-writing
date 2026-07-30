@@ -9,6 +9,8 @@ param(
     [ValidateSet('Personal', 'Publication')]
     [string]$CaptionStyle = 'Personal',
 
+    [string[]]$RequiredTerm = @(),
+
     [switch]$AllowQuestionHeadings
 )
 
@@ -766,6 +768,18 @@ foreach ($lineMatch in $lineMatches) {
         })
     }
 
+    $negativeFirstContrastMatches = [regex]::Matches(
+        $screenedNarrativeLine,
+        '(?<term>(?:不是|并非)[^，；！？\r\n]{1,80}，?而是|不在于[^，；！？\r\n]{1,80}，?而在于)'
+    )
+    foreach ($match in $negativeFirstContrastMatches) {
+        $issues.Add([pscustomobject]@{
+            rule = 'NEGATIVE_FIRST_CONTRAST_SHOULD_BE_DIRECT'
+            line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
+            excerpt = $match.Groups['term'].Value
+        })
+    }
+
     $ambiguousFrozenVersionMatches = [regex]::Matches($screenedNarrativeLine, '项目(?:的)?冻结版本')
     foreach ($match in $ambiguousFrozenVersionMatches) {
         $issues.Add([pscustomobject]@{
@@ -1137,6 +1151,40 @@ for ($plainLineIndex = 0; $plainLineIndex -lt ($plainLines.Count - 1); $plainLin
             rule = 'SIMPLE_KEY_VALUE_SHOULD_STAY_INLINE'
             line = $plainLineIndex + 1
             excerpt = ($labelLine.Trim() + ' ' + $valueLine)
+        })
+    }
+}
+
+foreach ($term in @($RequiredTerm)) {
+    if ([string]::IsNullOrWhiteSpace($term)) {
+        continue
+    }
+    $termIndex = $Text.IndexOf($term, [StringComparison]::Ordinal)
+    if ($termIndex -lt 0) {
+        $issues.Add([pscustomobject]@{
+            rule = 'ORIGINAL_TERM_MUST_BE_RETAINED'
+            line = 1
+            excerpt = $term
+        })
+        continue
+    }
+
+    # 首次保留术语后必须立即出现名称映射或自然解释，避免原词被机械贴回正文
+    $tailStart = $termIndex + $term.Length
+    $tailLength = [Math]::Min(220, $Text.Length - $tailStart)
+    $tail = if ($tailLength -gt 0) {
+        $Text.Substring($tailStart, $tailLength)
+    } else {
+        ''
+    }
+    $chineseCharacterCount = [regex]::Matches($tail, '[\p{IsCJKUnifiedIdeographs}]').Count
+    $hasNameMapping = $tail -match '^\s*`?\s*[一-龥][^（\r\n]{0,50}（[^）]*[A-Za-z][^）]*）'
+    $hasNaturalExplanation = $tail -match '(?:表示|是|指|负责|用于|说明|意味着|会|决定|属于|记录|包含|比较|统计|规定|转换|这个|其中|名称)'
+    if ($chineseCharacterCount -lt 8 -or (-not $hasNameMapping -and -not $hasNaturalExplanation)) {
+        $issues.Add([pscustomobject]@{
+            rule = 'ORIGINAL_TERM_REQUIRES_EXPLANATION'
+            line = Get-LineNumber $Text $termIndex
+            excerpt = Get-Excerpt $Text $termIndex $term.Length
         })
     }
 }

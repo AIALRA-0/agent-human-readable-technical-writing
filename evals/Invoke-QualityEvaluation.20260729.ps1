@@ -50,6 +50,7 @@ $cases = @(
         Direction = 'server-operations'
         Tone = 'urgent'
         Prompt = '服务器磁盘只剩8GB，任务还在跑，马上怎么办'
+        RequiredTerms = @('GB')
         Response = @'
 根据用户本次提供的数据，GB 千兆字节（Gigabyte）是磁盘容量单位；服务器磁盘只剩 8 GB，继续增加任务可能耗尽空间并破坏尚未写完的文件
 
@@ -69,6 +70,7 @@ $cases = @(
         Direction = 'network-concept'
         Tone = 'teaching'
         Prompt = '把DNS讲给完全不懂网络的人听'
+        RequiredTerms = @('DNS')
         Response = @'
 DNS 域名系统（Domain Name System）负责把人能记住的网站名称转换成计算机使用的网络地址；没有这一步，浏览器知道你想访问哪个名称，却不知道应该连接哪台服务器
 
@@ -88,8 +90,9 @@ DNS 域名系统（Domain Name System）负责把人能记住的网站名称转�
         Direction = 'manufacturing-quality'
         Tone = 'analytical'
         Prompt = 'Cpk从1.45掉到1.08，到底说明什么，要不要停线'
+        RequiredTerms = @('Cpk')
         Response = @'
-根据用户本次提供的数据，$C_{pk}$ 是过程能力指数（Process Capability Index），用于比较生产波动和产品允许范围；数值从 $1.45$ 降到 $1.08$，说明生产结果比以前更容易靠近或越过允许边界，因此不合格品风险正在增加
+根据用户本次提供的数据，用户输入中的 `Cpk` 指 $C_{pk}$ 过程能力指数（Process Capability Index）；这个指数用于比较生产波动和产品允许范围，数值从 $1.45$ 降到 $1.08$，说明生产结果比以前更容易靠近或越过允许边界，因此不合格品风险正在增加
 
 这两个数值还不能单独决定是否停线，因为判断仍缺少下面三类证据：
 
@@ -113,6 +116,7 @@ DNS 域名系统（Domain Name System）负责把人能记住的网站名称转�
         Direction = 'credit-analysis'
         Tone = 'formal'
         Prompt = '公司预测DSCR为1.18，银行能不能据此判断明年肯定还得上钱'
+        RequiredTerms = @('DSCR')
         Response = @'
 根据用户本次提供的预测数据，DSCR 偿债能力覆盖倍数（Debt Service Coverage Ratio）比较企业可用于还款的资金和同期需要偿还的本息；预测值为 $1.18$，表示预测资金只比预测还款金额高 $18\%$，缓冲空间较小
 
@@ -158,6 +162,7 @@ DNS 域名系统（Domain Name System）负责把人能记住的网站名称转�
         Direction = 'health-explanation'
         Tone = 'empathetic'
         Prompt = '体检eGFR只有58，我是不是肾衰了，吓死了'
+        RequiredTerms = @('eGFR')
         Response = @'
 根据用户本次提供的检验数据，单次结果为 $58$ 不能独立证明已经发生肾衰竭
 
@@ -196,6 +201,7 @@ eGFR 估算肾小球滤过率（Estimated Glomerular Filtration Rate）用于估
         Direction = 'software-debugging'
         Tone = 'technical'
         Prompt = 'API一直返回429，别只扔给我一个错误码，告诉我为什么和怎么修'
+        RequiredTerms = @('API', '429')
         Response = @'
 API 应用程序接口（Application Programming Interface）持续返回状态码 $429$，通常表示客户端在一段时间内发送了过多请求；服务器为了保护容量而暂时拒绝部分请求，所以立即重复发送只会延长故障
 
@@ -217,8 +223,9 @@ API 应用程序接口（Application Programming Interface）持续返回状态�
         Direction = 'engineering-closure'
         Tone = 'skeptical'
         Prompt = '你是不是为了交差才说FPGA阶段完成了，明明板子都没测'
+        RequiredTerms = @('FPGA')
         Response = @'
-不能把本轮流程完成写成产品已经完成，因为真实板卡尚未测试；现有证据只能证明服务器上的完整软件流程已经执行并留下记录
+FPGA 现场可编程门阵列（Field-Programmable Gate Array）本轮的软件流程已经执行并留下记录；真实板卡尚未测试，因此现有证据只能证明流程完成，不能证明产品完成
 
 本轮已经证明下面六件事：
 
@@ -251,6 +258,7 @@ API 应用程序接口（Application Programming Interface）持续返回状态�
         Direction = 'operations-report'
         Tone = 'executive'
         Prompt = '给管理层写一份订单积压风险简报，数据是OTIF 91%，积压180单，每天新增62单，完成55单，最老订单等了11天'
+        RequiredTerms = @('OTIF')
         Response = @'
 以下数值均来自用户本次提供的订单记录
 
@@ -411,6 +419,7 @@ $$
         InputShape = 'clause'
         Structure = 'rule-branches-boundary'
         Prompt = '这份NDA写着提前30天不通知就自动续一年，用人话解释我会承担什么'
+        RequiredTerms = @('NDA')
         Response = @'
 NDA 保密协议（Non-Disclosure Agreement）规定哪些信息不能向外披露；这份条款表示合同到期前没有按时发送书面通知，保密义务就会自动延长一年
 
@@ -479,6 +488,7 @@ MFA 多因素身份验证（Multi-Factor Authentication）要求登录者同时�
         InputShape = 'code-fragment'
         Structure = 'headings-code-tests'
         Prompt = '这段代码偶尔报空引用，别只说加判空，解释为什么和怎么验证'
+        RequiredTerms = @('空引用')
         Response = @'
 用户资料不是每次都会存在，但代码直接读取资料中的城市，所以资料为空时就会出现空引用异常（NullReferenceException）；这个异常会中断当前请求，用户只能看到失败结果
 
@@ -563,8 +573,9 @@ return ProfileResult.Found(user.Profile.City);
         InputShape = 'timeline-notes'
         Structure = 'timeline-causes-actions-gates'
         Prompt = '把模板下沉事故写成一份业主能看懂的通报，别堆施工术语'
+        RequiredTerms = @('模板下沉事故')
         Response = @'
-三层楼板浇筑过程中出现局部下沉，因为托住未凝固混凝土的临时支撑发生位移；现场已经停止继续浇筑并封锁受影响区域，目前没有人员受伤
+现场把这次事件记录为模板下沉事故；这个名称表示托住未凝固混凝土的临时结构发生位移，导致三层楼板浇筑区域局部下沉；现场已经停止继续浇筑并封锁受影响区域，目前没有人员受伤
 
 ## 1 发生经过
 
@@ -724,8 +735,9 @@ return ProfileResult.Found(user.Profile.City);
         InputShape = 'partial-run-state'
         Structure = 'status-timeline-gates-rollback'
         Prompt = '白班迁库迁到一半，给夜班写一份能接手的交接，别只贴日志'
+        RequiredTerms = @('迁库')
         Response = @'
-客户资料已经完成复制，但订单资料仍在校验，所以夜班只能继续检查，不能切换正式系统；现在切换会让一部分订单只存在于旧系统，查询结果可能前后不一致
+迁库表示把正式业务数据从旧系统迁移到新系统；客户资料已经完成复制，但订单资料仍在校验，所以夜班只能继续检查，不能切换正式系统；现在切换会让一部分订单只存在于旧系统，查询结果可能前后不一致
 
 ## 1 当前状态
 
@@ -787,7 +799,7 @@ RTO 恢复时间目标（Recovery Time Objective）表示发生故障后业务�
 
 夜班负责人是数据库值班人员；需要批准切换时联系业务负责人；出现无法解释的数据差异时联系迁移脚本维护人员
 
-交接重点不是把任务跑到结束，而是在数据一致并且恢复措施可用后再申请切换
+数据一致并且恢复措施可用后，迁移负责人才能申请切换；任务运行结束本身不能证明迁移已经具备切换条件
 '@
     },
     [pscustomobject]@{
@@ -873,8 +885,9 @@ RTO 恢复时间目标（Recovery Time Objective）表示发生故障后业务�
         InputShape = 'dashboard-data'
         Structure = 'multi-section-report'
         Prompt = '急诊等床越来越久，给院领导写完整分析，必须区分事实、推断和还缺什么'
+        RequiredTerms = @('急诊等床')
         Response = @'
-急诊患者等待住院床位的时间正在增加，因为每天需要住院的人数已经连续两周高于每天能够腾出的床位数量；等待继续延长会占用急诊观察区域，使新到患者更难及时接受检查
+急诊等床表示患者已经需要住院，但仍在急诊等待病区床位；每天需要住院的人数已经连续两周高于每天能够腾出的床位数量，所以急诊等床时间正在增加；等待继续延长会占用急诊观察区域，使新到患者更难及时接受检查
 
 现有数据足以证明床位周转出现持续失衡，但还不能把原因全部归结为床位总数不足
 
@@ -1028,8 +1041,9 @@ RTO 恢复时间目标（Recovery Time Objective）表示发生故障后业务�
         InputShape = 'forecast-model'
         Structure = 'formula-scenarios-risks-decision'
         Prompt = '光伏项目预测回报很好，给投委会写一份不被乐观模型骗到的决策稿'
+        RequiredTerms = @('光伏')
         Response = @'
-项目在基准预测下能够回收投入，但盈利高度依赖下面三项假设：
+光伏项目通过太阳能组件发电，项目收入会随着光照条件和设备状态变化；项目在基准预测下能够回收投入，但盈利高度依赖下面三项假设：
 
 - 发电量
 - 售电价格
@@ -1067,7 +1081,7 @@ $$
 
 基准预测的净现值为一千八百万元
 
-这个结果不是已经赚到的钱，而是建立在未来假设全部实现的条件下得到的估算
+这个结果建立在未来假设全部实现的条件上，因此实际收益仍可能低于估算
 
 ## 3 内部回报率
 
@@ -1166,6 +1180,7 @@ IRR 内部回报率（Internal Rate of Return）表示让项目净现值刚好�
         InputShape = 'abstract-and-results'
         Structure = 'claim-evidence-bias-revision'
         Prompt = '论文摘要说新训练方法显著提高记忆力，你帮我挑刺，但不要为了挑刺否定一切'
+        RequiredTerms = @('显著')
         Response = @'
 现有结果支持新训练方法可能改善短期测试成绩，但不能证明它已经稳定提高日常记忆能力
 
@@ -1482,9 +1497,7 @@ API 应用程序接口（Application Programming Interface）负责在不同系�
 
 ## 11 交接结论
 
-项目不是完全未准备，也不是已经可以无条件上线
-
-最准确的状态是内部测试已经完成，但下面三项工作仍待闭环：
+内部测试已经完成，但下面三项工作仍待闭环，因此项目还不能无条件上线：
 
 - 客户验收
 - 超时原因
@@ -1504,8 +1517,9 @@ API 应用程序接口（Application Programming Interface）负责在不同系�
         InputShape = 'terse-technical-records'
         Structure = 'numbered-report-table-figure-references'
         Prompt = '把这些芯片验证记录写成人能直接核对的报告：Vivado 2024.1，器件 xcvu19p，综合过了，实现门禁过了，DRC和CDC都是零问题，板卡没测'
+        RequiredTerms = @('Vivado', 'xcvu19p', '综合', '实现门禁', 'DRC', 'CDC')
         Response = @'
-本轮芯片设计软件流程已经跑通，因为综合、布局布线和强制检查都留下了通过记录；真实板卡尚未测试，所以这份结果只能证明软件流程，不能证明产品已经可以发布
+综合、布局布线和实现门禁都留下通过记录，所以本轮芯片软件流程已经跑通；实现门禁包含全部强制检查，任一检查失败都会阻止结果进入交付；真实板卡尚未测试，所以这份结果只证明软件流程，不能证明产品可以发布
 
 ## 1 环境
 
@@ -1523,7 +1537,7 @@ Vivado 芯片设计套件（Vivado Design Suite）负责把设计转换成目标
 
 实现阶段再完成布局和布线
 
-实现结果只有在全部强制检查通过后才会被接受，这个检查用于阻止带有已知问题的结果进入交付
+实现门禁只有在全部强制检查通过后才会接受实现结果
 
 DRC 设计规则检查（Design Rule Check）负责发现连接或布局是否违反器件规则
 
@@ -1779,9 +1793,18 @@ $results = foreach ($case in $cases) {
     # 根据案例声明选择个人文档、出版格式或问答标题，未声明时使用个人文档默认值
     $captionStyle = Get-CaseField $case 'CaptionStyle' 'Personal'
     $allowQuestionHeadings = Get-CaseBoolean $case 'AllowQuestionHeadings' $false
+    $requiredTermsProperty = $case.PSObject.Properties['RequiredTerms']
+    $requiredTerms = @(
+        if ($null -ne $requiredTermsProperty) {
+            $requiredTermsProperty.Value
+        }
+    )
     $lintArguments = @{
         Text = $case.Response
         CaptionStyle = $captionStyle
+    }
+    if (@($requiredTerms).Count -gt 0) {
+        $lintArguments.RequiredTerm = $requiredTerms
     }
     if ($allowQuestionHeadings) {
         $lintArguments.AllowQuestionHeadings = $true
@@ -1811,6 +1834,7 @@ $results = foreach ($case in $cases) {
         structure = Get-CaseField $case 'Structure' 'prose-with-list'
         caption_style = $captionStyle
         allow_question_headings = $allowQuestionHeadings
+        required_terms = $requiredTerms
         prompt = $case.Prompt
         response = $responseText
         character_count = $characterCount
@@ -1845,6 +1869,7 @@ $uniqueAudienceCount = @($results | Select-Object -ExpandProperty audience -Uniq
 $uniqueTaskTypeCount = @($results | Select-Object -ExpandProperty task_type -Unique).Count
 $uniqueInputShapeCount = @($results | Select-Object -ExpandProperty input_shape -Unique).Count
 $uniqueStructureCount = @($results | Select-Object -ExpandProperty structure -Unique).Count
+$termRetentionCaseCount = @($results | Where-Object { @($_.required_terms).Count -gt 0 }).Count
 $shortExtremeCount = @($results | Where-Object character_count -le 120).Count
 $longExtremeCount = @($results | Where-Object character_count -ge 900).Count
 $maximumLengthShare = Get-MaxCategorySharePercent $results 'length'
@@ -1865,6 +1890,7 @@ $coverageChecks = @(
     [pscustomobject]@{ name = 'task-type-count'; actual = $uniqueTaskTypeCount; required = 'at least 10'; passed = $uniqueTaskTypeCount -ge 10 }
     [pscustomobject]@{ name = 'input-shape-count'; actual = $uniqueInputShapeCount; required = 'at least 8'; passed = $uniqueInputShapeCount -ge 8 }
     [pscustomobject]@{ name = 'structure-count'; actual = $uniqueStructureCount; required = 'at least 10'; passed = $uniqueStructureCount -ge 10 }
+    [pscustomobject]@{ name = 'term-retention-case-count'; actual = $termRetentionCaseCount; required = 'at least 15'; passed = $termRetentionCaseCount -ge 15 }
     [pscustomobject]@{ name = 'very-short-case-count'; actual = $shortExtremeCount; required = 'at least 3 at 120 characters or fewer'; passed = $shortExtremeCount -ge 3 }
     [pscustomobject]@{ name = 'long-case-count'; actual = $longExtremeCount; required = 'at least 5 at 900 characters or more'; passed = $longExtremeCount -ge 5 }
     [pscustomobject]@{ name = 'minimum-character-count'; actual = ($characterCounts | Measure-Object -Minimum).Minimum; required = '80 or fewer'; passed = ($characterCounts | Measure-Object -Minimum).Minimum -le 80 }
@@ -1904,6 +1930,7 @@ $output = [ordered]@{
         task_types = $uniqueTaskTypeCount
         input_shapes = $uniqueInputShapeCount
         structures = $uniqueStructureCount
+        term_retention_cases = $termRetentionCaseCount
         maximum_category_share_percent = [ordered]@{
             length = $maximumLengthShare
             difficulty = $maximumDifficultyShare
