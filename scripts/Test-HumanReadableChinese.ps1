@@ -87,6 +87,74 @@ foreach ($match in $headingMatches) {
     }
 }
 
+# 多章节文档使用十进制层级编号，让标题位置和上下级关系能够被直接引用
+$numberedHeadingCandidates = @(
+    $headingMatches | Where-Object { $_.Groups['hash'].Value.Length -ge 2 }
+)
+$secondLevelHeadingCount = @(
+    $numberedHeadingCandidates | Where-Object { $_.Groups['hash'].Value.Length -eq 2 }
+).Count
+$requiresHierarchicalNumbering = $secondLevelHeadingCount -ge 2 -or @(
+    $numberedHeadingCandidates | Where-Object { $_.Groups['hash'].Value.Length -ge 3 }
+).Count -gt 0
+if ($requiresHierarchicalNumbering) {
+    $nextNumberByParent = @{}
+    foreach ($match in $numberedHeadingCandidates) {
+        $level = $match.Groups['hash'].Value.Length
+        $title = $match.Groups['title'].Value
+        $numberMatch = [regex]::Match($title, '^(?<number>\d+(?:\.\d+)*)\s+\S')
+        if (-not $numberMatch.Success) {
+            $issues.Add([pscustomobject]@{
+                rule = 'SECTION_HEADING_REQUIRES_HIERARCHICAL_NUMBER'
+                line = Get-LineNumber $Text $match.Index
+                excerpt = $title
+            })
+            continue
+        }
+
+        $segments = @($numberMatch.Groups['number'].Value -split '\.' | ForEach-Object { [int]$_ })
+        if ($segments.Count -ne ($level - 1)) {
+            $issues.Add([pscustomobject]@{
+                rule = 'SECTION_NUMBER_DEPTH_MUST_MATCH_HEADING'
+                line = Get-LineNumber $Text $match.Index
+                excerpt = $title
+            })
+            continue
+        }
+        if ($segments | Where-Object { $_ -lt 1 }) {
+            $issues.Add([pscustomobject]@{
+                rule = 'SECTION_NUMBER_MUST_START_AT_ONE'
+                line = Get-LineNumber $Text $match.Index
+                excerpt = $title
+            })
+            continue
+        }
+
+        $parentKey = if ($segments.Count -eq 1) {
+            'ROOT'
+        } else {
+            ($segments[0..($segments.Count - 2)] -join '.')
+        }
+        $expectedNumber = if ($nextNumberByParent.ContainsKey($parentKey)) {
+            [int]$nextNumberByParent[$parentKey]
+        } else {
+            1
+        }
+        if ($segments[-1] -ne $expectedNumber) {
+            $issues.Add([pscustomobject]@{
+                rule = if ($expectedNumber -eq 1) {
+                    'SECTION_NUMBER_MUST_START_AT_ONE'
+                } else {
+                    'SECTION_NUMBER_SEQUENCE_INVALID'
+                }
+                line = Get-LineNumber $Text $match.Index
+                excerpt = $title
+            })
+        }
+        $nextNumberByParent[$parentKey] = $segments[-1] + 1
+    }
+}
+
 $codeBlockMatches = [regex]::Matches(
     $Text,
     '(?ms)^```(?<language>[^\r\n`]*)\r?\n(?<body>.*?)^```[ \t]*$'
@@ -120,6 +188,22 @@ $paragraphCommentPatterns = @{
     jsonc = '^\s*(?://|/\*)'
     mermaid = '^\s*%%'
 }
+$inlineCommentPatterns = @{
+    csharp = '//\s*\S'
+    cs = '//\s*\S'
+    javascript = '//\s*\S'
+    js = '//\s*\S'
+    typescript = '//\s*\S'
+    ts = '//\s*\S'
+    java = '//\s*\S'
+    c = '//\s*\S'
+    cpp = '//\s*\S'
+    'c++' = '//\s*\S'
+    rust = '//\s*\S'
+    go = '//\s*\S'
+    kotlin = '//\s*\S'
+    swift = '//\s*\S'
+}
 
 foreach ($block in $codeBlockMatches) {
     $language = $block.Groups['language'].Value.Trim().ToLowerInvariant()
@@ -152,6 +236,39 @@ foreach ($block in $codeBlockMatches) {
         continue
     }
 
+    # 连续的独立语句仍然属于列表式代码，不能用一条段落注释代替逐行说明
+    if ($inlineCommentPatterns.ContainsKey($language)) {
+        $independentLines = @(
+            $bodyLines | Where-Object {
+                $_ -match ';\s*(?://.*)?$' -and
+                $_ -notmatch '^\s*(?://|if\b|for\b|foreach\b|while\b|switch\b|return\b|throw\b|using\b)' -and
+                $_ -notmatch '[{}]'
+            }
+        )
+        $meaningfulLines = @(
+            $bodyLines | Where-Object {
+                -not [string]::IsNullOrWhiteSpace($_) -and
+                $_ -notmatch '^\s*(?://|[{}])'
+            }
+        )
+        if ($independentLines.Count -ge 2 -and $independentLines.Count -eq $meaningfulLines.Count) {
+            for ($codeLineIndex = 0; $codeLineIndex -lt $bodyLines.Count; $codeLineIndex++) {
+                $codeLine = $bodyLines[$codeLineIndex]
+                if ($codeLine -notin $independentLines) {
+                    continue
+                }
+                if ($codeLine -notmatch $inlineCommentPatterns[$language]) {
+                    $issues.Add([pscustomobject]@{
+                        rule = 'INDEPENDENT_CODE_LINE_REQUIRES_INLINE_COMMENT'
+                        line = (Get-LineNumber $Text $block.Groups['body'].Index) + $codeLineIndex
+                        excerpt = $codeLine.Trim()
+                    })
+                }
+            }
+            continue
+        }
+    }
+
     $commentPattern = if ($paragraphCommentPatterns.ContainsKey($language)) {
         $paragraphCommentPatterns[$language]
     } else {
@@ -179,6 +296,170 @@ foreach ($block in $codeBlockMatches) {
 }
 
 $withoutCodeBlocks = [regex]::Replace($Text, '(?ms)```.*?```', '')
+
+# 表题位于表格上方，并按首次出现顺序从 1 独立编号
+$tableMatches = [regex]::Matches(
+    $withoutCodeBlocks,
+    '(?m)^(?<header>\|[^\r\n]+\|)\r?\n(?<separator>\|\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?)'
+)
+$expectedTableNumber = 1
+foreach ($tableMatch in $tableMatches) {
+    $beforeTable = $withoutCodeBlocks.Substring(0, $tableMatch.Index)
+    $previousLines = @($beforeTable -split '\r?\n')
+    $previousNonblank = @($previousLines | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Last 1)
+    $title = if ($previousNonblank.Count -eq 1) { $previousNonblank[0].Trim() } else { '' }
+    $titleMatch = [regex]::Match($title, '^表\s+(?<number>[1-9]\d*)\s+\S')
+    if (-not $titleMatch.Success) {
+        $issues.Add([pscustomobject]@{
+            rule = 'TABLE_REQUIRES_NUMBERED_TITLE'
+            line = Get-LineNumber $withoutCodeBlocks $tableMatch.Index
+            excerpt = $tableMatch.Groups['header'].Value
+        })
+        continue
+    }
+    if ([int]$titleMatch.Groups['number'].Value -ne $expectedTableNumber) {
+        $issues.Add([pscustomobject]@{
+            rule = 'TABLE_NUMBER_SEQUENCE_INVALID'
+            line = Get-LineNumber $withoutCodeBlocks $tableMatch.Index
+            excerpt = $title
+        })
+    }
+    $expectedTableNumber++
+}
+
+# 图片和流程图的图题位于图形下方，并按首次出现顺序从 1 独立编号
+$figureCandidates = [Collections.Generic.List[object]]::new()
+$imageMatches = [regex]::Matches($Text, '(?m)^[ \t]*!\[[^\]\r\n]*\]\([^)]+\)[ \t]*$')
+foreach ($imageMatch in $imageMatches) {
+    $figureCandidates.Add([pscustomobject]@{
+        Index = $imageMatch.Index
+        End = $imageMatch.Index + $imageMatch.Length
+        Excerpt = $imageMatch.Value.Trim()
+    })
+}
+foreach ($block in $codeBlockMatches) {
+    if ($block.Groups['language'].Value.Trim() -ieq 'mermaid') {
+        $figureCandidates.Add([pscustomobject]@{
+            Index = $block.Index
+            End = $block.Index + $block.Length
+            Excerpt = 'Mermaid 流程图'
+        })
+    }
+}
+$expectedFigureNumber = 1
+foreach ($figure in @($figureCandidates | Sort-Object Index)) {
+    $afterFigure = $Text.Substring($figure.End)
+    $nextLines = @($afterFigure -split '\r?\n')
+    $nextNonblank = @($nextLines | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -First 1)
+    $caption = if ($nextNonblank.Count -eq 1) { $nextNonblank[0].Trim() } else { '' }
+    $captionMatch = [regex]::Match($caption, '^图\s+(?<number>[1-9]\d*)\s+\S')
+    if (-not $captionMatch.Success) {
+        $issues.Add([pscustomobject]@{
+            rule = 'FIGURE_REQUIRES_NUMBERED_CAPTION'
+            line = Get-LineNumber $Text $figure.Index
+            excerpt = $figure.Excerpt
+        })
+        continue
+    }
+    if ([int]$captionMatch.Groups['number'].Value -ne $expectedFigureNumber) {
+        $issues.Add([pscustomobject]@{
+            rule = 'FIGURE_NUMBER_SEQUENCE_INVALID'
+            line = Get-LineNumber $Text $figure.Index
+            excerpt = $caption
+        })
+    }
+    $expectedFigureNumber++
+}
+
+# 引用采用 IEEE 顺序编码制，正文编号和文末条目保持一一对应
+$citationNarrative = [regex]::Replace($withoutCodeBlocks, '`[^`]*`', ${function:Hide-Match})
+$authorYearMatches = [regex]::Matches(
+    $citationNarrative,
+    '(?:\(|（)(?:[A-Z][A-Za-z-]+|[\p{IsCJKUnifiedIdeographs}]{2,4})(?:\s+(?:and|&)\s+[A-Z][A-Za-z-]+)?\s*[,，]\s*(?:19|20)\d{2}[a-z]?(?:\)|）)'
+)
+foreach ($match in $authorYearMatches) {
+    $issues.Add([pscustomobject]@{
+        rule = 'NON_IEEE_CITATION_STYLE'
+        line = Get-LineNumber $citationNarrative $match.Index
+        excerpt = $match.Value
+    })
+}
+$referenceEntryMatches = [regex]::Matches(
+    $withoutCodeBlocks,
+    '(?m)^[ \t]*\[(?<number>[1-9]\d*)\][ \t]+\S.*$'
+)
+$referenceNumbers = [Collections.Generic.HashSet[int]]::new()
+foreach ($entry in $referenceEntryMatches) {
+    [void]$referenceNumbers.Add([int]$entry.Groups['number'].Value)
+}
+$citationText = $withoutCodeBlocks
+foreach ($entry in @($referenceEntryMatches | Sort-Object Index -Descending)) {
+    $citationText = $citationText.Remove($entry.Index, $entry.Length).Insert($entry.Index, (' ' * $entry.Length))
+}
+$citationText = [regex]::Replace($citationText, '`[^`]*`', ${function:Hide-Match})
+$citationMatches = [regex]::Matches(
+    $citationText,
+    '\[(?<numbers>[1-9]\d*(?:\s*,\s*[1-9]\d*)*)\](?!\()'
+)
+$seenCitationNumbers = [Collections.Generic.HashSet[int]]::new()
+$nextCitationNumber = 1
+foreach ($citation in $citationMatches) {
+    $numbers = @($citation.Groups['numbers'].Value -split '\s*,\s*' | ForEach-Object { [int]$_ })
+    foreach ($number in $numbers) {
+        if (-not $seenCitationNumbers.Contains($number)) {
+            if ($number -ne $nextCitationNumber) {
+                $issues.Add([pscustomobject]@{
+                    rule = 'IEEE_CITATION_ORDER_INVALID'
+                    line = Get-LineNumber $citationText $citation.Index
+                    excerpt = $citation.Value
+                })
+            }
+            [void]$seenCitationNumbers.Add($number)
+            $nextCitationNumber++
+        }
+        if (-not $referenceNumbers.Contains($number)) {
+            $issues.Add([pscustomobject]@{
+                rule = 'IEEE_CITATION_MISSING_REFERENCE'
+                line = Get-LineNumber $citationText $citation.Index
+                excerpt = $citation.Value
+            })
+        }
+    }
+}
+
+# 操作步骤使用中文顺序词，并在相邻步骤之间保留空行
+$proceduralNumericMatches = [regex]::Matches(
+    $withoutCodeBlocks,
+    '(?m)^[ \t]*\d+\.[ \t]+(?:先|再|最后|安装|打开|运行|执行|检查|确认|核对|配置|创建|复制|启动|停止|提交|验证|导出|部署|登录|选择|输入|下载|上传)\S*'
+)
+foreach ($match in $proceduralNumericMatches) {
+    $issues.Add([pscustomobject]@{
+        rule = 'PROCEDURAL_STEPS_SHOULD_USE_CHINESE_ORDINALS'
+        line = Get-LineNumber $withoutCodeBlocks $match.Index
+        excerpt = $match.Value.Trim()
+    })
+}
+$stepMatches = [regex]::Matches($withoutCodeBlocks, '(?m)^[ \t]*第(?<number>[一二三四五六七八九十]+)步[ \t]+\S.*$')
+if ($stepMatches.Count -gt 0 -and $stepMatches[0].Groups['number'].Value -ne '一') {
+    $issues.Add([pscustomobject]@{
+        rule = 'PROCEDURAL_STEPS_MUST_START_AT_FIRST'
+        line = Get-LineNumber $withoutCodeBlocks $stepMatches[0].Index
+        excerpt = $stepMatches[0].Value.Trim()
+    })
+}
+for ($stepIndex = 1; $stepIndex -lt $stepMatches.Count; $stepIndex++) {
+    $betweenSteps = $withoutCodeBlocks.Substring(
+        $stepMatches[$stepIndex - 1].Index + $stepMatches[$stepIndex - 1].Length,
+        $stepMatches[$stepIndex].Index - ($stepMatches[$stepIndex - 1].Index + $stepMatches[$stepIndex - 1].Length)
+    )
+    if ($betweenSteps -notmatch '\r?\n[ \t]*\r?\n') {
+        $issues.Add([pscustomobject]@{
+            rule = 'PROCEDURAL_STEPS_REQUIRE_BLANK_LINE'
+            line = Get-LineNumber $withoutCodeBlocks $stepMatches[$stepIndex].Index
+            excerpt = $stepMatches[$stepIndex].Value.Trim()
+        })
+    }
+}
 
 $unindentedBranchMatches = [regex]::Matches(
     $withoutCodeBlocks,
@@ -263,6 +544,31 @@ foreach ($lineMatch in $lineMatches) {
     if ($line -match '^\s*(?:>|\|)') {
         continue
     }
+    if ($line -match '^\s*\[[1-9]\d*\]\s+\S') {
+        continue
+    }
+
+    $screenedNarrativeLine = Hide-NonNarrativeZones $line
+    $doubleNegativeMatches = [regex]::Matches(
+        $screenedNarrativeLine,
+        '(?<term>不能不|不得不|不会不|并非不|不是没有|未必不|不可能不|无法不|不无)'
+    )
+    foreach ($match in $doubleNegativeMatches) {
+        $issues.Add([pscustomobject]@{
+            rule = 'DOUBLE_NEGATIVE_SHOULD_BE_SIMPLIFIED'
+            line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
+            excerpt = $match.Groups['term'].Value
+        })
+    }
+
+    $ambiguousFrozenVersionMatches = [regex]::Matches($screenedNarrativeLine, '项目(?:的)?冻结版本')
+    foreach ($match in $ambiguousFrozenVersionMatches) {
+        $issues.Add([pscustomobject]@{
+            rule = 'AMBIGUOUS_FROZEN_VERSION_OWNER'
+            line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
+            excerpt = $match.Value
+        })
+    }
 
     if ($line -notmatch '^\s*>' -and $line.TrimEnd() -match '；$') {
         $issues.Add([pscustomobject]@{
@@ -299,6 +605,11 @@ foreach ($lineMatch in $lineMatches) {
     $structuralLine = [regex]::Replace(
         $narrativeLine,
         '[“"][^”"\r\n]{1,100}[”"]',
+        ${function:Hide-Match}
+    )
+    $structuralLine = [regex]::Replace(
+        $structuralLine,
+        '综合、布局、布线和时序检查',
         ${function:Hide-Match}
     )
     $withoutInlineCode = [regex]::Replace($line, '`[^`]*`', ${function:Hide-Match})
@@ -368,16 +679,19 @@ foreach ($lineMatch in $lineMatches) {
         })
     }
 
-    $inlineNounListMatches = [regex]::Matches(
-        $structuralLine,
-        '(?<term>[\p{IsCJKUnifiedIdeographs}A-Za-z0-9]{2,24}、[\p{IsCJKUnifiedIdeographs}A-Za-z0-9]{2,24}(?:、|或|和)[\p{IsCJKUnifiedIdeographs}A-Za-z0-9]{2,24})'
-    )
-    foreach ($match in $inlineNounListMatches) {
-        $issues.Add([pscustomobject]@{
-            rule = 'INLINE_NOUN_ENUMERATION_SHOULD_BREAK'
-            line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
-            excerpt = Get-Excerpt $withoutCodeBlocks ($lineMatch.Index + $match.Index) $match.Length
-        })
+    if ($structuralLine -match '^\s*[-*]\s+(?:先|再|优先|核对|确认|检查|找出|处理|列出)' -or
+        $structuralLine -match '(?:问题可能来自|优先找出|特别要确认|先(?:核对|确认|检查|找出|处理|列出)|需要(?:核对|确认|检查|找出|处理|列出)|应该(?:核对|确认|检查|找出|处理|列出)|必须(?:核对|确认|检查|找出|处理|列出))') {
+        $inlineNounListMatches = [regex]::Matches(
+            $structuralLine,
+            '(?<term>[\p{IsCJKUnifiedIdeographs}A-Za-z0-9]{2,24}、[\p{IsCJKUnifiedIdeographs}A-Za-z0-9]{2,24}(?:、|或|和)[\p{IsCJKUnifiedIdeographs}A-Za-z0-9]{2,24})'
+        )
+        foreach ($match in $inlineNounListMatches) {
+            $issues.Add([pscustomobject]@{
+                rule = 'INLINE_NOUN_ENUMERATION_SHOULD_BREAK'
+                line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
+                excerpt = Get-Excerpt $withoutCodeBlocks ($lineMatch.Index + $match.Index) $match.Length
+            })
+        }
     }
 
     $parallelNumericFactMatches = [regex]::Matches(
@@ -529,6 +843,30 @@ foreach ($lineMatch in $lineMatches) {
                 excerpt = Get-Excerpt $withoutCodeBlocks ($lineMatch.Index + $match.Index) $match.Length
             })
         }
+    }
+}
+
+# 简短标签和值属于同一逻辑框架，拆成两行会增加无意义的视线跳转
+$plainLines = $withoutCodeBlocks -split '\r?\n'
+for ($plainLineIndex = 0; $plainLineIndex -lt ($plainLines.Count - 1); $plainLineIndex++) {
+    $labelLine = $plainLines[$plainLineIndex]
+    if ($labelLine -notmatch '^[ \t]*(?:[-*][ \t]+)?[^：\r\n]{1,40}(?:为|是)：[ \t]*$') {
+        continue
+    }
+    $valueIndex = $plainLineIndex + 1
+    while ($valueIndex -lt $plainLines.Count -and [string]::IsNullOrWhiteSpace($plainLines[$valueIndex])) {
+        $valueIndex++
+    }
+    if ($valueIndex -ge $plainLines.Count) {
+        continue
+    }
+    $valueLine = $plainLines[$valueIndex].Trim()
+    if ($valueLine.Length -le 100 -and $valueLine -notmatch '^(?:[-*]|\d+\.\s|#|\||>|```|第一步|第二步|第三步)') {
+        $issues.Add([pscustomobject]@{
+            rule = 'SIMPLE_KEY_VALUE_SHOULD_STAY_INLINE'
+            line = $plainLineIndex + 1
+            excerpt = ($labelLine.Trim() + ' ' + $valueLine)
+        })
     }
 }
 

@@ -30,17 +30,29 @@ $lines.Add('')
 # 逐个写入完整问题和完整回答，不使用摘要替代正文
 for ($index = 0; $index -lt $evaluation.results.Count; $index++) {
     $case = $evaluation.results[$index]
-    $lines.Add("## 案例 $($index + 1)")
+    $caseNumber = $index + 1
+    $lines.Add("## $caseNumber 案例")
     $lines.Add('')
-    $lines.Add('### 问题')
+    $lines.Add("### $caseNumber.1 问题")
     $lines.Add('')
     foreach ($promptLine in ($case.prompt -split '\r?\n')) {
         $lines.Add("> $promptLine")
     }
     $lines.Add('')
-    $lines.Add('### 回答')
+    $lines.Add("### $caseNumber.2 回答")
     $lines.Add('')
     foreach ($responseLine in ($case.response -split '\r?\n')) {
+        $responseHeading = [regex]::Match(
+            $responseLine,
+            '^(?<hash>#{2,4})\s+(?<number>\d+(?:\.\d+)*)\s+(?<title>.+)$'
+        )
+        if ($responseHeading.Success) {
+            $headingLevel = [Math]::Min(6, $responseHeading.Groups['hash'].Value.Length + 2)
+            $headingPrefix = '#' * $headingLevel
+            $nestedNumber = "$caseNumber.2.$($responseHeading.Groups['number'].Value)"
+            $lines.Add("$headingPrefix $nestedNumber $($responseHeading.Groups['title'].Value)")
+            continue
+        }
         $lines.Add($responseLine)
     }
     $lines.Add('')

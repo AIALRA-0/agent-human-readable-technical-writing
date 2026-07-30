@@ -61,7 +61,7 @@ $cases = @(
     },
     @{
         Name = '徽章和表格结构通过'
-        Text = "[![Quality checks](https://example.com/badge.svg)](https://example.com/checks)`n`n| 项目 | 内容 |`n|---|---|`n| 状态、原因和后果 | 原始证据 |"
+        Text = "[![Quality checks](https://example.com/badge.svg)](https://example.com/checks)`n`n表 1 检查结果`n`n| 项目 | 内容 |`n|---|---|`n| 状态、原因和后果 | 原始证据 |"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -76,7 +76,37 @@ $cases = @(
     },
     @{
         Name = '竖向流程图通过'
-        Text = "流程图按照执行顺序从上到下排列：`n`n${fence}mermaid`n%% 从输入开始展示完整处理顺序`nflowchart TD`n    A[读取输入] --> B[检查内容]`n    B --> C[输出结果]`n${fence}`n`n竖向排列让阅读顺序和执行顺序保持一致"
+        Text = "流程图按照执行顺序从上到下排列：`n`n${fence}mermaid`n%% 从输入开始展示完整处理顺序`nflowchart TD`n    A[读取输入] --> B[检查内容]`n    B --> C[输出结果]`n${fence}`n`n图 1 内容处理顺序`n`n竖向排列让阅读顺序和执行顺序保持一致"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '十进制层级章节通过'
+        Text = "## 1 环境`n`nVivado 芯片设计套件（Vivado Design Suite）负责完成芯片设计处理`n`n项目 Vivado 冻结版本为：2024.1`n`n### 1.1 目标器件`n`n目标器件冻结为：``xcvu19p-fsva3824-1-e```n`n## 2 结果`n`n全部检查已经完成"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '中文顺序步骤通过'
+        Text = "第一步 安装依赖`n`n安装完成后检查命令能否正常运行`n`n第二步 运行检查`n`n检查失败时先修复问题，再生成交付文件"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '紧凑键值通过'
+        Text = "Vivado 芯片设计套件（Vivado Design Suite）负责综合、布局、布线和时序检查`n`n项目 Vivado 冻结版本为：2024.1`n`n目标器件冻结为：``xcvu19p-fsva3824-1-e``"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '图表独立编号通过'
+        Text = "表 1 第一轮结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 2 第二轮结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二轮 | 通过 |`n`n![处理结果](https://example.com/result.png)`n`n图 1 处理结果`n`n![复查结果](https://example.com/review.png)`n`n图 2 复查结果"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = 'IEEE顺序引用通过'
+        Text = "正式文稿按照正文首次引用的顺序分配编号 [1]`n`n图题放在图形下方，表题放在表格上方 [2]`n`n## 1 参考文献`n`n[1] IEEE, IEEE Editorial Style Manual for Authors, 2025. [Online]. Available: https://example.com/style`n`n[2] IEEE, Guidelines for Figures and Tables, 2025. [Online]. Available: https://example.com/figures"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '独立语句逐行注释通过'
+        Text = "两行代码能够分别执行，所以每行都说明目的：`n`n${fence}csharp`nvar request = BuildRequest(); // 创建发送请求需要的数据`nvar response = Send(request); // 发送请求并保存返回结果`n${fence}"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -158,6 +188,11 @@ $cases = @(
         Name = '段落式代码缺少开头注释失败'
         Text = "代码如下：`n`n${fence}csharp`n// 先处理资料缺失情况`nif (user.Profile is null)`n{`n    return ProfileResult.Missing();`n}`n`nreturn ProfileResult.Found(user.Profile.City);`n${fence}"
         ExpectedRule = 'CODE_PARAGRAPH_REQUIRES_LEADING_COMMENT'
+    },
+    @{
+        Name = '独立语句只注释重要行失败'
+        Text = "两行代码能够分别执行：`n`n${fence}csharp`nvar request = BuildRequest(); // 创建发送请求需要的数据`nvar response = Send(request);`n${fence}"
+        ExpectedRule = 'INDEPENDENT_CODE_LINE_REQUIRES_INLINE_COMMENT'
     },
     @{
         Name = '严格数据代码块失败'
@@ -298,6 +333,91 @@ $cases = @(
         Name = '不等式未使用数学排版失败'
         Text = '当 x>=3 时，执行下一步；'
         ExpectedRule = 'MATH_NOTATION_SHOULD_USE_LATEX'
+    },
+    @{
+        Name = '多章节缺少编号失败'
+        Text = "## 环境`n`n环境已经核对`n`n## 结果`n`n结果已经确认"
+        ExpectedRule = 'SECTION_HEADING_REQUIRES_HIERARCHICAL_NUMBER'
+    },
+    @{
+        Name = '章节从零开始失败'
+        Text = "## 0 环境`n`n环境已经核对`n`n## 1 结果`n`n结果已经确认"
+        ExpectedRule = 'SECTION_NUMBER_MUST_START_AT_ONE'
+    },
+    @{
+        Name = '章节编号跳号失败'
+        Text = "## 1 环境`n`n环境已经核对`n`n## 3 结果`n`n结果已经确认"
+        ExpectedRule = 'SECTION_NUMBER_SEQUENCE_INVALID'
+    },
+    @{
+        Name = '章节编号层级错误失败'
+        Text = "## 1 环境`n`n### 2 版本`n`n版本已经核对`n`n## 2 结果`n`n结果已经确认"
+        ExpectedRule = 'SECTION_NUMBER_DEPTH_MUST_MATCH_HEADING'
+    },
+    @{
+        Name = '数字操作步骤失败'
+        Text = "1. 安装依赖`n`n2. 运行检查"
+        ExpectedRule = 'PROCEDURAL_STEPS_SHOULD_USE_CHINESE_ORDINALS'
+    },
+    @{
+        Name = '步骤未从第一步开始失败'
+        Text = "第二步 运行检查`n`n检查完成后生成结果"
+        ExpectedRule = 'PROCEDURAL_STEPS_MUST_START_AT_FIRST'
+    },
+    @{
+        Name = '步骤之间没有空行失败'
+        Text = "第一步 安装依赖`n第二步 运行检查"
+        ExpectedRule = 'PROCEDURAL_STEPS_REQUIRE_BLANK_LINE'
+    },
+    @{
+        Name = '表格缺少编号标题失败'
+        Text = "| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |"
+        ExpectedRule = 'TABLE_REQUIRES_NUMBERED_TITLE'
+    },
+    @{
+        Name = '表格编号跳号失败'
+        Text = "表 1 第一轮结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 3 第二轮结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二轮 | 通过 |"
+        ExpectedRule = 'TABLE_NUMBER_SEQUENCE_INVALID'
+    },
+    @{
+        Name = '图片缺少编号图题失败'
+        Text = '![处理结果](https://example.com/result.png)'
+        ExpectedRule = 'FIGURE_REQUIRES_NUMBERED_CAPTION'
+    },
+    @{
+        Name = '图片编号跳号失败'
+        Text = "![处理结果](https://example.com/result.png)`n`n图 2 处理结果"
+        ExpectedRule = 'FIGURE_NUMBER_SEQUENCE_INVALID'
+    },
+    @{
+        Name = '作者年份引用失败'
+        Text = '现有规则要求先说明事实（Smith, 2024）'
+        ExpectedRule = 'NON_IEEE_CITATION_STYLE'
+    },
+    @{
+        Name = 'IEEE引用缺少文末条目失败'
+        Text = '现有规则要求先说明事实 [1]'
+        ExpectedRule = 'IEEE_CITATION_MISSING_REFERENCE'
+    },
+    @{
+        Name = 'IEEE引用首次出现跳号失败'
+        Text = "现有规则要求先说明事实 [2]`n`n## 1 参考文献`n`n[2] IEEE, Example, 2025. [Online]. Available: https://example.com"
+        ExpectedRule = 'IEEE_CITATION_ORDER_INVALID'
+    },
+    @{
+        Name = '双重否定失败'
+        Text = '这个问题不能不处理'
+        ExpectedRule = 'DOUBLE_NEGATIVE_SHOULD_BE_SIMPLIFIED'
+    },
+    @{
+        Name = '简单键值拆行失败'
+        Text = "项目 Vivado 冻结版本为：`n2024.1"
+        ExpectedRule = 'SIMPLE_KEY_VALUE_SHOULD_STAY_INLINE'
+    },
+    @{
+        Name = '冻结版本对象含糊失败'
+        Text = '项目冻结版本为：2024.1'
+        ExpectedRule = 'AMBIGUOUS_FROZEN_VERSION_OWNER'
     }
 )
 
