@@ -1619,7 +1619,8 @@ function Get-MaxCategorySharePercent([object[]]$Items, [string]$PropertyName) {
 
 $results = foreach ($case in $cases) {
     $lint = & $linter -Text $case.Response | ConvertFrom-Json
-    $responseText = $case.Response.Trim()
+    # 统一换行符后再统计字符，避免同一回答在不同操作系统上落入不同长度分类
+    $responseText = $case.Response.Trim() -replace '\r\n', "`n"
     $characterCount = $responseText.Length
     $lengthLabelPass = switch ($case.Length) {
         'micro' { $characterCount -le 120; break }
