@@ -6,8 +6,8 @@
 
 [![Quality checks](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml/badge.svg)](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml)
 [![MIT License](https://img.shields.io/badge/license-MIT-315c4c.svg)](LICENSE)
-[![119 rule checks](https://img.shields.io/badge/rule_checks-119-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
-[![33 full answers](https://img.shields.io/badge/full_QA_cases-33-657067.svg)](QA-CASES.md)
+[![121 rule checks](https://img.shields.io/badge/rule_checks-121-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
+[![41 full answers](https://img.shields.io/badge/full_QA_cases-41-657067.svg)](QA-CASES.md)
 [![Local first](https://img.shields.io/badge/data-local_first-6b5b95.svg)](#9-隐私边界)
 
 [查看改写效果](#1-改写效果) · [开始使用](#3-开始使用) · [了解处理过程](#4-处理过程) · [检查完整案例](QA-CASES.md) · [阅读详细规则](references/style-rules.md) · [运行质量检查](#7-质量检查)
@@ -283,7 +283,11 @@ flowchart TD
 
 ## 6 完整案例
 
-读者需要亲自判断实际回答是否自然、清楚并且有足够依据，所以[完整问答案例](QA-CASES.md)公开展示三十三个问题和对应回答
+读者需要亲自判断实际回答是否自然、清楚并且有足够依据，所以[完整问答案例](QA-CASES.md)公开展示四十一个问题和对应回答
+
+案例文档先展示本轮新增的八组案例，再保留三十三组历史案例用于回归检查
+
+这种排列让读者能够直接找到新内容，同时继续验证新规则没有破坏原有写作能力
 
 案例覆盖五种长度：
 
@@ -311,6 +315,10 @@ flowchart TD
 - 完整交接报告
 - 主语和责任对象澄清
 - 数值引用、计算来源和经验估计
+- 冷链异常证据整理
+- 灾难恢复术语说明
+- 实验室多种视觉材料编排
+- 出版格式表格题注
 
 同一套规则在短句和长报告中可能出现不同问题，所以测试必须保留这些差异
 
@@ -355,22 +363,23 @@ flowchart TD
 
 当前公开测试包含下面这些差异：
 
-- 一百一十九组规则正反测试
-- 三十三组完整问答测试
-- 十六组原始术语保留问答测试
+- 一百二十一组规则正反测试
+- 四十一组完整问答测试
+- 十九组原始术语保留问答测试
 - 五种回答长度
-- 三十三个内容方向
+- 四十一个内容方向
 - 二十七种表达语气
-- 二十四类目标读者
-- 二十四类任务
-- 二十三种内容结构
+- 三十一类目标读者
+- 三十一类任务
+- 三十一种内容结构
 
 运行全部检查：
 
 ```powershell
-pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行一百一十九组规则正反测试
-pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # 执行三十三组完整问答质量测试
+pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行一百二十一组规则正反测试
+pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # 执行四十一组完整问答质量测试
 pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # 使用已经通过检查的结果重新生成案例文档
+pwsh -NoProfile -File ".\scripts\Test-RepositoryContent.ps1" # 检查全部公开文档、案例同步状态和相对链接
 ```
 
 自动检查只能发现能够明确识别的写作问题，不能证明报告中的事实一定正确
@@ -389,6 +398,7 @@ pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # 使用已经通过�
 | `scripts/Test-HumanReadableChinese.ps1` | 检查能够明确识别的写作问题 |
 | `scripts/Test-HumanReadableChinese.Tests.ps1` | 验证检查器能接受正确写法并拒绝错误写法 |
 | `scripts/Export-QualityCases.ps1` | 使用正式测试结果生成完整案例文档 |
+| `scripts/Test-RepositoryContent.ps1` | 使用技能自身检查全部公开文档、案例同步状态和相对链接 |
 | `evals/Invoke-QualityEvaluation.20260729.ps1` | 保存多行业完整问答和样本差异要求 |
 | `QA-CASES.md` | 展示全部问题和完整回答 |
 

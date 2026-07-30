@@ -1,0 +1,134 @@
+[CmdletBinding()]
+param()
+
+# 启用严格检查，让仓库自查在变量或路径错误时立即失败
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+# 根据脚本位置确定仓库根目录，保证本地和自动检查环境使用同一组文件
+$skillRoot = Split-Path $PSScriptRoot -Parent
+$linter = Join-Path $PSScriptRoot 'Test-HumanReadableChinese.ps1'
+$exporter = Join-Path $PSScriptRoot 'Export-QualityCases.ps1'
+$qualityCases = Join-Path $skillRoot 'QA-CASES.md'
+$readme = Join-Path $skillRoot 'README.md'
+$ruleTests = Join-Path $PSScriptRoot 'Test-HumanReadableChinese.Tests.ps1'
+
+# 检查仓库中的全部 Markdown 文档，新增文档也会自动进入检查范围
+$documentResults = [Collections.Generic.List[object]]::new()
+$markdownFiles = @(Get-ChildItem -LiteralPath $skillRoot -Recurse -File -Filter '*.md')
+foreach ($file in $markdownFiles) {
+    $lintResult = (& $linter -Path $file.FullName | Out-String) | ConvertFrom-Json
+    $documentResults.Add([pscustomobject]@{
+        path = [IO.Path]::GetRelativePath($skillRoot, $file.FullName)
+        status = $lintResult.status
+        issue_count = $lintResult.issue_count
+        rules = @($lintResult.issues | ForEach-Object { $_.rule })
+    })
+}
+
+# 解析仓库中的全部 PowerShell 脚本，避免自查只覆盖说明文字而忽略执行文件
+$scriptParseErrors = [Collections.Generic.List[object]]::new()
+$powerShellFiles = @(Get-ChildItem -LiteralPath $skillRoot -Recurse -File -Filter '*.ps1')
+foreach ($file in $powerShellFiles) {
+    $tokens = $null
+    $errors = $null
+    [Management.Automation.Language.Parser]::ParseFile(
+        $file.FullName,
+        [ref]$tokens,
+        [ref]$errors
+    ) | Out-Null
+    foreach ($error in $errors) {
+        $scriptParseErrors.Add([pscustomobject]@{
+            path = [IO.Path]::GetRelativePath($skillRoot, $file.FullName)
+            line = $error.Extent.StartLineNumber
+            message = $error.Message
+        })
+    }
+}
+
+# 重新导出案例到临时文件，确认公开案例没有落后于正式质量测试
+$temporaryCases = Join-Path ([IO.Path]::GetTempPath()) ("human-readable-qa-" + [guid]::NewGuid().ToString('N') + '.md')
+try {
+    & $exporter -OutputPath $temporaryCases | Out-Null
+    $committedCasesText = Get-Content -LiteralPath $qualityCases -Raw -Encoding UTF8
+    $generatedCasesText = Get-Content -LiteralPath $temporaryCases -Raw -Encoding UTF8
+    $qualityCasesCurrent = $committedCasesText -ceq $generatedCasesText
+}
+finally {
+    if (Test-Path -LiteralPath $temporaryCases) {
+        Remove-Item -LiteralPath $temporaryCases -Force
+    }
+}
+
+# 比较自动统计和仓库首页徽章，避免测试数量增加后首页继续显示旧数字
+$ruleTestText = Get-Content -LiteralPath $ruleTests -Raw -Encoding UTF8
+$ruleCaseCount = [regex]::Matches($ruleTestText, '(?m)^\s*Name\s*=').Count
+$qualityCasesText = Get-Content -LiteralPath $qualityCases -Raw -Encoding UTF8
+$qualityCaseMatch = [regex]::Match($qualityCasesText, '(?m)^- 全部案例数量：(?<count>\d+)\r?$')
+$qualityCaseCount = if ($qualityCaseMatch.Success) {
+    [int]$qualityCaseMatch.Groups['count'].Value
+}
+else {
+    0
+}
+$readmeText = Get-Content -LiteralPath $readme -Raw -Encoding UTF8
+$readmeStatisticsCurrent = (
+    $readmeText -match "rule_checks-$ruleCaseCount-" -and
+    $readmeText -match "full_QA_cases-$qualityCaseCount-"
+)
+
+# 核对全部相对文档链接，避免仓库页面指向不存在的本地文件
+$missingLinks = [Collections.Generic.List[string]]::new()
+foreach ($file in $markdownFiles) {
+    $text = Get-Content -LiteralPath $file.FullName -Raw -Encoding UTF8
+    $linkMatches = [regex]::Matches($text, '(?<!\!)\[[^\]]+\]\((?<target>[^)]+)\)')
+    foreach ($linkMatch in $linkMatches) {
+        $target = $linkMatch.Groups['target'].Value.Trim()
+        if ($target -match '^(?:https?://|mailto:|#)' -or $target -match '^<https?://') {
+            continue
+        }
+        $pathPart = ($target -split '#', 2)[0].Trim('<>')
+        if ([string]::IsNullOrWhiteSpace($pathPart)) {
+            continue
+        }
+        $resolvedTarget = Join-Path $file.DirectoryName $pathPart
+        if (-not (Test-Path -LiteralPath $resolvedTarget)) {
+            $missingLinks.Add("$([IO.Path]::GetRelativePath($skillRoot, $file.FullName)): $target")
+        }
+    }
+}
+
+# 汇总仓库级结果，任一公开文档失败、案例过期或链接缺失都会阻止交付
+$failedDocuments = @($documentResults | Where-Object status -ne 'PASS')
+$status = if (
+    $failedDocuments.Count -eq 0 -and
+    $scriptParseErrors.Count -eq 0 -and
+    $qualityCasesCurrent -and
+    $readmeStatisticsCurrent -and
+    $missingLinks.Count -eq 0
+) {
+    'PASS'
+}
+else {
+    'FAIL'
+}
+$output = [ordered]@{
+    status = $status
+    markdown_file_count = $markdownFiles.Count
+    failed_document_count = $failedDocuments.Count
+    powershell_file_count = $powerShellFiles.Count
+    powershell_parse_error_count = $scriptParseErrors.Count
+    quality_cases_current = $qualityCasesCurrent
+    rule_case_count = $ruleCaseCount
+    quality_case_count = $qualityCaseCount
+    readme_statistics_current = $readmeStatisticsCurrent
+    missing_link_count = $missingLinks.Count
+    documents = @($documentResults)
+    powershell_parse_errors = @($scriptParseErrors)
+    missing_links = @($missingLinks)
+}
+
+[pscustomobject]$output | ConvertTo-Json -Depth 8
+if ($status -ne 'PASS') {
+    exit 1
+}

@@ -20,3 +20,6 @@ jobs: # 定义需要执行的独立检查任务
       - name: Run full answer evaluation # 验证多行业完整回答和样本差异
         shell: pwsh # 使用 PowerShell 执行项目脚本
         run: ./evals/Invoke-QualityEvaluation.20260729.ps1 # 执行全部多行业完整问答测试
+      - name: Run repository content audit # 使用技能自身的检查器验证全部公开文档和案例同步状态
+        shell: pwsh # 使用 PowerShell 执行仓库级自查脚本
+        run: ./scripts/Test-RepositoryContent.ps1 # 检查文档写作、案例新鲜度和相对链接

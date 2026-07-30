@@ -8,6 +8,7 @@ $ErrorActionPreference = 'Stop'
 
 $skillRoot = Split-Path -Parent $PSScriptRoot
 $linter = Join-Path $skillRoot 'scripts\Test-HumanReadableChinese.ps1'
+$currentGeneration = '2026-07-30-repository-self-audit'
 
 $cases = @(
     [pscustomobject]@{
@@ -1801,6 +1802,298 @@ $$
 
 图片和图题共同居中后，读者可以直接把图形与名称对应起来；交付到不支持页面居中的纯文本阅读器时，需要明确说明阅读器会忽略版式设置
 '@
+    },
+    [pscustomobject]@{
+        Id = 'new-cold-chain-evidence-flow'
+        IntroducedIn = $currentGeneration
+        Length = 'long'
+        Difficulty = 'hard'
+        Direction = 'cold-chain-incident'
+        Tone = 'evidence-first'
+        Audience = 'warehouse-manager'
+        TaskType = 'incident-report'
+        InputShape = 'measurements-plus-decision'
+        Structure = 'numbered-table-flow-decision'
+        RequiredTerms = @('SLA')
+        Prompt = '冷库合同要求不高于5℃，传感器连续20分钟读到7.8℃，备用探头是4.9℃，写一份能决定是否隔离货物的报告，要有表格和流程图'
+        Response = @'
+根据用户本次提供的数据，主传感器连续二十分钟记录为 $7.8\,^\circ\mathrm{C}$，备用探头记录为 $4.9\,^\circ\mathrm{C}$，两个测量结果相互冲突，所以仓库负责人目前无法只凭一个探头判断货物已经超温
+
+SLA 服务等级协议（Service Level Agreement）规定库温不得高于 $5\,^\circ\mathrm{C}$；温度超过合同上限可能影响货物质量，也可能触发客户索赔
+
+## 1 当前证据
+
+<div align="center">
+
+| 证据来源 | 当前结果 | 能够证明的范围 |
+|---|---:|---|
+| 主传感器 | $7.8\,^\circ\mathrm{C}$ | 主传感器记录超过合同上限 |
+| 备用探头 | $4.9\,^\circ\mathrm{C}$ | 备用位置仍在合同范围内 |
+| 连续记录时间 | 二十分钟 | 主传感器结果不是单次瞬时波动 |
+
+表 1.1 冷库温度证据
+
+</div>
+
+两支探头没有形成一致结果，温度差异可能来自库内位置差异、传感器故障或真实局部升温
+
+## 2 处置流程
+
+下面的流程先保护货物，再核对测量设备：
+
+<div align="center">
+
+```mermaid
+%% 按照隔离、复测和决定放行的顺序展示处置流程
+flowchart TD
+    A["暂停受影响批次出库"] --> B["使用经过校准的第三支探头复测"]
+    B --> C["核对三支探头的位置和校准记录"]
+    C --> D["判断货物是否经历真实超温"]
+    D --> E["由质量负责人决定放行、继续隔离或报废"]
+```
+
+图 2.1 冷库温度异常处置流程
+
+</div>
+
+仓库负责人现在应暂停受影响批次出库，并让质量负责人使用经过校准的第三支探头复测；第三支探头和主传感器都超过上限时，质量负责人需要按照货物允许暴露时间继续评估，不能直接放行
+'@
+    },
+    [pscustomobject]@{
+        Id = 'new-clear-subject-handover'
+        IntroducedIn = $currentGeneration
+        Length = 'short'
+        Difficulty = 'medium'
+        Direction = 'responsibility-clarity'
+        Tone = 'direct'
+        Audience = 'shift-supervisor'
+        TaskType = 'handover-rewrite'
+        InputShape = 'ambiguous-pronouns'
+        Structure = 'explicit-subject-actions'
+        Prompt = '把“它报警后通知他处理，确认没事就恢复”改成不会认错责任人的交接说明，设备负责人是李工，值班主管是王姐'
+        Response = @'
+监控系统发出报警后，值班主管王姐负责记录报警时间并通知设备负责人李工
+
+设备负责人李工负责检查报警原因，并把检查证据交给值班主管王姐
+
+值班主管王姐确认设备状态、安全条件和检查记录都符合恢复要求后，才能批准恢复运行
+'@
+    },
+    [pscustomobject]@{
+        Id = 'new-battery-formula-source'
+        IntroducedIn = $currentGeneration
+        Length = 'medium'
+        Difficulty = 'hard'
+        Direction = 'battery-estimation'
+        Tone = 'analytical'
+        Audience = 'maintenance-engineer'
+        TaskType = 'calculation-explanation'
+        InputShape = 'formula-inputs'
+        Structure = 'source-formula-limit-action'
+        RequiredTerms = @('SOC')
+        Prompt = '电池标称100Ah，放掉38Ah，报告直接写SOC 62%，帮我改成能复算、也不会把估算当实测的说法'
+        Response = @'
+根据用户本次提供的数据，电池标称容量为 $100\,\mathrm{Ah}$，累计放电量为 $38\,\mathrm{Ah}$
+
+SOC 荷电状态（State of Charge）表示电池当前剩余电量占可用容量的比例
+
+本次估算采用下面的计算方法：
+
+$$
+\mathrm{SOC}=\frac{100\,\mathrm{Ah}-38\,\mathrm{Ah}}{100\,\mathrm{Ah}}\times100\%=62\%
+$$
+
+$62\%$ 来自标称容量和累计放电量的计算结果，维护人员可以使用相同输入重新计算
+
+标称容量会随温度、老化和放电倍率变化，因此 $62\%$ 属于估算结果，不能替代电池管理系统或容量试验产生的实际测量结果
+
+维护人员需要在报告中继续记录电池温度、使用年限和测量设备；这些信息缺失时，报告只能把 $62\%$ 用作维护参考
+'@
+    },
+    [pscustomobject]@{
+        Id = 'new-powershell-line-comments'
+        IntroducedIn = $currentGeneration
+        Length = 'long'
+        Difficulty = 'medium'
+        Direction = 'backup-procedure'
+        Tone = 'instructional'
+        Audience = 'first-time-operator'
+        TaskType = 'annotated-command-sequence'
+        InputShape = 'uncommented-commands'
+        Structure = 'chinese-steps-inline-comments'
+        Prompt = '把复制配置、算摘要、核对副本写成新手能执行的PowerShell命令，每一行都要有同行注释'
+        Response = @'
+PowerShell 命令行环境（PowerShell）负责在 Windows 操作系统（Windows）中执行文件操作
+
+下面的步骤先复制配置，再比较原文件和副本的摘要；摘要一致表示两个文件的内容相同
+
+第一步 创建副本
+
+```powershell
+$source = ".\config.json" # 指定需要备份的原始配置文件
+$backup = ".\backup\config.json" # 指定独立副本的位置，避免覆盖原文件
+New-Item -ItemType Directory -Path ".\backup" -Force # 创建副本目录，让复制命令具有有效目标
+Copy-Item -LiteralPath $source -Destination $backup -Force # 复制配置文件，并在同名旧副本存在时更新副本
+```
+
+第二步 核对内容
+
+```powershell
+$sourceHash = (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash # 计算原文件摘要，用于代表原文件内容
+$backupHash = (Get-FileHash -LiteralPath $backup -Algorithm SHA256).Hash # 使用相同算法计算副本摘要
+$sourceHash -eq $backupHash # 比较两个摘要，结果为真时才能确认副本内容一致
+```
+
+摘要比较结果为假时，操作人员需要保留两个文件并调查复制过程，不能使用未经核对的副本替换原文件
+'@
+    },
+    [pscustomobject]@{
+        Id = 'new-publication-centered-table'
+        IntroducedIn = $currentGeneration
+        Length = 'medium'
+        Difficulty = 'medium'
+        Direction = 'publication-table-layout'
+        Tone = 'formal'
+        Audience = 'technical-paper-editor'
+        TaskType = 'publication-result'
+        InputShape = 'explicit-publication-data'
+        Structure = 'publication-table-source-limit'
+        CaptionStyle = 'Publication'
+        Prompt = '论文里要比较两种检测方法，甲方法12次里错2次，乙方法12次里错1次，写成表题在上且整体居中的结果段'
+        Response = @'
+根据用户本次提供的试验记录，甲方法和乙方法各执行十二次，因此两组错误次数可以在相同试验次数下比较
+
+## 1 检测结果
+
+<div align="center">
+
+表 1.1 两种检测方法的错误次数
+
+| 检测方法 | 试验次数 | 错误次数 |
+|---|---:|---:|
+| 甲方法 | 十二次 | 两次 |
+| 乙方法 | 十二次 | 一次 |
+
+</div>
+
+乙方法在本轮试验中少出现一次错误，所以本轮数据支持继续评估乙方法
+
+## 2 证据限制
+
+两组试验各只有十二次，而且原始材料没有提供输入难度和错误类型
+
+研究人员需要扩大样本，并保证两种方法处理相同输入；新增试验仍显示乙方法错误更少时，研究人员才能进一步判断优势是否稳定
+'@
+    },
+    [pscustomobject]@{
+        Id = 'new-emergency-branch-layout'
+        IntroducedIn = $currentGeneration
+        Length = 'medium'
+        Difficulty = 'hard'
+        Direction = 'emergency-branching'
+        Tone = 'urgent'
+        Audience = 'site-operator'
+        TaskType = 'decision-branch'
+        InputShape = 'multiple-conditions'
+        Structure = 'condition-with-indented-actions'
+        Prompt = '机房进水告警，写一段分支明确的处理说明：有人触电风险时、只有地面积水时、确认是假报警时分别怎么办'
+        Response = @'
+进水告警可能同时影响人员安全和设备供电，所以现场操作人员需要先判断是否存在触电风险
+
+- 如果现场存在人员触电风险：
+  - 现场操作人员立即远离积水区域
+  - 值班负责人联系应急救援人员
+  - 具备授权的电气人员从安全位置切断相关电源
+
+- 如果现场只有地面积水，而且人员可以安全接近：
+  - 现场操作人员设置隔离区域
+  - 设施人员查找进水来源并停止继续进水
+  - 设备负责人检查机柜底部和电缆是否接触积水
+
+- 如果经过现场检查确认是假报警：
+  - 设备负责人保存传感器读数和现场照片
+  - 维护人员检查传感器故障原因
+  - 值班负责人确认告警恢复后关闭事件
+
+每个分支都写明了执行主体；现场人员无法确认安全条件时，应按照存在触电风险的分支处理
+'@
+    },
+    [pscustomobject]@{
+        Id = 'new-rpo-rto-natural-terms'
+        IntroducedIn = $currentGeneration
+        Length = 'short'
+        Difficulty = 'medium'
+        Direction = 'disaster-recovery-terms'
+        Tone = 'technical-friendly'
+        Audience = 'business-owner'
+        TaskType = 'term-explanation'
+        InputShape = 'unexplained-abbreviations'
+        Structure = 'natural-term-cause-impact'
+        RequiredTerms = @('RPO', 'RTO')
+        Prompt = '报告只写RPO 15分钟、RTO 2小时，我完全不知道这俩会影响什么，用普通话解释'
+        Response = @'
+根据用户本次提供的报告，RPO 恢复点目标（Recovery Point Objective）为十五分钟；系统发生故障后，最近十五分钟内尚未进入备份的数据可能需要重新录入
+
+RTO 恢复时间目标（Recovery Time Objective）为两小时；故障发生后，技术团队计划在两小时内恢复服务
+
+业务负责人需要分别确认十五分钟的数据损失是否可以接受，以及两小时的停机是否会影响关键业务
+'@
+    },
+    [pscustomobject]@{
+        Id = 'new-laboratory-multi-visual-report'
+        IntroducedIn = $currentGeneration
+        Length = 'long'
+        Difficulty = 'hard'
+        Direction = 'laboratory-evidence-layout'
+        Tone = 'audit-ready'
+        Audience = 'laboratory-manager'
+        TaskType = 'multi-visual-report'
+        InputShape = 'measurement-table-plus-image'
+        Structure = 'numbered-sections-table-image-conclusion'
+        Prompt = '实验室记录里三次称量是10.02g、10.01g、10.40g，还有一张天平照片，写成图表都居中、编号跟章节一致的复核报告'
+        Response = @'
+根据用户本次提供的实验室记录，三次称量结果分别为 $10.02\,\mathrm{g}$、$10.01\,\mathrm{g}$ 和 $10.40\,\mathrm{g}$
+
+第三次结果与前两次结果相差较大，所以实验室负责人需要先复核第三次称量，当前记录还不能直接用于计算最终平均值
+
+## 1 称量记录
+
+<div align="center">
+
+| 称量顺序 | 记录结果 |
+|---|---:|
+| 第一次 | $10.02\,\mathrm{g}$ |
+| 第二次 | $10.01\,\mathrm{g}$ |
+| 第三次 | $10.40\,\mathrm{g}$ |
+
+表 1.1 三次称量结果
+
+</div>
+
+前两次结果相差 $0.01\,\mathrm{g}$，第三次结果比第二次高 $0.39\,\mathrm{g}$；两个差值均根据用户提供的原始记录相减得到
+
+## 2 设备照片
+
+设备照片用于核对天平显示值、容器位置和设备状态：
+
+<div align="center">
+
+![天平称量现场](https://example.com/laboratory-balance.png)
+
+图 2.1 天平称量现场
+
+</div>
+
+原始材料只说明存在这张照片，没有提供照片拍摄时间和文件摘要，所以实验室负责人还需要确认照片是否对应第三次称量
+
+## 3 复核结论
+
+实验室负责人应重新检查第三次称量的样品、容器和天平归零记录
+
+复测结果接近前两次时，实验室负责人可以把第三次原记录标记为待调查异常
+
+根据用户本次提供的原记录，复测结果仍接近 $10.40\,\mathrm{g}$ 时，实验室负责人需要调查样品是否发生变化
+'@
     }
 )
 
@@ -1877,6 +2170,7 @@ $results = foreach ($case in $cases) {
         task_type = Get-CaseField $case 'TaskType' 'general-answer'
         input_shape = Get-CaseField $case 'InputShape' 'clean-question'
         structure = Get-CaseField $case 'Structure' 'prose-with-list'
+        introduced_in = Get-CaseField $case 'IntroducedIn' 'historical-regression'
         caption_style = $captionStyle
         allow_question_headings = $allowQuestionHeadings
         required_terms = $requiredTerms
@@ -1957,6 +2251,7 @@ $failedWritingCases = @($results | Where-Object lint_status -ne 'PASS')
 
 $output = [ordered]@{
     status = if ($failedWritingCases.Count -eq 0 -and $failedCoverageChecks.Count -eq 0) { 'PASS' } else { 'FAIL' }
+    current_generation = $currentGeneration
     case_count = $results.Count
     failed_writing_case_count = $failedWritingCases.Count
     failed_coverage_check_count = $failedCoverageChecks.Count

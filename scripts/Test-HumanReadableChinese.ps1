@@ -43,6 +43,7 @@ function Hide-Match([Text.RegularExpressions.Match]$Match) {
 
 function Hide-NonNarrativeZones([string]$Value) {
     $masked = $Value
+    $masked = [regex]::Replace($masked, '(?s)<!--.*?-->', ${function:Hide-Match})
     $masked = [regex]::Replace($masked, '\$\$.*?\$\$|\$(?:\\.|[^$\r\n])+\$', ${function:Hide-Match})
     $masked = [regex]::Replace($masked, '`[^`]*`', ${function:Hide-Match})
     $masked = [regex]::Replace($masked, '!\[[^\]]*\]\([^)]+\)', ${function:Hide-Match})
@@ -79,6 +80,26 @@ function Test-InCenteredContainer([string]$Value, [int]$Index) {
         $containerStack.Add($isCentered)
     }
     return $containerStack.Contains($true)
+}
+
+function Get-CaptionStyleAtIndex([string]$Value, [int]$Index, [string]$DefaultStyle) {
+    # 读取当前位置前最近的隐藏题注样式标记，让一个汇总文档能够同时展示个人文档和出版文档案例
+    $prefix = $Value.Substring(0, [Math]::Min($Index, $Value.Length))
+    $markerMatches = [regex]::Matches(
+        $prefix,
+        '(?is)<!--\s*caption-style:\s*(?<style>personal|publication|end)\s*-->'
+    )
+    if ($markerMatches.Count -eq 0) {
+        return $DefaultStyle
+    }
+    $latestStyle = $markerMatches[$markerMatches.Count - 1].Groups['style'].Value.ToLowerInvariant()
+    if ($latestStyle -eq 'end') {
+        return $DefaultStyle
+    }
+    if ($latestStyle -eq 'publication') {
+        return 'Publication'
+    }
+    return 'Personal'
 }
 
 function Get-NumberedChapterAtIndex([string]$Value, [int]$Index) {
@@ -380,6 +401,7 @@ $tableMatches = [regex]::Matches(
 $globalExpectedTableNumber = 1
 $expectedTableNumberByChapter = @{}
 foreach ($tableMatch in $tableMatches) {
+    $effectiveCaptionStyle = Get-CaptionStyleAtIndex $withoutCodeBlocks $tableMatch.Index $CaptionStyle
     if (-not (Test-InCenteredContainer $withoutCodeBlocks $tableMatch.Index)) {
         $issues.Add([pscustomobject]@{
             rule = 'TABLE_SHOULD_BE_CENTERED'
@@ -416,7 +438,7 @@ foreach ($tableMatch in $tableMatches) {
     $nextTitleMatch = [regex]::Match($nextTitle, '^表\s+(?<number>\d+(?:[.-]\d+)?)\s+\S')
 
     # 根据文档用途选择题注位置，默认采用个人文档的视觉统一方案
-    if ($CaptionStyle -eq 'Publication') {
+    if ($effectiveCaptionStyle -eq 'Publication') {
         $title = $previousTitle
         $titleMatch = $previousTitleMatch
         $oppositeTitleMatch = $nextTitleMatch
@@ -530,7 +552,7 @@ foreach ($tableMatch in $tableMatches) {
 
 # 两种文档格式都把图片和流程图的图题放在图形下方
 $figureCandidates = [Collections.Generic.List[object]]::new()
-$imageMatches = [regex]::Matches($Text, '(?m)^[ \t]*!\[[^\]\r\n]*\]\([^)]+\)[ \t]*$')
+$imageMatches = [regex]::Matches($Text, '(?m)^[ \t]*!\[[^\]\r\n]*\]\([^)]+\)[ \t]*\r?$')
 foreach ($imageMatch in $imageMatches) {
     $figureCandidates.Add([pscustomobject]@{
         Index = $imageMatch.Index

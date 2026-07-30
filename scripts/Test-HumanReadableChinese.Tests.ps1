@@ -565,6 +565,16 @@ $cases = @(
         ExpectedRule = 'VISUAL_CAPTION_SHOULD_BE_CENTERED'
     },
     @{
+        Name = '同一汇总文档混合题注样式通过'
+        Text = "## 1 案例汇总`n`n<div align=`"center`">`n`n| 项目 | 结果 |`n|---|---|`n| 个人文档 | 通过 |`n`n表 1.1 个人文档结果`n`n</div>`n`n<!-- caption-style: publication -->`n`n<div align=`"center`">`n`n表 1.2 出版文档结果`n`n| 项目 | 结果 |`n|---|---|`n| 出版文档 | 通过 |`n`n</div>`n`n<!-- caption-style: end -->"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = 'Windows换行居中图片通过'
+        Text = "<div align=`"center`">`r`n`r`n![处理结果](https://example.com/result.png)`r`n`r`n图 1 处理结果`r`n`r`n</div>"
+        ExpectedStatus = 'PASS'
+    },
+    @{
         Name = 'Windows换行流程图缺少图题失败'
         Text = ($fence + "mermaid`r`nflowchart TD`r`n    A[开始] --> B[结束]`r`n" + $fence)
         ExpectedRule = 'FIGURE_REQUIRES_NUMBERED_CAPTION'
