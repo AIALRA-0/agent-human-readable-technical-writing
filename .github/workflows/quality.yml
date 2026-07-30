@@ -19,4 +19,4 @@ jobs: # 定义需要执行的独立检查任务
         run: ./scripts/Test-HumanReadableChinese.Tests.ps1 # 执行全部规则正反测试
       - name: Run full answer evaluation # 验证多行业完整回答和样本差异
         shell: pwsh # 使用 PowerShell 执行项目脚本
-        run: ./evals/Invoke-QualityEvaluation.20260729.ps1 # 执行二十八组完整问答测试
+        run: ./evals/Invoke-QualityEvaluation.20260729.ps1 # 执行全部多行业完整问答测试

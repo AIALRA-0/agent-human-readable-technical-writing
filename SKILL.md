@@ -1,9 +1,9 @@
 ---
 name: human-readable-technical-writing
-description: Create, rewrite, review, or validate user-facing Chinese technical prose for first-time readers. Use for reports, summaries, plans, status updates, notes, tables, and explanations containing technical terms, internal identifiers, causal conclusions, lists, procedures, figures, citations, code, or decision branches
+description: Create, rewrite, review, or validate user-facing Chinese prose for first-time readers, especially technical content. Use for reports, summaries, plans, status updates, notes, tables, and explanations containing technical terms, internal identifiers, causal conclusions, lists, procedures, figures, citations, code, or decision branches
 ---
 
-# 中文技术内容人话写作
+# 面向智能体的人类可读中文写作
 
 ## 1 执行方法
 
@@ -19,7 +19,9 @@ description: Create, rewrite, review, or validate user-facing Chinese technical 
 
 第六步 为代码补充逐行注释或段落开头注释
 
-第七步 按第一次阅读者的理解能力复查，再运行写作检查
+第七步 为每个表格和图形补充符合文档用途的编号题注，缺少题注时不能交付
+
+第八步 按第一次阅读者的理解能力复查，再运行写作检查
 
 ## 2 内容结构
 
@@ -60,6 +62,9 @@ description: Create, rewrite, review, or validate user-facing Chinese technical 
 - 判断、风险、限制和建议默认按照“具体原因或证据 → 实际后果 → 结论或行动”书写
 - 直接回答是否完成、是否批准或是否安全时，可以先给结果，随后立即说明依据和未证明范围
 - 普通陈述采用“主体 → 动作或状态 → 结果”
+- 每个动作、状态、判断和责任都要写明对应主体，不能让读者猜测是谁执行、谁完成或谁承担后果
+- 前文存在多个可能对象时，不使用“它、其、该对象、该系统”等模糊指代，直接重复准确名称
+- 前后句更换主体时，在发生切换的句子中重新写明主体
 - 避免 `不能不`、`不得不`、`并非不`、`不是没有` 等双重否定，改成直接肯定或单一否定
 - 删除“先说结论、简单来说、需要注意的是”等写作套话
 
@@ -75,7 +80,19 @@ description: Create, rewrite, review, or validate user-facing Chinese technical 
 - 版本、状态、限制、期限和结果需要明确属于哪个对象
 - 不写 `项目冻结版本`，需要写 `项目 Vivado 冻结版本` 或其他实际被冻结对象
 
-## 5 流程图
+## 5 数值来源
+
+- 正文中的每个业务数值、测量结果、比较结果、阈值、配置值、预测值和经验值都要说明来源
+- 引用外部资料时，在数值附近使用顺序引用编号，并在文末提供完整来源
+- 计算结果需要写明输入数值、公式或换算方法，让读者能够重新计算
+- 软件或实际应用产生的数值需要写明系统、界面、日志、配置文件、仪器或记录名称
+- 用户提供的数值需要明确写成“根据用户本次提供的数据”
+- 经验值和估计值需要明确标记，并说明经验样本、适用条件或不确定范围
+- 同一来源覆盖一组连续数值时，可以在这组数值前统一说明，不需要逐项重复
+- 章节编号、步骤编号、引用编号、版本标识和程序内部标识不属于业务数值，不要求额外来源
+- 无法确认来源时，把数值标记为“来源待核对”，不能把它作为已经证实的事实
+
+## 6 流程图
 
 - 流程关系优先使用文本流程图（Mermaid）
 - 默认使用 `flowchart TD`，让节点从上到下排列
@@ -83,7 +100,7 @@ description: Create, rewrite, review, or validate user-facing Chinese technical 
 - 每个节点使用普通中文说明动作或状态，内部名称只在确有核对需要时保留
 - 图前说明为什么需要这张图，图后写编号图题并说明共同结论
 
-## 6 图表
+## 7 图表
 
 - 文档存在编号章节时，图表编号使用“所属一级章节号.本章序号”
 - 第 1 章的前两个图依次写成“图 1.1”“图 1.2”，第 2 章的第一个表写成“表 2.1”
@@ -99,7 +116,7 @@ description: Create, rewrite, review, or validate user-facing Chinese technical 
 - 正式出版物另有模板时遵循出版模板
 - 同一文档内的同类对象必须保持相同位置，除非指定模板明确要求例外
 
-## 7 引用
+## 8 引用
 
 - 引用采用 IEEE 电气电子工程师学会（Institute of Electrical and Electronics Engineers）顺序编码格式
 - 正文按照首次引用顺序使用 `[1]`、`[2]`
@@ -107,7 +124,7 @@ description: Create, rewrite, review, or validate user-facing Chinese technical 
 - 文末参考文献按照编号顺序列出，并保证每个正文编号都有对应条目
 - 不使用作者年份式引用
 
-## 8 代码注释
+## 9 代码注释
 
 - 所有面向用户展示的代码都需要注释
 - 命令、配置项、键值项和彼此独立的语句属于列表式代码，每个有独立作用的代码行都使用该语言允许的同行注释
@@ -118,7 +135,7 @@ description: Create, rewrite, review, or validate user-facing Chinese technical 
 - 注释不得破坏语法和可执行性
 - 严格数据格式无法合法加入注释时，交付原文件链接，再提供带注释的等价示例
 
-## 9 篇幅
+## 10 篇幅
 
 - 简单问题优先使用一到三段
 - 没有实际列举时不为了形式创建列表
@@ -126,7 +143,7 @@ description: Create, rewrite, review, or validate user-facing Chinese technical 
 - 同一独立章节只完整解释一次术语
 - 用户没有要求技术证据时，不主动展开全部内部名称
 
-## 10 标点
+## 11 标点
 
 - 普通正文、列表项目和标题的行尾不使用中文分号或中文句号
 - 行内可以按语义使用逗号、分号和冒号
@@ -134,7 +151,7 @@ description: Create, rewrite, review, or validate user-facing Chinese technical 
 - 冒号、问号、感叹号和省略号可以保留在行尾
 - 普通解释不使用装饰性引号
 
-## 11 验证
+## 12 验证
 
 - 实际问答测试至少覆盖极短、短、中、长和超长五种篇幅
 - 同一行业、语气、受众或结构不得占据大多数样本
@@ -144,10 +161,16 @@ description: Create, rewrite, review, or validate user-facing Chinese technical 
 - 汇报最短字符数、最长字符数、平均字符数和字符数标准差
 - 写作检查和样本差异检查都通过后，才能认定测试通过
 
-## 12 交付
+## 13 交付
 
 - 每个判断附近是否有原因或证据
 - 每个行动是否说明目的和失败后果
+- 每个动作、状态、判断和责任是否写明主体
+- 多个对象同时出现后，代词是否仍然只有一个明确指向
+- 前后句更换主体时，是否重新写明新主体
+- 每个业务数值、测量结果、阈值、配置值、预测值和经验值是否写明来源
+- 每个计算结果是否能够根据已写明的输入和公式重新计算
+- 来源无法确认的数值是否明确标记为待核对
 - 多章节内容是否使用从 `1` 开始的十进制层级编号
 - 非问答内容的标题是否使用陈述式主题
 - 操作步骤是否使用中文顺序，并在步骤之间保留空行
@@ -162,6 +185,6 @@ description: Create, rewrite, review, or validate user-facing Chinese technical 
 - 每个代码块是否采用列表式同行注释或段落式开头注释
 - 流程关系是否优先使用从上到下排列的文本流程图
 - 是否仍然存在字段标签式括号定义
-- 是否存在行尾中文分号、中文句号、装饰性引号、写作套话、延迟主语或未翻译英文
+- 是否存在行尾中文分号、中文句号、装饰性引号、写作套话、延迟主语、模糊指代、缺失动作主体或未翻译英文
 
 复杂报告、术语争议或失败案例需要更多示例时，读取 `references/style-rules.md`

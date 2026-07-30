@@ -32,12 +32,37 @@ $fence = '```'
 $cases = @(
     @{
         Name = '完整因果链通过'
-        Text = '每100笔订单约有9笔没有按时足量交付；继续积压会增加投诉，因此今天需要介入'
+        Text = '根据订单系统记录，每100笔订单约有9笔没有按时足量交付；继续积压会增加投诉，因此今天需要介入'
         ExpectedStatus = 'PASS'
     },
     @{
         Name = '自然中文语序通过'
         Text = '芯片本轮实现验证已经完成'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '明确动作主体通过'
+        Text = '服务器继续运行任务；监督器在九条任务全部完成后生成报告'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '应用记录数值来源通过'
+        Text = '服务器监测系统显示，数据盘剩余 8 GB 千兆字节（Gigabyte）；继续运行可能耗尽空间'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '计算数值来源通过'
+        Text = '根据订单系统记录的每天新增 62 笔和完成 55 笔计算，积压每天净增 $62-55=7$ 笔'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '用户输入数值来源通过'
+        Text = '根据用户本次提供的数据，按时足量交付率为 $91\%$'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '经验估计数值来源通过'
+        Text = '根据运维团队最近十次同规模迁移的经验，本次预留 30 分钟属于经验估计'
         ExpectedStatus = 'PASS'
     },
     @{
@@ -144,7 +169,7 @@ $cases = @(
     },
     @{
         Name = '订单交付分析通过'
-        Text = "OTIF 按时足量交付率（On Time In Full）统计订单是否按时并且数量完整地交付`n`n- 每100笔订单约有9笔没有同时满足这两个条件`n- 还有180笔订单尚未处理`n`n继续积压会增加逾期量和客户投诉，因此今天需要介入`n`n继续等待最容易扩大以下订单的客户损失：`n`n- 已经逾期的订单`n- 今天即将逾期的订单`n- 重要客户的订单`n- 因缺货而无法继续处理的订单`n`n这些订单最接近造成实际损失；先指定负责人和完成时间，再判断需要增加哪类资源：`n`n- 人员`n- 车辆`n- 库存"
+        Text = "OTIF 按时足量交付率（On Time In Full）统计订单是否按时并且数量完整地交付`n`n根据用户本次提供的订单数据：`n`n- 每100笔订单约有9笔没有同时满足这两个条件`n- 还有180笔订单尚未处理`n`n继续积压会增加逾期量和客户投诉，因此今天需要介入`n`n继续等待最容易扩大以下订单的客户损失：`n`n- 已经逾期的订单`n- 今天即将逾期的订单`n- 重要客户的订单`n- 因缺货而无法继续处理的订单`n`n这些订单最接近造成实际损失；先指定负责人和完成时间，再判断需要增加哪类资源：`n`n- 人员`n- 车辆`n- 库存"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -169,7 +194,7 @@ $cases = @(
     },
     @{
         Name = '数学公式排版通过'
-        Text = '当 $x \geq 3$ 时，执行下一步'
+        Text = '根据本题给定条件，当 $x \geq 3$ 时，执行下一步'
         ExpectedStatus = 'PASS'
     },
     @{
@@ -256,6 +281,21 @@ $cases = @(
         Name = '延迟主语失败'
         Text = '已经完成的是芯片本轮实现验证；'
         ExpectedRule = 'POSSIBLY_DELAYED_SUBJECT'
+    },
+    @{
+        Name = '多个对象后的代词指向含糊失败'
+        Text = '服务器和监督器都在运行，它完成后会生成报告'
+        ExpectedRule = 'POSSIBLY_AMBIGUOUS_PRONOUN_REFERENCE'
+    },
+    @{
+        Name = '发布动作缺少主体失败'
+        Text = '持续集成检查完成后就会发布'
+        ExpectedRule = 'POSSIBLY_MISSING_ACTION_SUBJECT'
+    },
+    @{
+        Name = '业务数值缺少来源失败'
+        Text = '数据盘只剩 8 GB，继续运行可能耗尽空间'
+        ExpectedRule = 'NUMERIC_CLAIM_REQUIRES_PROVENANCE'
     },
     @{
         Name = '装饰性引号失败'
@@ -383,6 +423,11 @@ $cases = @(
         ExpectedRule = 'SECTION_NUMBER_DEPTH_MUST_MATCH_HEADING'
     },
     @{
+        Name = '三级标题所属章节错误失败'
+        Text = "## 1 环境`n`n### 2.1 版本`n`n版本已经核对`n`n## 2 结果`n`n结果已经确认"
+        ExpectedRule = 'SECTION_NUMBER_PARENT_MISMATCH'
+    },
+    @{
         Name = '数字操作步骤失败'
         Text = "1. 安装依赖`n`n2. 运行检查"
         ExpectedRule = 'PROCEDURAL_STEPS_SHOULD_USE_CHINESE_ORDINALS'
@@ -446,6 +491,11 @@ $cases = @(
     @{
         Name = '图片缺少编号图题失败'
         Text = '![处理结果](https://example.com/result.png)'
+        ExpectedRule = 'FIGURE_REQUIRES_NUMBERED_CAPTION'
+    },
+    @{
+        Name = 'Windows换行流程图缺少图题失败'
+        Text = ($fence + "mermaid`r`nflowchart TD`r`n    A[开始] --> B[结束]`r`n" + $fence)
         ExpectedRule = 'FIGURE_REQUIRES_NUMBERED_CAPTION'
     },
     @{

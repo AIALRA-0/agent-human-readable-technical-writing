@@ -1,22 +1,22 @@
 <div align="center">
 
-# 人类可读中文技术写作
+# 面向智能体的人类可读中文写作
 
-**让技术内容第一次就能被读懂、核对并执行**
+**让智能体生成的中文第一次就能被读懂、核对并执行**
 
-[![Quality checks](https://github.com/AIALRA-0/codex-human-readable-chinese/actions/workflows/quality.yml/badge.svg)](https://github.com/AIALRA-0/codex-human-readable-chinese/actions/workflows/quality.yml)
+[![Quality checks](https://github.com/AIALRA-0/agent-human-readable-chinese/actions/workflows/quality.yml/badge.svg)](https://github.com/AIALRA-0/agent-human-readable-chinese/actions/workflows/quality.yml)
 [![MIT License](https://img.shields.io/badge/license-MIT-315c4c.svg)](LICENSE)
-[![98 rule checks](https://img.shields.io/badge/rule_checks-98-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
-[![31 full answers](https://img.shields.io/badge/full_QA_cases-31-657067.svg)](QA-CASES.md)
-[![Local first](https://img.shields.io/badge/data-local_first-6b5b95.svg)](#隐私边界)
+[![108 rule checks](https://img.shields.io/badge/rule_checks-108-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
+[![32 full answers](https://img.shields.io/badge/full_QA_cases-32-657067.svg)](QA-CASES.md)
+[![Local first](https://img.shields.io/badge/data-local_first-6b5b95.svg)](#9-隐私边界)
 
 [查看改写效果](#1-改写效果) · [开始使用](#3-开始使用) · [了解处理过程](#4-处理过程) · [检查完整案例](QA-CASES.md) · [阅读详细规则](references/style-rules.md) · [运行质量检查](#7-质量检查)
 
 </div>
 
-编程智能体会按照用户指令生成或修改内容
+智能体会按照用户指令生成或修改内容
 
-如果它直接使用项目内部名称，并默认读者已经知道这些名称的含义，第一次阅读的人就无法判断实际结果
+如果智能体直接使用项目内部名称，并默认读者已经知道这些名称的含义，第一次阅读的人就无法判断实际结果
 
 这个技能先找出读者真正需要判断的事情，再用普通中文说明事实和下一步行动
 
@@ -44,7 +44,7 @@
 
 ## 2 写作规则
 
-这个技能把写作要求整理成十四项能够检查的规则
+这个技能把写作要求整理成十六项能够检查的规则
 
 ### 2.1 陌生词需要自然解释
 
@@ -120,7 +120,7 @@
 
 Vivado 芯片设计套件（Vivado Design Suite）负责完成芯片设计处理
 
-项目 Vivado 冻结版本为：2024.1
+项目配置文件记录的 Vivado 冻结版本为：2024.1
 
 目标器件冻结为：`xcvu19p-fsva3824-1-e`
 
@@ -130,7 +130,21 @@ Vivado 芯片设计套件（Vivado Design Suite）负责完成芯片设计处理
 
 `项目冻结版本` 无法说明被冻结的是工具、文件还是产品，所以需要改成 `项目 Vivado 冻结版本` 或其他准确对象
 
-### 2.12 图表需要编号题注
+### 2.12 主语对象需要明确
+
+每个动作、状态、判断和责任都要写明对应主体
+
+前文同时出现服务器和监督器时，后文不能只写“它会生成报告”；正文需要直接写明由监督器生成报告，避免读者猜测代词指向
+
+### 2.13 数值需要说明来源
+
+业务数值、测量结果、阈值、配置值、预测值和经验值都要说明来源
+
+引用数值需要提供顺序引用编号；计算数值需要写明输入和公式；软件产生的数值需要写明系统、日志或配置文件；经验估计需要说明样本和适用条件
+
+来源无法确认时，正文标记“来源待核对”，不能把数值作为已经证实的事实
+
+### 2.14 图表需要编号题注
 
 图表编号由所属一级章节号和本章序号组成，例如第 1 章的前两个图依次写成“图 1.1”“图 1.2”
 
@@ -140,13 +154,13 @@ Vivado 芯片设计套件（Vivado Design Suite）负责完成芯片设计处理
 
 用户明确要求论文、期刊、会议或其他出版格式时，才采用表题在上、图题在下的出版惯例 [1]
 
-### 2.13 引用需要顺序编码
+### 2.15 引用需要顺序编码
 
 正文按照来源第一次出现的顺序使用 `[1]`、`[2]`
 
 文末按照相同编号列出完整来源，重复引用同一来源时沿用原编号
 
-### 2.14 否定需要保持直接
+### 2.16 否定需要保持直接
 
 `不能不处理` 需要先消化两次否定，改成“必须处理”后能够直接理解
 
@@ -157,19 +171,19 @@ Vivado 芯片设计套件（Vivado Design Suite）负责完成芯片设计处理
 先把仓库复制到个人技能目录：
 
 ```powershell
-git clone https://github.com/AIALRA-0/codex-human-readable-chinese.git "$HOME\.codex\skills\human-readable-technical-writing" # 下载技能并保留稳定的内部技能名称
+git clone https://github.com/AIALRA-0/agent-human-readable-chinese.git "$HOME\.codex\skills\human-readable-technical-writing" # 下载技能并保留稳定的内部技能名称
 Copy-Item "$HOME\.codex\skills\human-readable-technical-writing\AGENTS.example.md" "$HOME\.codex\AGENTS.example.md" # 复制规则模板，避免直接覆盖现有个人配置
 ```
 
 如果个人配置目录已经存在 `AGENTS.md`，需要人工合并模板内容，不能直接覆盖原文件
 
-编程智能体识别到中文技术写作任务后，可以自动读取这个技能
+智能体识别到中文写作任务后，可以自动读取这个技能
 
 需要明确调用时，可以在问题开头加入下面这段话：
 
 > 使用 `$human-readable-technical-writing`，按照我的中文技术写作规范回答；交付前运行写作检查，检查失败就先修改再回答
 
-这条指令会要求编程智能体读取技能规则，并在交付前检查明显的格式问题
+这条指令会要求智能体读取技能规则，并在交付前检查明显的格式问题
 
 ## 4 处理过程
 
@@ -200,7 +214,7 @@ flowchart TD
 | 内容 | 什么时候读取 | 解决什么问题 |
 |---|---|---|
 | 全局规则模板 | 每次中文写作 | 保存不能违反的表达边界 |
-| 核心技能 | 技术写作任务开始时 | 安排因果顺序并处理术语和列表 |
+| 核心技能 | 中文写作任务开始时 | 安排因果顺序并处理术语和列表 |
 | 详细写作规则 | 复杂报告或争议案例出现时 | 提供边界条件和完整示例 |
 | 完整测试材料 | 运行质量检查时 | 检查规则是否只适合少数短回答 |
 
@@ -210,7 +224,7 @@ flowchart TD
 
 ## 6 完整案例
 
-读者需要亲自判断实际回答是否自然、清楚并且有足够依据，所以[完整问答案例](QA-CASES.md)公开展示三十一个问题和对应回答
+读者需要亲自判断实际回答是否自然、清楚并且有足够依据，所以[完整问答案例](QA-CASES.md)公开展示三十二个问题和对应回答
 
 案例覆盖五种长度：
 
@@ -236,6 +250,8 @@ flowchart TD
 - 顺序引用
 - 芯片设计环境报告
 - 完整交接报告
+- 主语和责任对象澄清
+- 数值引用、计算来源和经验估计
 
 同一套规则在短句和长报告中可能出现不同问题，所以测试必须保留这些差异
 
@@ -271,25 +287,28 @@ flowchart TD
 - 双重否定
 - 被机械拆成两行的简短标签和值
 - 没有写明所属对象的版本
+- 多个对象后指向含糊的代词
+- 没有写明执行主体的发布或交付动作
+- 没有说明引用、计算、应用或经验来源的业务数值
 
 第二类检查使用完整问题和完整回答，验证不同篇幅和不同场景，避免项目只对少数样例表现良好
 
 当前公开测试包含下面这些差异：
 
-- 九十八组规则正反测试
-- 三十一组完整问答测试
+- 一百零八组规则正反测试
+- 三十二组完整问答测试
 - 五种回答长度
-- 三十一个内容方向
-- 二十六种表达语气
-- 二十二类目标读者
-- 二十二类任务
-- 二十一种内容结构
+- 三十二个内容方向
+- 二十七种表达语气
+- 二十三类目标读者
+- 二十三类任务
+- 二十二种内容结构
 
 运行全部检查：
 
 ```powershell
-pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行九十八组规则正反测试
-pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # 执行三十一组完整问答质量测试
+pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行一百零八组规则正反测试
+pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # 执行三十二组完整问答质量测试
 pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # 使用已经通过检查的结果重新生成案例文档
 ```
 
@@ -301,7 +320,7 @@ pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # 使用已经通过�
 
 | 路径 | 内容 |
 |---|---|
-| `SKILL.md` | 编程智能体开始写作时读取的核心规则 |
+| `SKILL.md` | 智能体开始写作时读取的核心规则 |
 | `AGENTS.example.md` | 可以合并到个人配置中的全局规则模板 |
 | `references/style-rules.md` | 复杂写作问题需要的详细规则和示例 |
 | `scripts/Test-HumanReadableChinese.ps1` | 检查能够明确识别的写作问题 |
@@ -351,7 +370,7 @@ pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # 使用已经通过�
 - 增加更长的多文件项目报告
 - 记录真实用户阅读后仍然需要提出的问题数量
 - 增加可选的悬停术语解释
-- 为其他编程智能体提供安装模板
+- 为更多智能体环境提供安装模板
 
 ## 12 当前状态
 

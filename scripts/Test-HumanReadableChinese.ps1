@@ -117,6 +117,7 @@ $requiresHierarchicalNumbering = $secondLevelHeadingCount -ge 2 -or @(
 ).Count -gt 0
 if ($requiresHierarchicalNumbering) {
     $nextNumberByParent = @{}
+    $currentNumberByLevel = @{}
     foreach ($match in $numberedHeadingCandidates) {
         $level = $match.Groups['hash'].Value.Length
         $title = $match.Groups['title'].Value
@@ -148,6 +149,23 @@ if ($requiresHierarchicalNumbering) {
             continue
         }
 
+        if ($segments.Count -gt 1) {
+            $parentLevel = $level - 1
+            $actualParent = $segments[0..($segments.Count - 2)] -join '.'
+            $expectedParent = if ($currentNumberByLevel.ContainsKey($parentLevel)) {
+                $currentNumberByLevel[$parentLevel] -join '.'
+            } else {
+                ''
+            }
+            if ($actualParent -ne $expectedParent) {
+                $issues.Add([pscustomobject]@{
+                    rule = 'SECTION_NUMBER_PARENT_MISMATCH'
+                    line = Get-LineNumber $Text $match.Index
+                    excerpt = $title
+                })
+            }
+        }
+
         $parentKey = if ($segments.Count -eq 1) {
             'ROOT'
         } else {
@@ -170,12 +188,16 @@ if ($requiresHierarchicalNumbering) {
             })
         }
         $nextNumberByParent[$parentKey] = $segments[-1] + 1
+        $currentNumberByLevel[$level] = $segments
+        foreach ($deeperLevel in @($currentNumberByLevel.Keys | Where-Object { [int]$_ -gt $level })) {
+            $currentNumberByLevel.Remove($deeperLevel)
+        }
     }
 }
 
 $codeBlockMatches = [regex]::Matches(
     $Text,
-    '(?ms)^```(?<language>[^\r\n`]*)\r?\n(?<body>.*?)^```[ \t]*$'
+    '(?ms)^```(?<language>[^\r\n`]*)\r?\n(?<body>.*?)^```[ \t]*\r?$'
 )
 $listLikeLanguages = [Collections.Generic.HashSet[string]]::new(
     [string[]]@('powershell', 'ps1', 'bash', 'sh', 'shell', 'yaml', 'yml', 'toml', 'env', 'dotenv'),
@@ -698,6 +720,10 @@ $seenInSection = [Collections.Generic.HashSet[string]]::new([StringComparer]::Or
 $insideFrontmatter = $false
 $frontmatterFinished = $false
 $insideDisplayMath = $false
+$numericSourcePattern = '(?:来自|依据|根据|取自|读取自|记录于|用户(?:本次)?提供|原始材料(?:显示|记录|提供)|(?:系统|界面|日志|配置文件|仪器|监测记录|业务记录|数据库)(?:显示|记录|提供|设定)|实测(?:显示|得到)|测量(?:显示|得到)|统计(?:显示|得到)|由[^；，\r\n]{1,60}(?:计算|换算|推导)|(?:模型|公式|系统|脚本|程序)[^；，\r\n]{0,30}(?:计算|换算|推导)|计算结果|经验估计|经验值|估计值|假设值|来源待核对|\[[1-9]\d*\])'
+$documentNumericSourcePattern = '(?:本文|本报告|本次(?:回答|分析|报告)?|以下|后续)(?:中|所用|使用)?(?:的|全部|所有)?数值[^；\r\n]{0,100}' + $numericSourcePattern
+$hasDocumentNumericProvenance = $withoutCodeBlocks -match $documentNumericSourcePattern
+$numericSourceAvailableInSection = $false
 foreach ($lineMatch in $lineMatches) {
     $line = $lineMatch.Value
     if (-not $frontmatterFinished -and $lineMatch.Index -eq 0 -and $line -eq '---') {
@@ -760,6 +786,7 @@ foreach ($lineMatch in $lineMatches) {
     if ($line -match '^#{1,6}\s+') {
         $section++
         $seenInSection.Clear()
+        $numericSourceAvailableInSection = $false
     }
 
     $parenthesisCount = ([regex]::Matches($line, '（')).Count
@@ -798,6 +825,45 @@ foreach ($lineMatch in $lineMatches) {
         ${function:Hide-Match}
     )
 
+    # 一条来源说明可以覆盖同一章节中紧随其后的一组连续数值
+    if ($fieldLabelLine -match $numericSourcePattern) {
+        $numericSourceAvailableInSection = $true
+    }
+
+    # 业务数值参与判断前必须写明来自记录、计算、应用系统、用户输入或经验估计
+    $numericClaimLine = [regex]::Replace($line, '`[^`]*`', ${function:Hide-Match})
+    $numericClaimLine = [regex]::Replace($numericClaimLine, '!\[[^\]]*\]\([^)]+\)', ${function:Hide-Match})
+    $numericClaimLine = [regex]::Replace($numericClaimLine, '\[[^\]]+\]\([^)]+\)', ${function:Hide-Match})
+    $numericClaimLine = [regex]::Replace($numericClaimLine, 'https?://\S+|www\.\S+', ${function:Hide-Match})
+    $numericClaimLine = [regex]::Replace($numericClaimLine, '(?:图|表)\s*\d+(?:\.\d+)?|第\s*\d+\s*章|U\+\d+', ${function:Hide-Match})
+    $numericClaimLine = [regex]::Replace($numericClaimLine, '\$(?<math>[^$\r\n]+)\$', '${math}')
+    $isStructuralNumericLine = (
+        $line -match '^\s*#{1,6}\s+' -or
+        $line -match '^\s*\[[1-9]\d*\]\s+\S' -or
+        $line -match '^\s*(?:图|表)\s+[1-9]\d*(?:\.[1-9]\d*)?\s+\S' -or
+        $line -match '^\s*第[一二三四五六七八九十]+步\s+' -or
+        $line -match '(?:版本|器件(?:名称|型号)?|内部标识)(?:冻结|设定|记录)?为\s*[：:]' -or
+        $line -match '状态码\s*\$?\d+\$?'
+    )
+    $numericClaimMatches = @(
+        if (-not $isStructuralNumericLine) {
+            [regex]::Matches($numericClaimLine, '(?<![A-Za-z0-9_.])\d+(?:\.\d+)?(?![A-Za-z0-9_.])')
+        }
+    )
+    if (
+        $numericClaimMatches.Count -gt 0 -and
+        -not $hasDocumentNumericProvenance -and
+        -not $numericSourceAvailableInSection -and
+        $fieldLabelLine -notmatch $numericSourcePattern
+    ) {
+        $firstNumericMatch = $numericClaimMatches[0]
+        $issues.Add([pscustomobject]@{
+            rule = 'NUMERIC_CLAIM_REQUIRES_PROVENANCE'
+            line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $firstNumericMatch.Index)
+            excerpt = Get-Excerpt $withoutCodeBlocks ($lineMatch.Index + $firstNumericMatch.Index) $firstNumericMatch.Length
+        })
+    }
+
     $fieldLabelMatches = [regex]::Matches(
         $fieldLabelLine,
         '(?<term>作用解释\s*[：:]|名称由来\s*[：:]|[（(][^）)\r\n]{0,80}(?:类型|含义|影响)\s*[：:][^）)\r\n]{0,80}[）)])'
@@ -829,6 +895,32 @@ foreach ($lineMatch in $lineMatches) {
     foreach ($match in $delayedSubjectMatches) {
         $issues.Add([pscustomobject]@{
             rule = 'POSSIBLY_DELAYED_SUBJECT'
+            line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
+            excerpt = Get-Excerpt $withoutCodeBlocks ($lineMatch.Index + $match.Index) $match.Length
+        })
+    }
+
+    # 多个对象后紧接单数代词时，读者无法确定代词实际指向哪个对象
+    $ambiguousPronounMatches = [regex]::Matches(
+        $structuralLine,
+        '(?<term>[^，；\r\n]{1,28}(?:和|与|及)[^，；\r\n]{1,28}(?:都|同时|分别)?[^；\r\n]{0,18}[；，]\s*(?:它|其|该对象|该系统))'
+    )
+    foreach ($match in $ambiguousPronounMatches) {
+        $issues.Add([pscustomobject]@{
+            rule = 'POSSIBLY_AMBIGUOUS_PRONOUN_REFERENCE'
+            line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
+            excerpt = Get-Excerpt $withoutCodeBlocks ($lineMatch.Index + $match.Index) $match.Length
+        })
+    }
+
+    # 完成条件后直接出现发布或交付动作时，需要补充实际执行该动作的主体
+    $missingActionSubjectMatches = [regex]::Matches(
+        $structuralLine,
+        '(?:^|[；，]\s*)(?<term>[^，；\r\n]{0,16}(?:检查|验证|测试|审核|审批|扫描|部署|处理)完成后\s*(?:就会|就|将|会|需要|应当)(?:发布|交付|通知|删除|覆盖|生成|发送|提交))'
+    )
+    foreach ($match in $missingActionSubjectMatches) {
+        $issues.Add([pscustomobject]@{
+            rule = 'POSSIBLY_MISSING_ACTION_SUBJECT'
             line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
             excerpt = Get-Excerpt $withoutCodeBlocks ($lineMatch.Index + $match.Index) $match.Length
         })
