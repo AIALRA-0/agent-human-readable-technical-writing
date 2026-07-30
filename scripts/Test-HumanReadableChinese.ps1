@@ -4,7 +4,12 @@ param(
     [string]$Path,
 
     [Parameter(Mandatory, ParameterSetName = 'Text')]
-    [string]$Text
+    [string]$Text,
+
+    [ValidateSet('Personal', 'Publication')]
+    [string]$CaptionStyle = 'Personal',
+
+    [switch]$AllowQuestionHeadings
 )
 
 Set-StrictMode -Version Latest
@@ -54,6 +59,19 @@ function Hide-NonNarrativeZones([string]$Value) {
         ${function:Hide-Match}
     )
     return $masked
+}
+
+function Get-NumberedChapterAtIndex([string]$Value, [int]$Index) {
+    # 图表编号使用最近的二级章节编号，文档没有编号章节时返回空值
+    $beforeObject = $Value.Substring(0, [Math]::Min($Index, $Value.Length))
+    $chapterMatches = [regex]::Matches(
+        $beforeObject,
+        '(?m)^##[ \t]+(?<chapter>[1-9]\d*)[ \t]+\S.*$'
+    )
+    if ($chapterMatches.Count -eq 0) {
+        return $null
+    }
+    return [int]$chapterMatches[$chapterMatches.Count - 1].Groups['chapter'].Value
 }
 
 $issues = [Collections.Generic.List[object]]::new()
@@ -297,37 +315,138 @@ foreach ($block in $codeBlockMatches) {
 
 $withoutCodeBlocks = [regex]::Replace($Text, '(?ms)```.*?```', '')
 
-# 表题位于表格上方，并按首次出现顺序从 1 独立编号
+# 普通标题默认陈述主题，只有明确的问答内容才允许使用疑问句标题
+if (-not $AllowQuestionHeadings) {
+    $questionHeadingMatches = [regex]::Matches(
+        $withoutCodeBlocks,
+        '(?m)^#{1,6}[ \t]+(?:[1-9]\d*(?:\.[1-9]\d*)*[ \t]+)?(?<title>[^\r\n]*(?:为什么|为何|如何|是否|什么|怎样|怎么|能否|可否|何时|哪里|哪些|谁)[^\r\n]*|[^\r\n]*[？?])[ \t]*$'
+    )
+    foreach ($match in $questionHeadingMatches) {
+        $issues.Add([pscustomobject]@{
+            rule = 'QUESTION_HEADING_SHOULD_BE_DECLARATIVE'
+            line = Get-LineNumber $withoutCodeBlocks $match.Index
+            excerpt = $match.Value.Trim()
+        })
+    }
+}
+
+# 个人文档把表题放在表格下方，出版格式才把表题放在表格上方
 $tableMatches = [regex]::Matches(
     $withoutCodeBlocks,
-    '(?m)^(?<header>\|[^\r\n]+\|)\r?\n(?<separator>\|\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?)'
+    '(?m)^(?<table>(?<header>\|[^\r\n]+\|)\r?\n(?<separator>\|\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?)(?:\r?\n\|[^\r\n]+\|)*)'
 )
-$expectedTableNumber = 1
+$globalExpectedTableNumber = 1
+$expectedTableNumberByChapter = @{}
 foreach ($tableMatch in $tableMatches) {
+    # 同时读取表格前后的题注，才能区分题注缺失和题注位置错误
     $beforeTable = $withoutCodeBlocks.Substring(0, $tableMatch.Index)
     $previousLines = @($beforeTable -split '\r?\n')
     $previousNonblank = @($previousLines | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Last 1)
-    $title = if ($previousNonblank.Count -eq 1) { $previousNonblank[0].Trim() } else { '' }
-    $titleMatch = [regex]::Match($title, '^表\s+(?<number>[1-9]\d*)\s+\S')
+    $previousTitle = if ($previousNonblank.Count -eq 1) { $previousNonblank[0].Trim() } else { '' }
+    $previousTitleMatch = [regex]::Match($previousTitle, '^表\s+(?<number>\d+(?:[.-]\d+)?)\s+\S')
+
+    $afterTable = $withoutCodeBlocks.Substring($tableMatch.Index + $tableMatch.Length)
+    $nextLines = @($afterTable -split '\r?\n')
+    $nextNonblank = @($nextLines | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -First 1)
+    $nextTitle = if ($nextNonblank.Count -eq 1) { $nextNonblank[0].Trim() } else { '' }
+    $nextTitleMatch = [regex]::Match($nextTitle, '^表\s+(?<number>\d+(?:[.-]\d+)?)\s+\S')
+
+    # 根据文档用途选择题注位置，默认采用个人文档的视觉统一方案
+    if ($CaptionStyle -eq 'Publication') {
+        $title = $previousTitle
+        $titleMatch = $previousTitleMatch
+        $oppositeTitleMatch = $nextTitleMatch
+    }
+    else {
+        $title = $nextTitle
+        $titleMatch = $nextTitleMatch
+        $oppositeTitleMatch = $previousTitleMatch
+    }
+
     if (-not $titleMatch.Success) {
+        $rule = if ($oppositeTitleMatch.Success) {
+            'TABLE_TITLE_POSITION_INVALID'
+        }
+        else {
+            'TABLE_REQUIRES_NUMBERED_TITLE'
+        }
         $issues.Add([pscustomobject]@{
-            rule = 'TABLE_REQUIRES_NUMBERED_TITLE'
+            rule = $rule
             line = Get-LineNumber $withoutCodeBlocks $tableMatch.Index
-            excerpt = $tableMatch.Groups['header'].Value
+            excerpt = if ($oppositeTitleMatch.Success) { $oppositeTitleMatch.Value } else { $tableMatch.Groups['header'].Value }
         })
         continue
     }
-    if ([int]$titleMatch.Groups['number'].Value -ne $expectedTableNumber) {
+
+    # 编号章节中的表格使用“章节号.本章序号”，无章节短文继续使用单一序号
+    $tableChapter = Get-NumberedChapterAtIndex $withoutCodeBlocks $tableMatch.Index
+    $tableNumber = $titleMatch.Groups['number'].Value
+    $tableNumberParts = @($tableNumber -split '[.-]')
+    if (@($tableNumberParts | Where-Object { [int]$_ -eq 0 }).Count -gt 0) {
+        $issues.Add([pscustomobject]@{
+            rule = 'TABLE_NUMBER_MUST_NOT_USE_ZERO'
+            line = Get-LineNumber $withoutCodeBlocks $tableMatch.Index
+            excerpt = $title
+        })
+        continue
+    }
+    if ($tableNumber.Contains('-')) {
+        $issues.Add([pscustomobject]@{
+            rule = 'TABLE_NUMBER_FORMAT_MUST_MATCH_SECTION'
+            line = Get-LineNumber $withoutCodeBlocks $tableMatch.Index
+            excerpt = $title
+        })
+        continue
+    }
+    if ($null -ne $tableChapter) {
+        $chapterKey = [string]$tableChapter
+        if (-not $expectedTableNumberByChapter.ContainsKey($chapterKey)) {
+            $expectedTableNumberByChapter[$chapterKey] = 1
+        }
+        $expectedTableNumber = [int]$expectedTableNumberByChapter[$chapterKey]
+        if ($tableNumberParts.Count -ne 2) {
+            $issues.Add([pscustomobject]@{
+                rule = 'TABLE_NUMBER_FORMAT_MUST_MATCH_SECTION'
+                line = Get-LineNumber $withoutCodeBlocks $tableMatch.Index
+                excerpt = $title
+            })
+        }
+        elseif ([int]$tableNumberParts[0] -ne $tableChapter) {
+            $issues.Add([pscustomobject]@{
+                rule = 'TABLE_NUMBER_SECTION_MISMATCH'
+                line = Get-LineNumber $withoutCodeBlocks $tableMatch.Index
+                excerpt = $title
+            })
+        }
+        elseif ([int]$tableNumberParts[1] -ne $expectedTableNumber) {
+            $issues.Add([pscustomobject]@{
+                rule = 'TABLE_NUMBER_SEQUENCE_INVALID'
+                line = Get-LineNumber $withoutCodeBlocks $tableMatch.Index
+                excerpt = $title
+            })
+        }
+        $expectedTableNumberByChapter[$chapterKey] = $expectedTableNumber + 1
+        continue
+    }
+    if ($tableNumberParts.Count -ne 1) {
+        $issues.Add([pscustomobject]@{
+            rule = 'TABLE_NUMBER_FORMAT_MUST_MATCH_SECTION'
+            line = Get-LineNumber $withoutCodeBlocks $tableMatch.Index
+            excerpt = $title
+        })
+        continue
+    }
+    if ([int]$tableNumberParts[0] -ne $globalExpectedTableNumber) {
         $issues.Add([pscustomobject]@{
             rule = 'TABLE_NUMBER_SEQUENCE_INVALID'
             line = Get-LineNumber $withoutCodeBlocks $tableMatch.Index
             excerpt = $title
         })
     }
-    $expectedTableNumber++
+    $globalExpectedTableNumber++
 }
 
-# 图片和流程图的图题位于图形下方，并按首次出现顺序从 1 独立编号
+# 两种文档格式都把图片和流程图的图题放在图形下方
 $figureCandidates = [Collections.Generic.List[object]]::new()
 $imageMatches = [regex]::Matches($Text, '(?m)^[ \t]*!\[[^\]\r\n]*\]\([^)]+\)[ \t]*$')
 foreach ($imageMatch in $imageMatches) {
@@ -346,13 +465,14 @@ foreach ($block in $codeBlockMatches) {
         })
     }
 }
-$expectedFigureNumber = 1
+$globalExpectedFigureNumber = 1
+$expectedFigureNumberByChapter = @{}
 foreach ($figure in @($figureCandidates | Sort-Object Index)) {
     $afterFigure = $Text.Substring($figure.End)
     $nextLines = @($afterFigure -split '\r?\n')
     $nextNonblank = @($nextLines | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -First 1)
     $caption = if ($nextNonblank.Count -eq 1) { $nextNonblank[0].Trim() } else { '' }
-    $captionMatch = [regex]::Match($caption, '^图\s+(?<number>[1-9]\d*)\s+\S')
+    $captionMatch = [regex]::Match($caption, '^图\s+(?<number>\d+(?:[.-]\d+)?)\s+\S')
     if (-not $captionMatch.Success) {
         $issues.Add([pscustomobject]@{
             rule = 'FIGURE_REQUIRES_NUMBERED_CAPTION'
@@ -361,14 +481,73 @@ foreach ($figure in @($figureCandidates | Sort-Object Index)) {
         })
         continue
     }
-    if ([int]$captionMatch.Groups['number'].Value -ne $expectedFigureNumber) {
+
+    # 图形采用与表格相同的章节编号规则，但两类对象分别计算本章序号
+    $figureChapter = Get-NumberedChapterAtIndex $Text $figure.Index
+    $figureNumber = $captionMatch.Groups['number'].Value
+    $figureNumberParts = @($figureNumber -split '[.-]')
+    if (@($figureNumberParts | Where-Object { [int]$_ -eq 0 }).Count -gt 0) {
+        $issues.Add([pscustomobject]@{
+            rule = 'FIGURE_NUMBER_MUST_NOT_USE_ZERO'
+            line = Get-LineNumber $Text $figure.Index
+            excerpt = $caption
+        })
+        continue
+    }
+    if ($figureNumber.Contains('-')) {
+        $issues.Add([pscustomobject]@{
+            rule = 'FIGURE_NUMBER_FORMAT_MUST_MATCH_SECTION'
+            line = Get-LineNumber $Text $figure.Index
+            excerpt = $caption
+        })
+        continue
+    }
+    if ($null -ne $figureChapter) {
+        $chapterKey = [string]$figureChapter
+        if (-not $expectedFigureNumberByChapter.ContainsKey($chapterKey)) {
+            $expectedFigureNumberByChapter[$chapterKey] = 1
+        }
+        $expectedFigureNumber = [int]$expectedFigureNumberByChapter[$chapterKey]
+        if ($figureNumberParts.Count -ne 2) {
+            $issues.Add([pscustomobject]@{
+                rule = 'FIGURE_NUMBER_FORMAT_MUST_MATCH_SECTION'
+                line = Get-LineNumber $Text $figure.Index
+                excerpt = $caption
+            })
+        }
+        elseif ([int]$figureNumberParts[0] -ne $figureChapter) {
+            $issues.Add([pscustomobject]@{
+                rule = 'FIGURE_NUMBER_SECTION_MISMATCH'
+                line = Get-LineNumber $Text $figure.Index
+                excerpt = $caption
+            })
+        }
+        elseif ([int]$figureNumberParts[1] -ne $expectedFigureNumber) {
+            $issues.Add([pscustomobject]@{
+                rule = 'FIGURE_NUMBER_SEQUENCE_INVALID'
+                line = Get-LineNumber $Text $figure.Index
+                excerpt = $caption
+            })
+        }
+        $expectedFigureNumberByChapter[$chapterKey] = $expectedFigureNumber + 1
+        continue
+    }
+    if ($figureNumberParts.Count -ne 1) {
+        $issues.Add([pscustomobject]@{
+            rule = 'FIGURE_NUMBER_FORMAT_MUST_MATCH_SECTION'
+            line = Get-LineNumber $Text $figure.Index
+            excerpt = $caption
+        })
+        continue
+    }
+    if ([int]$figureNumberParts[0] -ne $globalExpectedFigureNumber) {
         $issues.Add([pscustomobject]@{
             rule = 'FIGURE_NUMBER_SEQUENCE_INVALID'
             line = Get-LineNumber $Text $figure.Index
             excerpt = $caption
         })
     }
-    $expectedFigureNumber++
+    $globalExpectedFigureNumber++
 }
 
 # 引用采用 IEEE 顺序编码制，正文编号和文末条目保持一一对应

@@ -6,8 +6,8 @@
 
 [![Quality checks](https://github.com/AIALRA-0/codex-human-readable-chinese/actions/workflows/quality.yml/badge.svg)](https://github.com/AIALRA-0/codex-human-readable-chinese/actions/workflows/quality.yml)
 [![MIT License](https://img.shields.io/badge/license-MIT-315c4c.svg)](LICENSE)
-[![79 rule checks](https://img.shields.io/badge/rule_checks-79-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
-[![28 full answers](https://img.shields.io/badge/full_QA_cases-28-657067.svg)](QA-CASES.md)
+[![98 rule checks](https://img.shields.io/badge/rule_checks-98-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
+[![31 full answers](https://img.shields.io/badge/full_QA_cases-31-657067.svg)](QA-CASES.md)
 [![Local first](https://img.shields.io/badge/data-local_first-6b5b95.svg)](#隐私边界)
 
 [查看改写效果](#1-改写效果) · [开始使用](#3-开始使用) · [了解处理过程](#4-处理过程) · [检查完整案例](QA-CASES.md) · [阅读详细规则](references/style-rules.md) · [运行质量检查](#7-质量检查)
@@ -26,13 +26,13 @@
 
 下面三个例子展示这个技能解决的实际问题：
 
-表 1 技术状态的人话改写
-
 | 原始表达 | 改写后的正文 |
 |---|---|
 | `FLOW_VALIDATED` | 本轮规定的软件流程已经跑通，但真实设备尚未测试，因此流程验证可以结束，产品仍不能发布 |
 | `strict ImplementationGate` | 实现结果只有在全部强制检查通过后才会被接受；任何一项失败，本轮结果都不能交付 |
 | `Cpk dropped to 1.08` | 生产结果比以前更容易越过允许边界，因此不合格品风险正在增加 |
+
+表 1.1 技术状态的人话改写
 
 改写后的正文直接回答下面三个问题：
 
@@ -102,6 +102,10 @@
 
 编号从 `1` 开始，标题层级改变时，编号层级也需要同步改变
 
+标题默认使用陈述式主题，例如“本项目禁止形式化验证的原因”
+
+常见问题、访谈记录、问答页面或用户明确要求保留问题时，才使用“为什么本项目禁止形式化验证”这类疑问句标题
+
 ### 2.9 步骤需要明确顺序
 
 需要读者依次操作时，使用“第一步”“第二步”这种中文顺序
@@ -126,13 +130,15 @@ Vivado 芯片设计套件（Vivado Design Suite）负责完成芯片设计处理
 
 `项目冻结版本` 无法说明被冻结的是工具、文件还是产品，所以需要改成 `项目 Vivado 冻结版本` 或其他准确对象
 
-### 2.12 图表需要正式题注
+### 2.12 图表需要编号题注
 
-表格和图形分别从 `1` 开始独立编号
+图表编号由所属一级章节号和本章序号组成，例如第 1 章的前两个图依次写成“图 1.1”“图 1.2”
 
-表题放在表格上方，图题放在图形下方，补充说明使用“注：”
+图形和表格分别计数，进入新章节后从 `1` 重新开始；没有编号章节的短文才使用“图 1”“表 1”
 
-IEEE 电气电子工程师学会（Institute of Electrical and Electronics Engineers）正式稿件也采用表题在上、图题在下的结构 [1]
+个人文档默认把表题与图题都放在对应内容下方，让题注位置保持视觉统一
+
+用户明确要求论文、期刊、会议或其他出版格式时，才采用表题在上、图题在下的出版惯例 [1]
 
 ### 2.13 引用需要顺序编码
 
@@ -181,7 +187,7 @@ flowchart TD
     G --> H["交付能够核对和执行的结果"]
 ```
 
-图 1 中文技术内容处理流程
+图 4.1 中文技术内容处理流程
 
 这个过程先解决读者的问题，再补充正式名称和原始证据
 
@@ -191,8 +197,6 @@ flowchart TD
 
 项目把不同用途的内容分开保存，普通回答不需要读取全部测试材料
 
-表 2 规则材料的读取时机
-
 | 内容 | 什么时候读取 | 解决什么问题 |
 |---|---|---|
 | 全局规则模板 | 每次中文写作 | 保存不能违反的表达边界 |
@@ -200,11 +204,13 @@ flowchart TD
 | 详细写作规则 | 复杂报告或争议案例出现时 | 提供边界条件和完整示例 |
 | 完整测试材料 | 运行质量检查时 | 检查规则是否只适合少数短回答 |
 
+表 5.1 规则材料的读取时机
+
 完整测试材料不会自动进入普通对话，因此增加测试案例不会等量增加每次回答需要读取的内容
 
 ## 6 完整案例
 
-读者需要亲自判断实际回答是否自然、清楚并且有足够依据，所以[完整问答案例](QA-CASES.md)公开展示二十八个问题和对应回答
+读者需要亲自判断实际回答是否自然、清楚并且有足够依据，所以[完整问答案例](QA-CASES.md)公开展示三十一个问题和对应回答
 
 案例覆盖五种长度：
 
@@ -257,6 +263,10 @@ flowchart TD
 - 缺少十进制层级编号的多章节文档
 - 没有使用中文顺序的操作步骤
 - 缺少编号题注的图表
+- 图表编号与所属章节不匹配
+- 图表使用零编号或进入新章节后没有重新计数
+- 个人文档和出版格式使用了错误的表题位置
+- 非问答内容使用疑问句标题
 - 不符合顺序编码格式的引用
 - 双重否定
 - 被机械拆成两行的简短标签和值
@@ -266,20 +276,20 @@ flowchart TD
 
 当前公开测试包含下面这些差异：
 
-- 七十九组规则正反测试
-- 二十八组完整问答测试
+- 九十八组规则正反测试
+- 三十一组完整问答测试
 - 五种回答长度
-- 二十八个内容方向
-- 二十四种表达语气
-- 十九类目标读者
-- 十九类任务
-- 十八种内容结构
+- 三十一个内容方向
+- 二十六种表达语气
+- 二十二类目标读者
+- 二十二类任务
+- 二十一种内容结构
 
 运行全部检查：
 
 ```powershell
-pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行七十九组规则正反测试
-pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # 执行二十八组完整问答质量测试
+pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行九十八组规则正反测试
+pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # 执行三十一组完整问答质量测试
 pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # 使用已经通过检查的结果重新生成案例文档
 ```
 
@@ -288,8 +298,6 @@ pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # 使用已经通过�
 重要报告仍然需要人工核对原始证据，并确认结论没有超过证据能够证明的范围
 
 ## 8 文件说明
-
-表 3 仓库文件说明
 
 | 路径 | 内容 |
 |---|---|
@@ -301,6 +309,8 @@ pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # 使用已经通过�
 | `scripts/Export-QualityCases.ps1` | 使用正式测试结果生成完整案例文档 |
 | `evals/Invoke-QualityEvaluation.20260729.ps1` | 保存多行业完整问答和样本差异要求 |
 | `QA-CASES.md` | 展示全部问题和完整回答 |
+
+表 8.1 仓库文件说明
 
 这些文件按照实际用途分开保存，既保留验证证据，也避免普通任务读取无关内容
 

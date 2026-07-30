@@ -529,14 +529,14 @@ return ProfileResult.Found(user.Profile.City);
 
 总使用成本表示从购买到报废期间实际花掉的全部费用；本次把购买后直到报废的全部费用计入
 
-表 1 三年成本比较
-
 | 比较项目 | 甲方案 | 乙方案 |
 |---|---:|---:|
 | 机器价格 | 8000元 | 10000元 |
 | 三年耗材 | 24000元 | 15000元 |
 | 三年维护 | 6000元 | 4000元 |
 | 三年合计 | 38000元 | 29000元 |
+
+表 1 三年成本比较
 
 乙方案虽然购买时多花两千元，但三年合计少花九千元，因此预计打印量能够实现时应选乙方案
 
@@ -1509,8 +1509,6 @@ CDC 时钟区域跨越检查（Clock Domain Crossing）负责发现信号跨越�
 
 ## 3 结果
 
-表 1 本轮验证结果
-
 | 检查项目 | 结果 | 能够证明的范围 |
 |---|---|---|
 | 综合 | 通过 | 设计能够转换成目标逻辑结构 |
@@ -1519,11 +1517,13 @@ CDC 时钟区域跨越检查（Clock Domain Crossing）负责发现信号跨越�
 | 时钟区域跨越检查 | 零问题 | 没有发现已知跨时钟风险 |
 | 真实板卡测试 | 未执行 | 不能证明真实硬件行为 |
 
+表 3.1 本轮验证结果
+
 注：软件检查通过不等于真实板卡已经完成验证
 
 ## 4 复现
 
-下面的流程图按照复现顺序展示检查关系，图题位置遵循正式技术文稿的常用规则 [1]
+下面的流程图按照复现顺序展示检查关系，图题放在流程图下方，这个位置同时符合个人文档偏好和正式技术文稿惯例 [1]
 
 ```mermaid
 %% 从固定环境开始展示完整复现顺序
@@ -1535,7 +1535,7 @@ flowchart TD
     E --> F["保存结果证据"]
 ```
 
-图 1 芯片软件流程复现顺序
+图 4.1 芯片软件流程复现顺序
 
 复现者需要使用相同工具版本和目标器件，再逐项比较输出记录；任何强制检查失败，本轮结果都不能接受
 
@@ -1593,6 +1593,102 @@ npm run build # 生成交付文件，并确认项目能够完成构建
 
 这些条件把失败限制在发布之前，避免新手把“命令已经执行”误解成“结果已经通过”
 '@
+    },
+    [pscustomobject]@{
+        Id = 'medium-personal-caption-layout'
+        Length = 'short'
+        Difficulty = 'easy'
+        Direction = 'personal-document-layout'
+        Tone = 'tidy'
+        Audience = 'personal-doc-author'
+        TaskType = 'weekly-report'
+        InputShape = 'preference-plus-results'
+        Structure = 'declarative-headings-table-caption-below'
+        Prompt = '写一段个人项目周报，带结果表；我喜欢表题和图题都放在下方，章节标题不要写成问题'
+        Response = @'
+本周完成了登录、查询和导出检查，三项检查都留下了可以复核的记录，因此本轮功能验证可以结束
+
+## 1 本周验证结果
+
+| 检查项目 | 结果 | 后续处理 |
+|---|---|---|
+| 登录 | 通过 | 保留测试记录 |
+| 查询 | 通过 | 保留查询样本 |
+| 导出 | 通过 | 核对文件格式 |
+
+表 1.1 本周功能验证结果
+
+三项检查全部通过，说明当前测试环境能够完成主要操作
+
+## 2 下周处理重点
+
+真实用户尚未参与验收，所以当前结果只能证明内部测试完成
+
+下周需要邀请真实用户执行相同操作，并记录失败步骤和实际业务影响
+'@
+    },
+    [pscustomobject]@{
+        Id = 'medium-publication-caption-layout'
+        Length = 'medium'
+        Difficulty = 'medium'
+        Direction = 'publication-layout'
+        Tone = 'formal'
+        Audience = 'paper-editor'
+        TaskType = 'publication-formatting'
+        InputShape = 'explicit-publication-request'
+        Structure = 'declarative-headings-table-title-above'
+        CaptionStyle = 'Publication'
+        Prompt = '按照论文出版格式整理下面的测试结果，表题使用出版位置，章节标题使用陈述句'
+        Response = @'
+本次试验比较两种方法的处理时间，全部数据来自同一批输入，因此结果可以在相同条件下比较
+
+## 1 试验结果
+
+表 1.1 两种处理方法的时间比较
+
+| 处理方法 | 平均时间 | 失败次数 |
+|---|---:|---:|
+| 方法一 | 42秒 | 3次 |
+| 方法二 | 31秒 | 1次 |
+
+注：平均时间只统计成功完成的任务
+
+方法二的平均处理时间更短，而且失败次数更少，因此本轮试验支持优先选择方法二
+
+## 2 结果限制
+
+本次试验只使用一批输入，数据量不足以证明方法二在全部场景中都更稳定
+
+后续试验需要增加输入规模和异常类型，再判断这个优势是否能够保持
+'@
+    },
+    [pscustomobject]@{
+        Id = 'medium-explicit-faq-headings'
+        Length = 'short'
+        Difficulty = 'easy'
+        Direction = 'faq-documentation'
+        Tone = 'helpful'
+        Audience = 'new-project-member'
+        TaskType = 'faq'
+        InputShape = 'explicit-question-answer-request'
+        Structure = 'question-headings'
+        AllowQuestionHeadings = $true
+        Prompt = '把下面内容整理成常见问题页面，问题直接作为标题：为什么禁用自动删除，历史文件怎样恢复'
+        Response = @'
+## 1 为什么禁用自动删除？
+
+自动删除会在保留期限到达后直接移除文件；如果期限配置错误，仍然需要调查的历史文件也会消失
+
+项目先保留人工确认步骤，负责人确认文件已经完成归档后，系统才允许删除
+
+## 2 历史文件怎样恢复？
+
+历史文件每天保存一份独立副本，所以误删后可以从最近一次有效副本恢复
+
+恢复前先确认需要的日期和文件范围，再把副本恢复到临时目录
+
+核对文件数量和摘要一致后，才能替换当前目录，避免错误副本覆盖仍然有效的文件
+'@
     }
 )
 
@@ -1602,6 +1698,15 @@ function Get-CaseField([object]$Case, [string]$Name, [string]$DefaultValue) {
         return $DefaultValue
     }
     return [string]$property.Value
+}
+
+function Get-CaseBoolean([object]$Case, [string]$Name, [bool]$DefaultValue) {
+    # 可选布尔字段不存在时返回默认值，避免每个案例重复编写属性检查
+    $property = $Case.PSObject.Properties[$Name]
+    if ($null -eq $property) {
+        return $DefaultValue
+    }
+    return [bool]$property.Value
 }
 
 function Get-MaxCategorySharePercent([object[]]$Items, [string]$PropertyName) {
@@ -1618,7 +1723,17 @@ function Get-MaxCategorySharePercent([object[]]$Items, [string]$PropertyName) {
 }
 
 $results = foreach ($case in $cases) {
-    $lint = & $linter -Text $case.Response | ConvertFrom-Json
+    # 根据案例声明选择个人文档、出版格式或问答标题，未声明时使用个人文档默认值
+    $captionStyle = Get-CaseField $case 'CaptionStyle' 'Personal'
+    $allowQuestionHeadings = Get-CaseBoolean $case 'AllowQuestionHeadings' $false
+    $lintArguments = @{
+        Text = $case.Response
+        CaptionStyle = $captionStyle
+    }
+    if ($allowQuestionHeadings) {
+        $lintArguments.AllowQuestionHeadings = $true
+    }
+    $lint = & $linter @lintArguments | ConvertFrom-Json
     # 统一换行符后再统计字符，避免同一回答在不同操作系统上落入不同长度分类
     $responseText = $case.Response.Trim() -replace '\r\n', "`n"
     $characterCount = $responseText.Length
@@ -1641,6 +1756,8 @@ $results = foreach ($case in $cases) {
         task_type = Get-CaseField $case 'TaskType' 'general-answer'
         input_shape = Get-CaseField $case 'InputShape' 'clean-question'
         structure = Get-CaseField $case 'Structure' 'prose-with-list'
+        caption_style = $captionStyle
+        allow_question_headings = $allowQuestionHeadings
         prompt = $case.Prompt
         response = $responseText
         character_count = $characterCount

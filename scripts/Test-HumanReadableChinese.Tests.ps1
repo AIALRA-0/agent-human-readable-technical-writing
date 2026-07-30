@@ -6,11 +6,17 @@ $ErrorActionPreference = 'Stop'
 
 $lintPath = Join-Path $PSScriptRoot 'Test-HumanReadableChinese.ps1'
 
-function Invoke-Lint([string]$Value) {
+function Invoke-Lint(
+    [string]$Value,
+    [string]$CaptionStyle = 'Personal',
+    [bool]$AllowQuestionHeadings = $false
+) {
+    # 把正文安全传给独立检查进程，避免测试文字被 PowerShell 当成命令解释
     $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($Value))
+    $questionHeadingArgument = if ($AllowQuestionHeadings) { ' -AllowQuestionHeadings' } else { '' }
     $child = @"
 `$text = [Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('$encoded'))
-& '$lintPath' -Text `$text
+& '$lintPath' -Text `$text -CaptionStyle '$CaptionStyle'$questionHeadingArgument
 "@
     $output = & pwsh -NoLogo -NoProfile -NonInteractive -Command $child 2>&1
     $exitCode = $LASTEXITCODE
@@ -61,7 +67,7 @@ $cases = @(
     },
     @{
         Name = '徽章和表格结构通过'
-        Text = "[![Quality checks](https://example.com/badge.svg)](https://example.com/checks)`n`n表 1 检查结果`n`n| 项目 | 内容 |`n|---|---|`n| 状态、原因和后果 | 原始证据 |"
+        Text = "[![Quality checks](https://example.com/badge.svg)](https://example.com/checks)`n`n| 项目 | 内容 |`n|---|---|`n| 状态、原因和后果 | 原始证据 |`n`n表 1 检查结果"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -96,7 +102,29 @@ $cases = @(
     },
     @{
         Name = '图表独立编号通过'
-        Text = "表 1 第一轮结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 2 第二轮结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二轮 | 通过 |`n`n![处理结果](https://example.com/result.png)`n`n图 1 处理结果`n`n![复查结果](https://example.com/review.png)`n`n图 2 复查结果"
+        Text = "| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 1 第一轮结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二轮 | 通过 |`n`n表 2 第二轮结果`n`n![处理结果](https://example.com/result.png)`n`n图 1 处理结果`n`n![复查结果](https://example.com/review.png)`n`n图 2 复查结果"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '出版格式表题在上通过'
+        Text = "表 1 检查结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |"
+        CaptionStyle = 'Publication'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '陈述式标题通过'
+        Text = "## 1 本项目禁止形式化验证的原因`n`n形式化验证不在当前范围内`n`n## 2 历史证据的独立保存方式`n`n历史证据保存在独立目录中"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '问答页面疑问句标题通过'
+        Text = "## 1 为什么本项目禁止形式化验证`n`n形式化验证不在当前范围内`n`n## 2 历史证据怎样独立保存`n`n历史证据保存在独立目录中"
+        AllowQuestionHeadings = $true
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '按章节重新编号图表通过'
+        Text = "## 1 第一章`n`n| 项目 | 结果 |`n|---|---|`n| 第一项 | 通过 |`n`n表 1.1 第一项结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二项 | 通过 |`n`n表 1.2 第二项结果`n`n![第一章结果](https://example.com/one.png)`n`n图 1.1 第一章结果`n`n## 2 第二章`n`n| 项目 | 结果 |`n|---|---|`n| 第三项 | 通过 |`n`n表 2.1 第三项结果`n`n![第二章结果](https://example.com/two.png)`n`n图 2.1 第二章结果"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -376,7 +404,43 @@ $cases = @(
     },
     @{
         Name = '表格编号跳号失败'
-        Text = "表 1 第一轮结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 3 第二轮结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二轮 | 通过 |"
+        Text = "| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 1 第一轮结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二轮 | 通过 |`n`n表 3 第二轮结果"
+        ExpectedRule = 'TABLE_NUMBER_SEQUENCE_INVALID'
+    },
+    @{
+        Name = '个人文档表题在上失败'
+        Text = "表 1 检查结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |"
+        ExpectedRule = 'TABLE_TITLE_POSITION_INVALID'
+    },
+    @{
+        Name = '出版格式表题在下失败'
+        Text = "| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 1 检查结果"
+        CaptionStyle = 'Publication'
+        ExpectedRule = 'TABLE_TITLE_POSITION_INVALID'
+    },
+    @{
+        Name = '表格章节编号不匹配失败'
+        Text = "## 2 结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 1.1 检查结果"
+        ExpectedRule = 'TABLE_NUMBER_SECTION_MISMATCH'
+    },
+    @{
+        Name = '章节内表格使用单一编号失败'
+        Text = "## 2 结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 1 检查结果"
+        ExpectedRule = 'TABLE_NUMBER_FORMAT_MUST_MATCH_SECTION'
+    },
+    @{
+        Name = '表格零编号失败'
+        Text = "## 1 结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 0.1 检查结果"
+        ExpectedRule = 'TABLE_NUMBER_MUST_NOT_USE_ZERO'
+    },
+    @{
+        Name = '表格连字符编号失败'
+        Text = "## 1 结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 1-1 检查结果"
+        ExpectedRule = 'TABLE_NUMBER_FORMAT_MUST_MATCH_SECTION'
+    },
+    @{
+        Name = '表格跨章节没有重新编号失败'
+        Text = "## 1 第一章`n`n| 项目 | 结果 |`n|---|---|`n| 第一项 | 通过 |`n`n表 1.1 第一项结果`n`n## 2 第二章`n`n| 项目 | 结果 |`n|---|---|`n| 第二项 | 通过 |`n`n表 2.2 第二项结果"
         ExpectedRule = 'TABLE_NUMBER_SEQUENCE_INVALID'
     },
     @{
@@ -387,6 +451,31 @@ $cases = @(
     @{
         Name = '图片编号跳号失败'
         Text = "![处理结果](https://example.com/result.png)`n`n图 2 处理结果"
+        ExpectedRule = 'FIGURE_NUMBER_SEQUENCE_INVALID'
+    },
+    @{
+        Name = '图片章节编号不匹配失败'
+        Text = "## 2 结果`n`n![处理结果](https://example.com/result.png)`n`n图 1.1 处理结果"
+        ExpectedRule = 'FIGURE_NUMBER_SECTION_MISMATCH'
+    },
+    @{
+        Name = '章节内图片使用单一编号失败'
+        Text = "## 2 结果`n`n![处理结果](https://example.com/result.png)`n`n图 1 处理结果"
+        ExpectedRule = 'FIGURE_NUMBER_FORMAT_MUST_MATCH_SECTION'
+    },
+    @{
+        Name = '图片零编号失败'
+        Text = "## 1 结果`n`n![处理结果](https://example.com/result.png)`n`n图 0.1 处理结果"
+        ExpectedRule = 'FIGURE_NUMBER_MUST_NOT_USE_ZERO'
+    },
+    @{
+        Name = '图片零编号连字符失败'
+        Text = "## 1 结果`n`n![处理结果](https://example.com/result.png)`n`n图 0-1 处理结果"
+        ExpectedRule = 'FIGURE_NUMBER_MUST_NOT_USE_ZERO'
+    },
+    @{
+        Name = '图片跨章节没有重新编号失败'
+        Text = "## 1 第一章`n`n![第一章结果](https://example.com/one.png)`n`n图 1.1 第一章结果`n`n## 2 第二章`n`n![第二章结果](https://example.com/two.png)`n`n图 2.2 第二章结果"
         ExpectedRule = 'FIGURE_NUMBER_SEQUENCE_INVALID'
     },
     @{
@@ -418,13 +507,31 @@ $cases = @(
         Name = '冻结版本对象含糊失败'
         Text = '项目冻结版本为：2024.1'
         ExpectedRule = 'AMBIGUOUS_FROZEN_VERSION_OWNER'
+    },
+    @{
+        Name = '为什么疑问句标题失败'
+        Text = '## 1 为什么本项目禁止形式化验证'
+        ExpectedRule = 'QUESTION_HEADING_SHOULD_BE_DECLARATIVE'
+    },
+    @{
+        Name = '怎样疑问句标题失败'
+        Text = '## 1 历史证据怎样独立保存'
+        ExpectedRule = 'QUESTION_HEADING_SHOULD_BE_DECLARATIVE'
+    },
+    @{
+        Name = '问号标题失败'
+        Text = '## 1 本项目允许发布吗？'
+        ExpectedRule = 'QUESTION_HEADING_SHOULD_BE_DECLARATIVE'
     }
 )
 
 $failures = [Collections.Generic.List[object]]::new()
 $caseResults = [Collections.Generic.List[object]]::new()
 foreach ($case in $cases) {
-    $run = Invoke-Lint -Value $case.Text
+    # 每个案例可以单独声明出版题注或问答标题，未声明时使用个人文档默认值
+    $captionStyle = if ($case.ContainsKey('CaptionStyle')) { $case.CaptionStyle } else { 'Personal' }
+    $allowQuestionHeadings = $case.ContainsKey('AllowQuestionHeadings') -and $case.AllowQuestionHeadings
+    $run = Invoke-Lint -Value $case.Text -CaptionStyle $captionStyle -AllowQuestionHeadings $allowQuestionHeadings
     if ($case.ContainsKey('ExpectedStatus') -and $case.ExpectedStatus -eq 'PASS') {
         $passed = $run.Result.status -eq 'PASS'
         $caseResults.Add([pscustomobject]@{
