@@ -6,7 +6,7 @@
 
 [![Quality checks](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml/badge.svg)](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml)
 [![MIT License](https://img.shields.io/badge/license-MIT-315c4c.svg)](LICENSE)
-[![121 rule checks](https://img.shields.io/badge/rule_checks-121-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
+[![122 rule checks](https://img.shields.io/badge/rule_checks-122-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
 [![41 full answers](https://img.shields.io/badge/full_QA_cases-41-657067.svg)](QA-CASES.md)
 [![Local first](https://img.shields.io/badge/data-local_first-6b5b95.svg)](#9-隐私边界)
 
@@ -363,7 +363,7 @@ flowchart TD
 
 当前公开测试包含下面这些差异：
 
-- 一百二十一组规则正反测试
+- 一百二十二组规则正反测试
 - 四十一组完整问答测试
 - 十九组原始术语保留问答测试
 - 五种回答长度
@@ -376,7 +376,7 @@ flowchart TD
 运行全部检查：
 
 ```powershell
-pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行一百二十一组规则正反测试
+pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行一百二十二组规则正反测试
 pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # 执行四十一组完整问答质量测试
 pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # 使用已经通过检查的结果重新生成案例文档
 pwsh -NoProfile -File ".\scripts\Test-RepositoryContent.ps1" # 检查全部公开文档、案例同步状态和相对链接

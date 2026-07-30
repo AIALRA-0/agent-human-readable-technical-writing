@@ -17,7 +17,14 @@ $ruleTests = Join-Path $PSScriptRoot 'Test-HumanReadableChinese.Tests.ps1'
 $documentResults = [Collections.Generic.List[object]]::new()
 $markdownFiles = @(Get-ChildItem -LiteralPath $skillRoot -Recurse -File -Filter '*.md')
 foreach ($file in $markdownFiles) {
-    $lintResult = (& $linter -Path $file.FullName | Out-String) | ConvertFrom-Json
+    # 完整案例文档属于问答页面，正式评估仍会逐个限制普通案例中的疑问句标题
+    $lintArguments = @{
+        Path = $file.FullName
+    }
+    if ($file.FullName -eq $qualityCases) {
+        $lintArguments.AllowQuestionHeadings = $true
+    }
+    $lintResult = (& $linter @lintArguments | Out-String) | ConvertFrom-Json
     $documentResults.Add([pscustomobject]@{
         path = [IO.Path]::GetRelativePath($skillRoot, $file.FullName)
         status = $lintResult.status

@@ -575,6 +575,11 @@ $cases = @(
         ExpectedStatus = 'PASS'
     },
     @{
+        Name = 'Windows换行技能元数据通过'
+        Text = "---`r`nname: human-readable-technical-writing`r`ndescription: Create readable Chinese technical prose`r`n---`r`n`r`n# 人类可读技术写作`r`n`r`n读者先看到事实和原因，随后再判断结果"
+        ExpectedStatus = 'PASS'
+    },
+    @{
         Name = 'Windows换行流程图缺少图题失败'
         Text = ($fence + "mermaid`r`nflowchart TD`r`n    A[开始] --> B[结束]`r`n" + $fence)
         ExpectedRule = 'FIGURE_REQUIRES_NUMBERED_CAPTION'

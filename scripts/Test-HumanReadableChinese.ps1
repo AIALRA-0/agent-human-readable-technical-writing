@@ -24,6 +24,9 @@ if ($PSCmdlet.ParameterSetName -eq 'Path') {
     $Text = Get-Content -LiteralPath $Path -Raw -Encoding UTF8
 }
 
+# 统一不同操作系统产生的换行符，避免同一文档在本地和远程检查环境得到不同结果
+$Text = $Text -replace "`r`n", "`n" -replace "`r", "`n"
+
 function Get-LineNumber([string]$Value, [int]$Index) {
     if ($Index -le 0) {
         return 1
