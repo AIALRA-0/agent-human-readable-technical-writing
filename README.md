@@ -6,8 +6,8 @@
 
 [![Quality checks](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml/badge.svg)](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml)
 [![MIT License](https://img.shields.io/badge/license-MIT-315c4c.svg)](LICENSE)
-[![122 rule checks](https://img.shields.io/badge/rule_checks-122-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
-[![41 full answers](https://img.shields.io/badge/full_QA_cases-41-657067.svg)](QA-CASES.md)
+[![130 rule checks](https://img.shields.io/badge/rule_checks-130-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
+[![46 full answers](https://img.shields.io/badge/full_QA_cases-46-657067.svg)](QA-CASES.md)
 [![Local first](https://img.shields.io/badge/data-local_first-6b5b95.svg)](#9-隐私边界)
 
 [查看改写效果](#1-改写效果) · [开始使用](#3-开始使用) · [了解处理过程](#4-处理过程) · [检查完整案例](QA-CASES.md) · [阅读详细规则](references/style-rules.md) · [运行质量检查](#7-质量检查)
@@ -65,6 +65,8 @@
 
 <div align="center">
 
+表 1.1 技术状态改写后形成的判断信息
+
 | 读者需要判断的事情 | 改写后能够获得的信息 |
 |---|---|
 | 哪部分已经完成 | 芯片软件实现流程已经完成 |
@@ -72,8 +74,6 @@
 | 现有证据能证明什么 | 软件实现结果具备可复核的通过证据 |
 | 现有证据不能证明什么 | 真实板卡能否稳定工作仍未验证 |
 | 谁负责下一步 | 项目负责人归档软件证据，板级负责人完成真实板卡测试 |
-
-表 1.1 技术状态改写后形成的判断信息
 
 </div>
 
@@ -181,7 +181,14 @@ Vivado 芯片设计套件（Vivado Design Suite）负责完成芯片设计处理
 
 业务数值、测量结果、阈值、配置值、预测值和经验值都要说明来源
 
-引用数值需要提供顺序引用编号；计算数值需要写明输入和公式；软件产生的数值需要写明系统、日志或配置文件；经验估计需要说明样本和适用条件
+不同数值需要保留对应来源：
+
+- 引用数值提供顺序引用编号
+- 计算数值写明输入和公式
+- 软件产生的数值写明系统、日志或配置文件
+- 经验估计说明样本和适用条件
+
+读者依靠这些来源复算结果，并判断数值能否用于当前任务
 
 来源无法确认时，正文标记“来源待核对”，不能把数值作为已经证实的事实
 
@@ -191,9 +198,7 @@ Vivado 芯片设计套件（Vivado Design Suite）负责完成芯片设计处理
 
 图形和表格分别计数，进入新章节后从 `1` 重新开始；没有编号章节的短文才使用“图 1”“表 1”
 
-个人文档默认把表题与图题都放在对应内容下方，让题注位置保持视觉统一
-
-用户明确要求论文、期刊、会议或其他出版格式时，才采用表题在上、图题在下的出版惯例 [1]
+表题统一放在表格上方，图题统一放在图形下方 [1]
 
 ### 2.15 图表需要共同居中
 
@@ -268,6 +273,8 @@ flowchart TD
 
 <div align="center">
 
+表 5.1 规则材料的读取时机
+
 | 内容 | 什么时候读取 | 解决什么问题 |
 |---|---|---|
 | 全局规则模板 | 每次中文写作 | 保存不能违反的表达边界 |
@@ -275,17 +282,15 @@ flowchart TD
 | 详细写作规则 | 复杂报告或争议案例出现时 | 提供边界条件和完整示例 |
 | 完整测试材料 | 运行质量检查时 | 检查规则是否只适合少数短回答 |
 
-表 5.1 规则材料的读取时机
-
 </div>
 
 完整测试材料不会自动进入普通对话，因此增加测试案例不会等量增加每次回答需要读取的内容
 
 ## 6 完整案例
 
-读者需要亲自判断实际回答是否自然、清楚并且有足够依据，所以[完整问答案例](QA-CASES.md)公开展示四十一个问题和对应回答
+读者需要亲自判断实际回答是否自然、清楚并且有足够依据，所以[完整问答案例](QA-CASES.md)公开展示四十六个问题和对应回答
 
-案例文档先展示本轮新增的八组案例，再保留三十三组历史案例用于回归检查
+案例文档先展示本轮新增的五组案例，再保留四十一组历史案例用于回归检查
 
 这种排列让读者能够直接找到新内容，同时继续验证新规则没有破坏原有写作能力
 
@@ -319,6 +324,10 @@ flowchart TD
 - 灾难恢复术语说明
 - 实验室多种视觉材料编排
 - 出版格式表格题注
+- 精准动词改写
+- 工程复盘叙事
+- 一次性证据范围说明
+- 责任主体行动归组
 
 同一套规则在短句和长报告中可能出现不同问题，所以测试必须保留这些差异
 
@@ -326,7 +335,7 @@ flowchart TD
 
 当前版本必须同时通过两类检查
 
-第一类检查使用正确写法和错误写法进行成对测试，确认下面两件事：
+第一类检查把正确写法和错误写法组成测试对，确认下面两件事：
 
 - 正确写法不会被错误拦截
 - 已知的机械写作问题能够被发现
@@ -348,7 +357,7 @@ flowchart TD
 - 缺少编号题注的图表
 - 图表编号与所属章节不匹配
 - 图表使用零编号或进入新章节后没有重新计数
-- 个人文档和出版格式使用了错误的表题位置
+- 表题放在表格下方
 - 表格、图片、流程图或对应题注没有共同居中
 - 非问答内容使用疑问句标题
 - 不符合顺序编码格式的引用
@@ -358,26 +367,29 @@ flowchart TD
 - 多个对象后指向含糊的代词
 - 没有写明执行主体的发布或交付动作
 - 没有说明引用、计算、应用或经验来源的业务数值
+- 可以直接改成准确动作的名词化弱动词
+- 同时承担多次逻辑转折的嵌套长句
+- 同一解释单元中重复出现的防御性范围说明
 
 第二类检查使用完整问题和完整回答，验证不同篇幅和不同场景，避免项目只对少数样例表现良好
 
 当前公开测试包含下面这些差异：
 
-- 一百二十二组规则正反测试
-- 四十一组完整问答测试
-- 十九组原始术语保留问答测试
+- 一百三十组规则正反测试
+- 四十六组完整问答测试
+- 二十一组原始术语保留问答测试
 - 五种回答长度
-- 四十一个内容方向
-- 二十七种表达语气
-- 三十一类目标读者
-- 三十一类任务
-- 三十一种内容结构
+- 四十六个内容方向
+- 三十一种表达语气
+- 三十五类目标读者
+- 三十六类任务
+- 三十五种内容结构
 
 运行全部检查：
 
 ```powershell
-pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行一百二十二组规则正反测试
-pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # 执行四十一组完整问答质量测试
+pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行一百三十组规则正反测试
+pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # 执行四十六组完整问答质量测试
 pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # 使用已经通过检查的结果重新生成案例文档
 pwsh -NoProfile -File ".\scripts\Test-RepositoryContent.ps1" # 检查全部公开文档、案例同步状态和相对链接
 ```
@@ -390,6 +402,8 @@ pwsh -NoProfile -File ".\scripts\Test-RepositoryContent.ps1" # 检查全部公�
 
 <div align="center">
 
+表 8.1 仓库文件说明
+
 | 路径 | 内容 |
 |---|---|
 | `SKILL.md` | 智能体开始写作时读取的核心规则 |
@@ -401,8 +415,6 @@ pwsh -NoProfile -File ".\scripts\Test-RepositoryContent.ps1" # 检查全部公�
 | `scripts/Test-RepositoryContent.ps1` | 使用技能自身检查全部公开文档、案例同步状态和相对链接 |
 | `evals/Invoke-QualityEvaluation.20260729.ps1` | 保存多行业完整问答和样本差异要求 |
 | `QA-CASES.md` | 展示全部问题和完整回答 |
-
-表 8.1 仓库文件说明
 
 </div>
 

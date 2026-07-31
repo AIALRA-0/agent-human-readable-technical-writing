@@ -8,7 +8,8 @@ $ErrorActionPreference = 'Stop'
 
 $skillRoot = Split-Path -Parent $PSScriptRoot
 $linter = Join-Path $skillRoot 'scripts\Test-HumanReadableChinese.ps1'
-$currentGeneration = '2026-07-30-repository-self-audit'
+$currentGeneration = '2026-07-30-natural-technical-narrative'
+$previousGeneration = '2026-07-30-repository-self-audit'
 
 $cases = @(
     [pscustomobject]@{
@@ -73,7 +74,9 @@ $cases = @(
         Prompt = '把DNS讲给完全不懂网络的人听'
         RequiredTerms = @('DNS')
         Response = @'
-DNS 域名系统（Domain Name System）负责把人能记住的网站名称转换成计算机使用的网络地址；没有这一步，浏览器知道你想访问哪个名称，却不知道应该连接哪台服务器
+DNS 域名系统（Domain Name System）负责把网站名称转换成计算机使用的网络地址
+
+浏览器依靠转换结果找到对应服务器；缺少转换结果时，浏览器只知道网站名称
 
 一次正常访问包含下面三步：
 
@@ -93,7 +96,13 @@ DNS 域名系统（Domain Name System）负责把人能记住的网站名称转�
         Prompt = 'Cpk从1.45掉到1.08，到底说明什么，要不要停线'
         RequiredTerms = @('Cpk')
         Response = @'
-根据用户本次提供的数据，用户输入中的 `Cpk` 指 $C_{pk}$ 过程能力指数（Process Capability Index）；这个指数用于比较生产波动和产品允许范围，数值从 $1.45$ 降到 $1.08$，说明生产结果比以前更容易靠近或越过允许边界，因此不合格品风险正在增加
+根据用户本次提供的数据，用户输入中的 `Cpk` 指 $C_{pk}$ 过程能力指数（Process Capability Index）
+
+这个指数用于比较生产波动和产品允许范围
+
+数值从 $1.45$ 降到 $1.08$，说明生产结果更容易靠近或越过允许边界
+
+不合格品风险因此正在增加
 
 这两个数值还不能单独决定是否停线，因为判断仍缺少下面三类证据：
 
@@ -119,7 +128,11 @@ DNS 域名系统（Domain Name System）负责把人能记住的网站名称转�
         Prompt = '公司预测DSCR为1.18，银行能不能据此判断明年肯定还得上钱'
         RequiredTerms = @('DSCR')
         Response = @'
-根据用户本次提供的预测数据，DSCR 偿债能力覆盖倍数（Debt Service Coverage Ratio）比较企业可用于还款的资金和同期需要偿还的本息；预测值为 $1.18$，表示预测资金只比预测还款金额高 $18\%$，缓冲空间较小
+根据用户本次提供的预测数据，DSCR 偿债能力覆盖倍数（Debt Service Coverage Ratio）比较企业可用于还款的资金和同期本息
+
+预测值为 $1.18$，表示预测资金只比预测还款金额高 $18\%$
+
+企业的预测还款缓冲因此较小
 
 这个数值来自未来预测，所以不能证明明年一定能够还款；下面三种变化都可能吃掉现有缓冲：
 
@@ -167,7 +180,9 @@ DNS 域名系统（Domain Name System）负责把人能记住的网站名称转�
         Response = @'
 根据用户本次提供的检验数据，单次结果为 $58$ 不能独立证明已经发生肾衰竭
 
-原问题没有提供检验报告采用的参考标准，因此本回答不使用来源不明的固定阈值判断病情；医生需要按照检验报告标注的参考范围和复查结果解释这次数值
+原问题没有提供检验报告采用的参考标准，因此本回答不使用来源不明的固定阈值判断病情
+
+医生需要按照检验报告标注的参考范围和复查结果解释这次数值
 
 下面四类情况都可能暂时影响结果：
 
@@ -204,7 +219,11 @@ eGFR 估算肾小球滤过率（Estimated Glomerular Filtration Rate）用于估
         Prompt = 'API一直返回429，别只扔给我一个错误码，告诉我为什么和怎么修'
         RequiredTerms = @('API', '429')
         Response = @'
-API 应用程序接口（Application Programming Interface）持续返回状态码 $429$，通常表示客户端在一段时间内发送了过多请求；服务器为了保护容量而暂时拒绝部分请求，所以立即重复发送只会延长故障
+API 应用程序接口（Application Programming Interface）持续返回状态码 $429$，通常表示客户端在短时间内发送了过多请求
+
+服务器为了保护容量而暂时拒绝部分请求
+
+客户端立即重试会继续占用容量，因此故障时间会延长
 
 先检查响应内容是否提供等待时间；如果提供，应等待指定时间后再试
 
@@ -245,9 +264,17 @@ FPGA 现场可编程门阵列（Field-Programmable Gate Array）本轮的软件�
 - 外部接口在实物上满足要求
 - 产品已经达到量产或客户交付条件
 
-项目内部状态 `FLOW_VALIDATED` 属于流程关闭结论；它表示规定的软件验证链路已经跑通，因此可以结束本轮流程验证；它不表示真实板卡已经获准发布
+项目内部状态 `FLOW_VALIDATED` 属于流程关闭结论
 
-严格实现门禁（ImplementationGate）是一组必须全部通过的检查；任何一项失败都会阻止候选进入可接受结果；这个门禁证明检查机制能够工作，但不能替代真实硬件试验
+这个状态表示规定的软件验证链路已经跑通，因此可以结束本轮流程验证
+
+现有证据只覆盖软件流程；真实板卡发布仍需实物测试
+
+严格实现门禁（ImplementationGate）包含一组必须全部通过的检查
+
+任何一项失败都会阻止候选进入可接受结果
+
+这个门禁用于拦截软件流程中的失败候选；真实硬件行为仍需板卡试验
 
 因此，准确结论是流程验证已经完成，真实板卡验证尚未完成；如果报告把这两者写成同一件事，报告就是错误的
 '@
@@ -491,7 +518,11 @@ MFA 多因素身份验证（Multi-Factor Authentication）要求登录者同时�
         Prompt = '这段代码偶尔报空引用，别只说加判空，解释为什么和怎么验证'
         RequiredTerms = @('空引用')
         Response = @'
-用户资料不是每次都会存在，但代码直接读取资料中的城市，所以资料为空时就会出现空引用异常（NullReferenceException）；这个异常会中断当前请求，用户只能看到失败结果
+用户资料可能为空，但代码直接读取资料中的城市
+
+资料为空时会出现空引用异常（NullReferenceException）
+
+这个异常会中断当前请求，用户只能看到失败结果
 
 ## 1 问题原因
 
@@ -546,14 +577,14 @@ return ProfileResult.Found(user.Profile.City);
 
 <div align="center">
 
+表 1 三年成本比较
+
 | 比较项目 | 甲方案 | 乙方案 |
 |---|---:|---:|
 | 机器价格 | 8000元 | 10000元 |
 | 三年耗材 | 24000元 | 15000元 |
 | 三年维护 | 6000元 | 4000元 |
 | 三年合计 | 38000元 | 29000元 |
-
-表 1 三年成本比较
 
 </div>
 
@@ -580,7 +611,13 @@ return ProfileResult.Found(user.Profile.City);
         Prompt = '把模板下沉事故写成一份业主能看懂的通报，别堆施工术语'
         RequiredTerms = @('模板下沉事故')
         Response = @'
-现场把这次事件记录为模板下沉事故；这个名称表示托住未凝固混凝土的临时结构发生位移，导致三层楼板浇筑区域局部下沉；现场已经停止继续浇筑并封锁受影响区域，目前没有人员受伤
+现场把这次事件记录为模板下沉事故
+
+这个名称表示托住未凝固混凝土的临时结构发生位移，三层楼板浇筑区域因此局部下沉
+
+现场已经停止浇筑并封锁受影响区域
+
+当前人员记录显示没有人员受伤
 
 ## 1 发生经过
 
@@ -669,7 +706,11 @@ return ProfileResult.Found(user.Profile.City);
         Response = @'
 今晚的水只能覆盖一块地，所以应先保护最容易在一夜内受到不可逆损失的果树，而不是简单选择读数最低的地块
 
-土壤含水率表示土壤中水分所占比例；数值越低，根系能够吸收的水通常越少，但不同土壤的保水能力不同，因此三块地不能只按同一个百分比排序
+土壤含水率表示土壤中水分所占比例
+
+数值越低，根系能够吸收的水通常越少
+
+不同土壤的保水能力不同，因此三块地不能只按同一个百分比排序
 
 ## 1 当前数据
 
@@ -742,7 +783,13 @@ return ProfileResult.Found(user.Profile.City);
         Prompt = '白班迁库迁到一半，给夜班写一份能接手的交接，别只贴日志'
         RequiredTerms = @('迁库')
         Response = @'
-迁库表示把正式业务数据从旧系统迁移到新系统；客户资料已经完成复制，但订单资料仍在校验，所以夜班只能继续检查，不能切换正式系统；现在切换会让一部分订单只存在于旧系统，查询结果可能前后不一致
+迁库表示把正式业务数据从旧系统迁移到新系统
+
+客户资料已经复制，但订单资料仍在校验
+
+夜班只能继续核对数据，暂时不能切换正式系统
+
+现在切换会让部分订单只存在于旧系统，查询结果可能前后不一致
 
 ## 1 当前状态
 
@@ -819,7 +866,11 @@ RTO 恢复时间目标（Recovery Time Objective）表示发生故障后业务�
         Structure = 'findings-limits-options'
         Prompt = '居民调查说公交太慢，能不能直接砍掉低客流站点，写个不拍脑袋的建议'
         Response = @'
-现有调查足以证明部分居民认为公交耗时过长，但不能直接证明低客流站点就是主要原因；如果立即取消站点，可能缩短部分乘客的行程，也可能让老人和行动不便居民失去可达服务
+现有调查显示，部分居民认为公交耗时过长
+
+调查还没有确定低客流站点是否为主要原因
+
+立即取消站点可能缩短部分乘客的行程，也可能影响老人和行动不便居民乘车
 
 ## 1 已有证据
 
@@ -852,7 +903,7 @@ RTO 恢复时间目标（Recovery Time Objective）表示发生故障后业务�
 
 ## 3 先做试验
 
-选择两条线路进行四周试验：
+选择两条线路开展为期四周的试验：
 
 - 一条线路减少普通低客流站点
 - 一条线路保留站点但调整高峰发车间隔
@@ -876,7 +927,9 @@ RTO 恢复时间目标（Recovery Time Objective）表示发生故障后业务�
 
 现在不直接取消全部低客流站点
 
-先完成小范围试验，再把节省的总时间和新增的不便放在同一份结果中比较；只有总收益明确大于对必要出行的损害，才适合扩大调整
+先完成小范围试验，再比较节省的总时间和新增的不便
+
+总收益明确大于必要出行受到的损害后，交通部门才适合扩大调整
 '@
     },
     [pscustomobject]@{
@@ -892,7 +945,13 @@ RTO 恢复时间目标（Recovery Time Objective）表示发生故障后业务�
         Prompt = '急诊等床越来越久，给院领导写完整分析，必须区分事实、推断和还缺什么'
         RequiredTerms = @('急诊等床')
         Response = @'
-急诊等床表示患者已经需要住院，但仍在急诊等待病区床位；每天需要住院的人数已经连续两周高于每天能够腾出的床位数量，所以急诊等床时间正在增加；等待继续延长会占用急诊观察区域，使新到患者更难及时接受检查
+急诊等床表示患者已经需要住院，但仍在急诊等待病区床位
+
+每天需要住院的人数已经连续两周高于能够腾出的床位数量
+
+急诊等床时间因此正在增加
+
+等待继续延长会占用急诊观察区域，新到患者会更难及时接受检查
 
 现有数据足以证明床位周转出现持续失衡，但还不能把原因全部归结为床位总数不足
 
@@ -1048,7 +1107,11 @@ RTO 恢复时间目标（Recovery Time Objective）表示发生故障后业务�
         Prompt = '光伏项目预测回报很好，给投委会写一份不被乐观模型骗到的决策稿'
         RequiredTerms = @('光伏')
         Response = @'
-光伏项目通过太阳能组件发电，项目收入会随着光照条件和设备状态变化；项目在基准预测下能够回收投入，但盈利高度依赖下面三项假设：
+光伏项目通过太阳能组件发电，项目收入会随着光照条件和设备状态变化
+
+基准预测显示项目能够回收投入
+
+项目盈利高度依赖下面三项假设：
 
 - 发电量
 - 售电价格
@@ -1135,7 +1198,11 @@ IRR 内部回报率（Internal Rate of Return）表示让项目净现值刚好�
 
 项目第七年需要更换一批关键设备
 
-基准模型假设更换费用可以从当年经营收入支付，但不利情况下当年现金不足；如果没有备用资金，项目即使长期仍有价值，也可能在当年无法按时还款
+基准模型假设更换费用可以从当年经营收入支付
+
+不利预测显示当年现金不足
+
+项目没有备用资金时，即使长期仍有价值，当年也可能无法按时还款
 
 因此还要检查每年最低现金余额，不能只看整个运营期的总回报
 
@@ -1220,7 +1287,11 @@ RCT 随机对照试验（Randomized Controlled Trial）通过随机分组减少�
 - 两组差异为七分
 - 研究报告的 $p$ 值为 $0.03$
 
-$p$ 值用于衡量在实际没有组间差异时，观察到当前结果或更极端结果的可能程度；数值较小只能说明结果不容易由随机波动单独解释，不能说明效果一定很大，也不能说明研究没有其他偏差
+$p$ 值用于衡量没有组间差异时，出现当前结果或更极端结果的可能程度
+
+数值较小说明随机波动难以单独解释当前结果
+
+效果大小和研究偏差仍需其他证据判断
 
 ## 3 效果大小
 
@@ -1260,7 +1331,7 @@ $p$ 值用于衡量在实际没有组间差异时，观察到当前结果或更�
 训练组还同时经历下面三项变化：
 
 - 获得更多关注
-- 进行更规律的练习
+- 更规律地练习
 - 对改善产生更强期待
 
 这些变化也可能提高测试成绩，因此不能把全部改善都归入新方法
@@ -1420,7 +1491,7 @@ API 应用程序接口（Application Programming Interface）负责在不同系�
 
 这些检查能够缩小原因范围
 
-如果周四结束前仍然无法解释超时，周五只能进行受控上线，不能一次开放全部用户
+如果周四结束前仍然无法解释超时，周五只能分批上线，不能一次开放全部用户
 
 ## 5 上线方式
 
@@ -1524,7 +1595,11 @@ API 应用程序接口（Application Programming Interface）负责在不同系�
         Prompt = '把这些芯片验证记录写成人能直接核对的报告：Vivado 2024.1，器件 xcvu19p，综合过了，实现门禁过了，DRC和CDC都是零问题，板卡没测'
         RequiredTerms = @('Vivado', 'xcvu19p', '综合', '实现门禁', 'DRC', 'CDC')
         Response = @'
-综合、布局布线和实现门禁都留下通过记录，所以本轮芯片软件流程已经跑通；实现门禁包含全部强制检查，任一检查失败都会阻止结果进入交付；真实板卡尚未测试，所以这份结果只证明软件流程，不能证明产品可以发布
+综合、布局布线和实现门禁都留下通过记录，因此本轮芯片软件流程已经跑通
+
+实现门禁包含全部强制检查，任一失败都会阻止结果进入交付
+
+现有证据只覆盖软件流程；产品发布仍需真实板卡测试
 
 ## 1 环境
 
@@ -1554,6 +1629,8 @@ CDC 时钟区域跨越检查（Clock Domain Crossing）负责发现信号跨越�
 
 <div align="center">
 
+表 3.1 本轮验证结果
+
 | 检查项目 | 结果 | 能够证明的范围 |
 |---|---|---|
 | 综合 | 通过 | 设计能够转换成目标逻辑结构 |
@@ -1561,8 +1638,6 @@ CDC 时钟区域跨越检查（Clock Domain Crossing）负责发现信号跨越�
 | 设计规则检查 | 零问题 | 没有发现器件规则违规 |
 | 时钟区域跨越检查 | 零问题 | 没有发现已知跨时钟风险 |
 | 真实板卡测试 | 未执行 | 不能证明真实硬件行为 |
-
-表 3.1 本轮验证结果
 
 </div>
 
@@ -1649,13 +1724,13 @@ npm run build # 生成交付文件，并确认项目能够完成构建
         Id = 'medium-personal-caption-layout'
         Length = 'short'
         Difficulty = 'easy'
-        Direction = 'personal-document-layout'
+        Direction = 'standard-document-layout'
         Tone = 'tidy'
-        Audience = 'personal-doc-author'
+        Audience = 'technical-doc-author'
         TaskType = 'weekly-report'
         InputShape = 'preference-plus-results'
-        Structure = 'declarative-headings-table-caption-below'
-        Prompt = '写一段个人项目周报，带结果表；我喜欢表题和图题都放在下方，章节标题不要写成问题'
+        Structure = 'declarative-headings-table-title-above'
+        Prompt = '写一段项目周报，带结果表；表题放在表格上方，章节标题不要写成问题'
         Response = @'
 本周完成了登录、查询和导出检查，三项检查都留下了可以复核的记录，因此本轮功能验证可以结束
 
@@ -1663,13 +1738,13 @@ npm run build # 生成交付文件，并确认项目能够完成构建
 
 <div align="center">
 
+表 1.1 本周功能验证结果
+
 | 检查项目 | 结果 | 后续处理 |
 |---|---|---|
 | 登录 | 通过 | 保留测试记录 |
 | 查询 | 通过 | 保留查询样本 |
 | 导出 | 通过 | 核对文件格式 |
-
-表 1.1 本周功能验证结果
 
 </div>
 
@@ -1692,7 +1767,6 @@ npm run build # 生成交付文件，并确认项目能够完成构建
         TaskType = 'publication-formatting'
         InputShape = 'explicit-publication-request'
         Structure = 'declarative-headings-table-title-above'
-        CaptionStyle = 'Publication'
         Prompt = '按照论文出版格式整理下面的测试结果，表题使用出版位置，章节标题使用陈述句'
         Response = @'
 本次试验比较两种方法的处理时间，全部数据来自同一批输入，因此结果可以在相同条件下比较
@@ -1775,7 +1849,11 @@ $$
 
 三天属于经验估计，适用条件是测试环境持续可用，而且没有新增缺陷；任一条件变化后，项目负责人需要重新估计完成时间
 
-项目负责人应在报告中同时保留项目看板导出时间、任务筛选条件和五次历史发布记录，否则读者无法重新计算完成率，也无法判断三天估计是否适用于本次发布
+项目负责人应在报告中保留项目看板导出时间和任务筛选条件
+
+读者依靠这两项信息重新计算完成率
+
+报告还要保留五次历史发布记录，让读者判断三天估计是否适用于本次发布
 '@
     },
     [pscustomobject]@{
@@ -1800,12 +1878,14 @@ $$
 
 </div>
 
-图片和图题共同居中后，读者可以直接把图形与名称对应起来；交付到不支持页面居中的纯文本阅读器时，需要明确说明阅读器会忽略版式设置
+图片和图题共同居中后，读者可以直接把图形与名称对应起来
+
+纯文本阅读器可能忽略页面居中设置，交付时需要说明这项版式限制
 '@
     },
     [pscustomobject]@{
         Id = 'new-cold-chain-evidence-flow'
-        IntroducedIn = $currentGeneration
+        IntroducedIn = $previousGeneration
         Length = 'long'
         Difficulty = 'hard'
         Direction = 'cold-chain-incident'
@@ -1817,7 +1897,11 @@ $$
         RequiredTerms = @('SLA')
         Prompt = '冷库合同要求不高于5℃，传感器连续20分钟读到7.8℃，备用探头是4.9℃，写一份能决定是否隔离货物的报告，要有表格和流程图'
         Response = @'
-根据用户本次提供的数据，主传感器连续二十分钟记录为 $7.8\,^\circ\mathrm{C}$，备用探头记录为 $4.9\,^\circ\mathrm{C}$，两个测量结果相互冲突，所以仓库负责人目前无法只凭一个探头判断货物已经超温
+根据用户本次提供的数据，主传感器连续二十分钟记录为 $7.8\,^\circ\mathrm{C}$
+
+备用探头记录为 $4.9\,^\circ\mathrm{C}$
+
+两个测量结果相互冲突，所以仓库负责人无法只凭一个探头判断货物已经超温
 
 SLA 服务等级协议（Service Level Agreement）规定库温不得高于 $5\,^\circ\mathrm{C}$；温度超过合同上限可能影响货物质量，也可能触发客户索赔
 
@@ -1825,13 +1909,13 @@ SLA 服务等级协议（Service Level Agreement）规定库温不得高于 $5\,
 
 <div align="center">
 
+表 1.1 冷库温度证据
+
 | 证据来源 | 当前结果 | 能够证明的范围 |
 |---|---:|---|
 | 主传感器 | $7.8\,^\circ\mathrm{C}$ | 主传感器记录超过合同上限 |
 | 备用探头 | $4.9\,^\circ\mathrm{C}$ | 备用位置仍在合同范围内 |
 | 连续记录时间 | 二十分钟 | 主传感器结果不是单次瞬时波动 |
-
-表 1.1 冷库温度证据
 
 </div>
 
@@ -1856,12 +1940,18 @@ flowchart TD
 
 </div>
 
-仓库负责人现在应暂停受影响批次出库，并让质量负责人使用经过校准的第三支探头复测；第三支探头和主传感器都超过上限时，质量负责人需要按照货物允许暴露时间继续评估，不能直接放行
+仓库负责人现在应暂停受影响批次出库
+
+质量负责人随后使用经过校准的第三支探头复测
+
+第三支探头和主传感器都超过上限时，质量负责人需要按照货物允许暴露时间继续评估
+
+评估结束前，仓库负责人不能放行货物
 '@
     },
     [pscustomobject]@{
         Id = 'new-clear-subject-handover'
-        IntroducedIn = $currentGeneration
+        IntroducedIn = $previousGeneration
         Length = 'short'
         Difficulty = 'medium'
         Direction = 'responsibility-clarity'
@@ -1881,7 +1971,7 @@ flowchart TD
     },
     [pscustomobject]@{
         Id = 'new-battery-formula-source'
-        IntroducedIn = $currentGeneration
+        IntroducedIn = $previousGeneration
         Length = 'medium'
         Difficulty = 'hard'
         Direction = 'battery-estimation'
@@ -1912,7 +2002,7 @@ $62\%$ 来自标称容量和累计放电量的计算结果，维护人员可以�
     },
     [pscustomobject]@{
         Id = 'new-powershell-line-comments'
-        IntroducedIn = $currentGeneration
+        IntroducedIn = $previousGeneration
         Length = 'long'
         Difficulty = 'medium'
         Direction = 'backup-procedure'
@@ -1949,7 +2039,7 @@ $sourceHash -eq $backupHash # 比较两个摘要，结果为真时才能确认�
     },
     [pscustomobject]@{
         Id = 'new-publication-centered-table'
-        IntroducedIn = $currentGeneration
+        IntroducedIn = $previousGeneration
         Length = 'medium'
         Difficulty = 'medium'
         Direction = 'publication-table-layout'
@@ -1958,7 +2048,6 @@ $sourceHash -eq $backupHash # 比较两个摘要，结果为真时才能确认�
         TaskType = 'publication-result'
         InputShape = 'explicit-publication-data'
         Structure = 'publication-table-source-limit'
-        CaptionStyle = 'Publication'
         Prompt = '论文里要比较两种检测方法，甲方法12次里错2次，乙方法12次里错1次，写成表题在上且整体居中的结果段'
         Response = @'
 根据用户本次提供的试验记录，甲方法和乙方法各执行十二次，因此两组错误次数可以在相同试验次数下比较
@@ -1987,7 +2076,7 @@ $sourceHash -eq $backupHash # 比较两个摘要，结果为真时才能确认�
     },
     [pscustomobject]@{
         Id = 'new-emergency-branch-layout'
-        IntroducedIn = $currentGeneration
+        IntroducedIn = $previousGeneration
         Length = 'medium'
         Difficulty = 'hard'
         Direction = 'emergency-branching'
@@ -2020,7 +2109,7 @@ $sourceHash -eq $backupHash # 比较两个摘要，结果为真时才能确认�
     },
     [pscustomobject]@{
         Id = 'new-rpo-rto-natural-terms'
-        IntroducedIn = $currentGeneration
+        IntroducedIn = $previousGeneration
         Length = 'short'
         Difficulty = 'medium'
         Direction = 'disaster-recovery-terms'
@@ -2041,7 +2130,7 @@ RTO 恢复时间目标（Recovery Time Objective）为两小时；故障发生�
     },
     [pscustomobject]@{
         Id = 'new-laboratory-multi-visual-report'
-        IntroducedIn = $currentGeneration
+        IntroducedIn = $previousGeneration
         Length = 'long'
         Difficulty = 'hard'
         Direction = 'laboratory-evidence-layout'
@@ -2060,13 +2149,13 @@ RTO 恢复时间目标（Recovery Time Objective）为两小时；故障发生�
 
 <div align="center">
 
+表 1.1 三次称量结果
+
 | 称量顺序 | 记录结果 |
 |---|---:|
 | 第一次 | $10.02\,\mathrm{g}$ |
 | 第二次 | $10.01\,\mathrm{g}$ |
 | 第三次 | $10.40\,\mathrm{g}$ |
-
-表 1.1 三次称量结果
 
 </div>
 
@@ -2093,6 +2182,149 @@ RTO 恢复时间目标（Recovery Time Objective）为两小时；故障发生�
 复测结果接近前两次时，实验室负责人可以把第三次原记录标记为待调查异常
 
 根据用户本次提供的原记录，复测结果仍接近 $10.40\,\mathrm{g}$ 时，实验室负责人需要调查样品是否发生变化
+'@
+    },
+    [pscustomobject]@{
+        Id = 'new-precise-maintenance-verbs'
+        IntroducedIn = $currentGeneration
+        Length = 'short'
+        Difficulty = 'easy'
+        Direction = 'maintenance-language'
+        Tone = 'direct'
+        Audience = 'maintenance-technician'
+        TaskType = 'weak-verb-rewrite'
+        InputShape = 'mechanical-source-sentence'
+        Structure = 'single-action-sequence'
+        Prompt = '把“先进行日志检查，再完成对故障原因的分析，最后执行维修单填写”改成人话'
+        Response = @'
+维护人员先读日志，再分析故障原因，最后填写维修单
+'@
+    },
+    [pscustomobject]@{
+        Id = 'new-single-scope-release-note'
+        IntroducedIn = $currentGeneration
+        Length = 'medium'
+        Difficulty = 'hard'
+        Direction = 'release-scope'
+        Tone = 'engineering-direct'
+        Audience = 'project-owner'
+        TaskType = 'scope-consolidation'
+        InputShape = 'repeated-boundary-draft'
+        Structure = 'result-evidence-single-scope'
+        RequiredTerms = @('FPGA')
+        Prompt = 'FPGA 软件检查过了，板卡没测，客户也没验收，写一段发布范围说明，别连续写三遍“不代表”'
+        Response = @'
+根据用户提供的当前状态，FPGA 现场可编程门阵列（Field-Programmable Gate Array）的软件检查已经通过
+
+现有证据只覆盖软件检查
+
+真实板卡测试尚未开展，所以硬件在实际供电、时钟和外部连接条件下的状态仍需验证
+
+客户验收也尚未开展，所以交付条件仍未满足
+
+项目负责人需要分别安排真实板卡测试和客户验收
+
+两项工作都留下通过记录后，项目负责人再提交发布决定
+'@
+    },
+    [pscustomobject]@{
+        Id = 'new-natural-engineering-retrospective'
+        IntroducedIn = $currentGeneration
+        Length = 'long'
+        Difficulty = 'hard'
+        Direction = 'engineering-retrospective'
+        Tone = 'experienced-engineer'
+        Audience = 'engineering-team'
+        TaskType = 'retrospective-rewrite'
+        InputShape = 'dense-mechanical-paragraph'
+        Structure = 'numbered-result-cause-fix-scope'
+        RequiredTerms = @('API')
+        Prompt = '把这段机器味很重的内容改成工程师复盘：已经完成了对 API 接口故障的分析，进行了日志检查和请求验证，执行了限流配置调整，这不代表故障彻底解决，也不代表所有客户都恢复'
+        Response = @'
+## 1 本轮处理记录
+
+根据用户提供的原记录，值班团队已经处理三项工作：
+
+- 读取接口日志
+- 验证请求能否到达服务端
+- 调整限流配置
+
+这些记录能够证明处理动作已经落地，但原记录没有提供调整后的错误率和客户恢复数据
+
+## 2 技术对象
+
+API 应用程序接口（Application Programming Interface）负责在不同软件系统之间传递请求
+
+限流配置用于限制单位时间进入系统的请求数量，避免请求过多时继续挤压服务
+
+原记录没有说明日志里出现了哪类错误，因此本次复盘不能继续推断故障根因
+
+## 3 当前证据范围
+
+现有证据只覆盖日志检查、请求验证和配置调整
+
+故障是否解决，需要补齐下面三类结果：
+
+- 调整前后的接口错误数量
+- 不同客户的请求成功情况
+- 下一个业务高峰期的服务状态
+
+每项结果都要写明日志、监控系统或客户反馈来源
+
+## 4 关闭条件
+
+值班团队先收集调整后的接口日志，再按客户核对请求结果
+
+根据核对结果处理：
+
+- 如果错误数量下降，而且受影响客户已经恢复，项目负责人可以继续观察下一个业务高峰
+- 如果错误数量没有下降，值班团队保留原始配置记录并重新分析故障来源
+
+接口日志、客户结果和高峰期状态都稳定后，项目负责人才能关闭这次故障
+'@
+    },
+    [pscustomobject]@{
+        Id = 'new-owner-led-action-list'
+        IntroducedIn = $currentGeneration
+        Length = 'short'
+        Difficulty = 'medium'
+        Direction = 'responsibility-grouping'
+        Tone = 'operational'
+        Audience = 'shift-team'
+        TaskType = 'subject-grouping'
+        InputShape = 'repeated-owner-sentences'
+        Structure = 'owner-lead-list-handover'
+        Prompt = '质量负责人要复核记录、批准放行、保存证据，现场操作员要隔离货物，怎么写才能既不重复啰嗦又不丢责任人'
+        Response = @'
+现场操作员负责隔离货物
+
+质量负责人负责以下工作：
+
+- 复核记录
+- 批准货物放行
+- 保存复核证据和放行决定
+
+这些行动都由质量负责人承担，因此列表不需要在每一项中重复姓名
+
+现场操作员收到质量负责人的放行决定后，再处理已经隔离的货物
+
+这样既保留了每项工作的负责人，也没有补写原文未提供的货物状态或判断标准
+'@
+    },
+    [pscustomobject]@{
+        Id = 'new-micro-direct-verb'
+        IntroducedIn = $currentGeneration
+        Length = 'micro'
+        Difficulty = 'easy'
+        Direction = 'micro-verb-rewrite'
+        Tone = 'plain'
+        Audience = 'general-reader'
+        TaskType = 'one-line-rewrite'
+        InputShape = 'single-weak-verb'
+        Structure = 'single-direct-action'
+        Prompt = '一句话改写“维护人员进行日志检查”'
+        Response = @'
+维护人员检查日志
 '@
     }
 )
@@ -2128,8 +2360,7 @@ function Get-MaxCategorySharePercent([object[]]$Items, [string]$PropertyName) {
 }
 
 $results = foreach ($case in $cases) {
-    # 根据案例声明选择个人文档、出版格式或问答标题，未声明时使用个人文档默认值
-    $captionStyle = Get-CaseField $case 'CaptionStyle' 'Personal'
+    # 根据案例声明选择问答标题并保留需要核对的原始术语
     $allowQuestionHeadings = Get-CaseBoolean $case 'AllowQuestionHeadings' $false
     $requiredTermsProperty = $case.PSObject.Properties['RequiredTerms']
     $requiredTerms = @(
@@ -2137,10 +2368,7 @@ $results = foreach ($case in $cases) {
             $requiredTermsProperty.Value
         }
     )
-    $lintArguments = @{
-        Text = $case.Response
-        CaptionStyle = $captionStyle
-    }
+    $lintArguments = @{ Text = $case.Response }
     if (@($requiredTerms).Count -gt 0) {
         $lintArguments.RequiredTerm = $requiredTerms
     }
@@ -2171,7 +2399,6 @@ $results = foreach ($case in $cases) {
         input_shape = Get-CaseField $case 'InputShape' 'clean-question'
         structure = Get-CaseField $case 'Structure' 'prose-with-list'
         introduced_in = Get-CaseField $case 'IntroducedIn' 'historical-regression'
-        caption_style = $captionStyle
         allow_question_headings = $allowQuestionHeadings
         required_terms = $requiredTerms
         prompt = $case.Prompt

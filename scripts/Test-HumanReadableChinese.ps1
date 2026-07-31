@@ -85,26 +85,6 @@ function Test-InCenteredContainer([string]$Value, [int]$Index) {
     return $containerStack.Contains($true)
 }
 
-function Get-CaptionStyleAtIndex([string]$Value, [int]$Index, [string]$DefaultStyle) {
-    # 读取当前位置前最近的隐藏题注样式标记，让一个汇总文档能够同时展示个人文档和出版文档案例
-    $prefix = $Value.Substring(0, [Math]::Min($Index, $Value.Length))
-    $markerMatches = [regex]::Matches(
-        $prefix,
-        '(?is)<!--\s*caption-style:\s*(?<style>personal|publication|end)\s*-->'
-    )
-    if ($markerMatches.Count -eq 0) {
-        return $DefaultStyle
-    }
-    $latestStyle = $markerMatches[$markerMatches.Count - 1].Groups['style'].Value.ToLowerInvariant()
-    if ($latestStyle -eq 'end') {
-        return $DefaultStyle
-    }
-    if ($latestStyle -eq 'publication') {
-        return 'Publication'
-    }
-    return 'Personal'
-}
-
 function Get-NumberedChapterAtIndex([string]$Value, [int]$Index) {
     # 图表编号使用最近的二级章节编号，文档没有编号章节时返回空值
     $beforeObject = $Value.Substring(0, [Math]::Min($Index, $Value.Length))
@@ -396,7 +376,7 @@ if (-not $AllowQuestionHeadings) {
     }
 }
 
-# 个人文档把表题放在表格下方，出版格式才把表题放在表格上方
+# 全部文档把表题放在表格上方，图题继续放在图形下方
 $tableMatches = [regex]::Matches(
     $withoutCodeBlocks,
     '(?m)^(?<table>(?<header>\|[^\r\n]+\|)\r?\n(?<separator>\|\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?)(?:\r?\n\|[^\r\n]+\|)*)'
@@ -404,7 +384,6 @@ $tableMatches = [regex]::Matches(
 $globalExpectedTableNumber = 1
 $expectedTableNumberByChapter = @{}
 foreach ($tableMatch in $tableMatches) {
-    $effectiveCaptionStyle = Get-CaptionStyleAtIndex $withoutCodeBlocks $tableMatch.Index $CaptionStyle
     if (-not (Test-InCenteredContainer $withoutCodeBlocks $tableMatch.Index)) {
         $issues.Add([pscustomobject]@{
             rule = 'TABLE_SHOULD_BE_CENTERED'
@@ -415,7 +394,7 @@ foreach ($tableMatch in $tableMatches) {
 
     # 同时读取表格前后的题注，才能区分题注缺失和题注位置错误
     $beforeTable = $withoutCodeBlocks.Substring(0, $tableMatch.Index)
-    # 允许表题与表格之间只隔着居中容器开标签，以便识别容器外的出版表题
+    # 允许表题与表格之间只隔着居中容器开标签，以便识别容器外的表题
     $previousTitleCandidate = [regex]::Match(
         $beforeTable,
         '(?is)(?<title>表\s+\d+(?:[.-]\d+)?\s+[^\r\n]+)\s*(?:<div\b[^>]*>\s*)*$'
@@ -428,7 +407,7 @@ foreach ($tableMatch in $tableMatches) {
     $previousTitleMatch = [regex]::Match($previousTitle, '^表\s+(?<number>\d+(?:[.-]\d+)?)\s+\S')
 
     $afterTable = $withoutCodeBlocks.Substring($tableMatch.Index + $tableMatch.Length)
-    # 允许表格结束后先闭合居中容器，以便识别容器外的个人文档表题
+    # 读取表格下方的题注，只用于识别题注位置错误
     $nextTitleCandidate = [regex]::Match(
         $afterTable,
         '(?is)^\s*(?:</div\s*>\s*)*(?<title>表\s+\d+(?:[.-]\d+)?\s+[^\r\n]+)'
@@ -440,26 +419,14 @@ foreach ($tableMatch in $tableMatches) {
     }
     $nextTitleMatch = [regex]::Match($nextTitle, '^表\s+(?<number>\d+(?:[.-]\d+)?)\s+\S')
 
-    # 根据文档用途选择题注位置，默认采用个人文档的视觉统一方案
-    if ($effectiveCaptionStyle -eq 'Publication') {
-        $title = $previousTitle
-        $titleMatch = $previousTitleMatch
-        $oppositeTitleMatch = $nextTitleMatch
-        $titleIndex = if ($previousTitleCandidate.Success) {
-            $previousTitleCandidate.Groups['title'].Index
-        } else {
-            -1
-        }
-    }
-    else {
-        $title = $nextTitle
-        $titleMatch = $nextTitleMatch
-        $oppositeTitleMatch = $previousTitleMatch
-        $titleIndex = if ($nextTitleCandidate.Success) {
-            $tableMatch.Index + $tableMatch.Length + $nextTitleCandidate.Groups['title'].Index
-        } else {
-            -1
-        }
+    # CaptionStyle 参数继续保留兼容旧调用，但所有格式都要求表题位于表格上方
+    $title = $previousTitle
+    $titleMatch = $previousTitleMatch
+    $oppositeTitleMatch = $nextTitleMatch
+    $titleIndex = if ($previousTitleCandidate.Success) {
+        $previousTitleCandidate.Groups['title'].Index
+    } else {
+        -1
     }
 
     if (-not $titleMatch.Success) {
@@ -833,6 +800,7 @@ $seenInSection = [Collections.Generic.HashSet[string]]::new([StringComparer]::Or
 $insideFrontmatter = $false
 $frontmatterFinished = $false
 $insideDisplayMath = $false
+$boundaryClaimCountInUnit = 0
 $numericSourcePattern = '(?:来自|依据|根据|取自|读取自|记录于|用户(?:本次)?提供|原始材料(?:显示|记录|提供)|(?:系统|界面|日志|配置文件|仪器|监测记录|业务记录|数据库)(?:显示|记录|提供|设定)|实测(?:显示|得到)|测量(?:显示|得到)|统计(?:显示|得到)|由[^；，\r\n]{1,60}(?:计算|换算|推导)|(?:模型|公式|系统|脚本|程序)[^；，\r\n]{0,30}(?:计算|换算|推导)|计算结果|经验估计|经验值|估计值|假设值|来源待核对|\[[1-9]\d*\])'
 $documentNumericSourcePattern = '(?:本文|本报告|本次(?:回答|分析|报告)?|以下|后续)(?:中|所用|使用)?(?:的|全部|所有)?数值[^；\r\n]{0,100}' + $numericSourcePattern
 $hasDocumentNumericProvenance = $withoutCodeBlocks -match $documentNumericSourcePattern
@@ -912,6 +880,52 @@ foreach ($lineMatch in $lineMatches) {
         $section++
         $seenInSection.Clear()
         $numericSourceAvailableInSection = $false
+        $boundaryClaimCountInUnit = 0
+    }
+
+    # 识别能够直接改成准确动词的名词化结构，同时保留执行命令和任务完成等真实操作状态
+    $weakNominalizedVerbMatches = [regex]::Matches(
+        $screenedNarrativeLine,
+        '(?<term>进行(?:了|过|着)?[^，；！？\r\n]{0,8}(?:分析|检查|验证|测试|评估|调查|讨论|说明|处理|部署|配置|计算|比较|审核|审查|复核|确认|记录|编写|整理|研究|测量|操作|试验|练习|上线)|执行(?:了|过|着)?(?:分析|检查|验证|测试|评估|调查|讨论|说明|比较|审核|审查|复核|确认|研究|测量|试验)|完成(?:了)?对[^，；！？\r\n]{1,30}的(?:分析|检查|验证|测试|评估|调查|部署|配置|审核|审查|复核|编写|整理|研究|测量))'
+    )
+    foreach ($match in $weakNominalizedVerbMatches) {
+        $issues.Add([pscustomobject]@{
+            rule = 'WEAK_NOMINALIZED_VERB_SHOULD_BE_PRECISE'
+            line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
+            excerpt = $match.Groups['term'].Value
+        })
+    }
+
+    # 把同时承担多次逻辑转折的超长正文列为拆句候选，避免使用二十五字统一硬上限
+    if ($line -notmatch '^#{1,6}\s+') {
+        $chineseCharacterCount = ([regex]::Matches(
+            $screenedNarrativeLine,
+            '[\p{IsCJKUnifiedIdeographs}]'
+        )).Count
+        $logicalTurnCount = ([regex]::Matches($screenedNarrativeLine, '[，；]')).Count
+        if ($chineseCharacterCount -gt 55 -and $logicalTurnCount -ge 2) {
+            $issues.Add([pscustomobject]@{
+                rule = 'OVERLONG_NESTED_SENTENCE_SHOULD_SPLIT'
+                line = Get-LineNumber $withoutCodeBlocks $lineMatch.Index
+                excerpt = [regex]::Replace($line, '\s+', ' ').Trim()
+            })
+        }
+    }
+
+    # 同一标题范围内只完整申明一次证据或发布边界，后续改用正向范围或直接引用
+    $boundaryClaimMatches = [regex]::Matches(
+        $screenedNarrativeLine,
+        '(?<term>不代表|不等于|不能证明|并不表示)'
+    )
+    foreach ($match in $boundaryClaimMatches) {
+        if ($boundaryClaimCountInUnit -gt 0) {
+            $issues.Add([pscustomobject]@{
+                rule = 'REPEATED_DEFENSIVE_BOUNDARY_SHOULD_CONSOLIDATE'
+                line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
+                excerpt = $match.Groups['term'].Value
+            })
+        }
+        $boundaryClaimCountInUnit++
     }
 
     $parenthesisCount = ([regex]::Matches($line, '（')).Count

@@ -62,8 +62,6 @@ for ($index = 0; $index -lt $orderedCases.Count; $index++) {
     $lines.Add('')
     $lines.Add("#### 2.$caseNumber.2 回答")
     $lines.Add('')
-    $lines.Add("<!-- caption-style: $($case.caption_style.ToLowerInvariant()) -->")
-    $lines.Add('')
     foreach ($responseLine in ($case.response -split '\r?\n')) {
         $responseHeading = [regex]::Match(
             $responseLine,
@@ -96,8 +94,6 @@ for ($index = 0; $index -lt $orderedCases.Count; $index++) {
         }
         $lines.Add($responseLine)
     }
-    $lines.Add('')
-    $lines.Add('<!-- caption-style: end -->')
     $lines.Add('')
 }
 

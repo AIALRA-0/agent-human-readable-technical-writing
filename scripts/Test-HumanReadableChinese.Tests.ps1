@@ -113,7 +113,7 @@ $cases = @(
     },
     @{
         Name = '徽章和表格结构通过'
-        Text = "[![Quality checks](https://example.com/badge.svg)](https://example.com/checks)`n`n<div align=`"center`">`n`n| 项目 | 内容 |`n|---|---|`n| 状态、原因和后果 | 原始证据 |`n`n表 1 检查结果`n`n</div>"
+        Text = "[![Quality checks](https://example.com/badge.svg)](https://example.com/checks)`n`n<div align=`"center`">`n`n表 1 检查结果`n`n| 项目 | 内容 |`n|---|---|`n| 状态、原因和后果 | 原始证据 |`n`n</div>"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -155,7 +155,7 @@ $cases = @(
     },
     @{
         Name = '图表独立编号通过'
-        Text = "<div align=`"center`">`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 1 第一轮结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二轮 | 通过 |`n`n表 2 第二轮结果`n`n![处理结果](https://example.com/result.png)`n`n图 1 处理结果`n`n![复查结果](https://example.com/review.png)`n`n图 2 复查结果`n`n</div>"
+        Text = "<div align=`"center`">`n`n表 1 第一轮结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 2 第二轮结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二轮 | 通过 |`n`n![处理结果](https://example.com/result.png)`n`n图 1 处理结果`n`n![复查结果](https://example.com/review.png)`n`n图 2 复查结果`n`n</div>"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -177,7 +177,7 @@ $cases = @(
     },
     @{
         Name = '按章节重新编号图表通过'
-        Text = "## 1 第一章`n`n<div align=`"center`">`n`n| 项目 | 结果 |`n|---|---|`n| 第一项 | 通过 |`n`n表 1.1 第一项结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二项 | 通过 |`n`n表 1.2 第二项结果`n`n![第一章结果](https://example.com/one.png)`n`n图 1.1 第一章结果`n`n</div>`n`n## 2 第二章`n`n<div align=`"center`">`n`n| 项目 | 结果 |`n|---|---|`n| 第三项 | 通过 |`n`n表 2.1 第三项结果`n`n![第二章结果](https://example.com/two.png)`n`n图 2.1 第二章结果`n`n</div>"
+        Text = "## 1 第一章`n`n<div align=`"center`">`n`n表 1.1 第一项结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一项 | 通过 |`n`n表 1.2 第二项结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二项 | 通过 |`n`n![第一章结果](https://example.com/one.png)`n`n图 1.1 第一章结果`n`n</div>`n`n## 2 第二章`n`n<div align=`"center`">`n`n表 2.1 第三项结果`n`n| 项目 | 结果 |`n|---|---|`n| 第三项 | 通过 |`n`n![第二章结果](https://example.com/two.png)`n`n图 2.1 第二章结果`n`n</div>"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -192,7 +192,7 @@ $cases = @(
     },
     @{
         Name = '网络故障说明通过'
-        Text = 'DNS 域名系统（Domain Name System）负责把网站名称转换成网络地址；这个转换暂时失败，所以新网页打不开；聊天软件仍在使用已经建立的连接，因此消息暂时还能发送'
+        Text = "DNS 域名系统（Domain Name System）负责把网站名称转换成网络地址`n`n这个转换暂时失败，所以新网页打不开`n`n聊天软件仍在使用已经建立的连接，因此消息暂时还能发送"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -202,7 +202,7 @@ $cases = @(
     },
     @{
         Name = '医疗结果说明通过'
-        Text = 'eGFR 估算肾小球滤过率（Estimated Glomerular Filtration Rate）用于估计肾脏过滤血液的能力；这个数值低于正常范围，而且肌酐持续升高，所以肾功能可能正在下降；单次结果还会受到脱水和药物影响，因此医生需要结合复查结果再判断原因'
+        Text = "eGFR 估算肾小球滤过率（Estimated Glomerular Filtration Rate）用于估计肾脏过滤血液的能力`n`n这个数值低于正常范围，而且肌酐持续升高，所以肾功能可能正在下降`n`n单次结果还会受到脱水和药物影响，因此医生需要结合复查结果再判断原因"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -212,12 +212,12 @@ $cases = @(
     },
     @{
         Name = '芯片验证说明通过'
-        Text = 'CDC 时钟区域跨越检查（Clock Domain Crossing）用于发现信号在不同时钟区域之间传递时可能出现的不稳定问题；检查结果没有发现问题，所以这部分流程可以通过；真实板卡尚未运行这些结果，因此流程通过不能替代产品发布'
+        Text = "CDC 时钟区域跨越检查（Clock Domain Crossing）用于发现信号在不同时钟区域之间传递时可能出现的不稳定问题`n`n检查结果没有发现问题，所以这部分流程可以通过`n`n真实板卡尚未运行这些结果，因此流程通过不能替代产品发布"
         ExpectedStatus = 'PASS'
     },
     @{
         Name = '制造质量说明通过'
-        Text = '$C_{pk}$ 过程能力指数（Process Capability Index）比较生产波动和允许范围；当前数值下降说明产品更容易接近或越过规格边界；连续三批都出现相同趋势，所以先检查三类原因：' + "`n`n- 设备是否漂移`n- 原料是否变化`n- 测量是否存在误差`n`n这些检查能够判断变化来自生产过程还是测量过程，再决定是否暂停生产"
+        Text = '$C_{pk}$ 过程能力指数（Process Capability Index）比较生产波动和允许范围' + "`n`n当前数值下降说明产品更容易接近或越过规格边界`n`n连续三批都出现相同趋势，所以先检查三类原因：`n`n- 设备是否漂移`n- 原料是否变化`n- 测量是否存在误差`n`n这些检查能够判断变化来自生产过程还是测量过程，再决定是否暂停生产"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -261,9 +261,49 @@ $cases = @(
         ExpectedStatus = 'PASS'
     },
     @{
+        Name = '准确执行和完成状态通过'
+        Text = '操作人员执行恢复命令；恢复任务完成后，监控系统保存结果'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '较长单一关系句通过'
+        Text = '自动恢复时间目标说明系统故障后允许服务中断的最长时间以及技术团队必须恢复核心功能的期限，业务负责人据此安排人工接管方案'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '明确主体连续重复通过'
+        Text = "质量负责人复核测量记录`n`n质量负责人批准货物放行`n`n质量负责人保存处置证据"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '直接状态结论前置通过'
+        Text = "本轮备份任务已经完成`n`n摘要记录显示原文件和副本内容一致"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '单次证据边界通过'
+        Text = '现有记录只覆盖软件测试，不能证明真实设备状态'
+        ExpectedStatus = 'PASS'
+    },
+    @{
         Name = '列表式代码缺少同行注释失败'
         Text = "命令如下：`n`n${fence}powershell`nGet-Process`nGet-Service # 查看系统服务及其状态`n${fence}"
         ExpectedRule = 'LIST_CODE_LINE_REQUIRES_INLINE_COMMENT'
+    },
+    @{
+        Name = '名词化弱动词失败'
+        Text = '维护人员进行日志检查，并完成了对报警原因的分析'
+        ExpectedRule = 'WEAK_NOMINALIZED_VERB_SHOULD_BE_PRECISE'
+    },
+    @{
+        Name = '嵌套长句失败'
+        Text = '服务器日志连续出现连接失败，客户端随后重复发送请求，网关队列继续增长，后端处理速度开始下降，因此用户等待时间越来越长并且新的请求也无法及时进入处理'
+        ExpectedRule = 'OVERLONG_NESTED_SENTENCE_SHOULD_SPLIT'
+    },
+    @{
+        Name = '重复边界申明失败'
+        Text = '现有记录不能证明板卡稳定，也不能证明产品可以发布'
+        ExpectedRule = 'REPEATED_DEFENSIVE_BOUNDARY_SHOULD_CONSOLIDATE'
     },
     @{
         Name = '段落式代码缺少开头注释失败'
@@ -489,12 +529,12 @@ $cases = @(
     },
     @{
         Name = '表格编号跳号失败'
-        Text = "| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 1 第一轮结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二轮 | 通过 |`n`n表 3 第二轮结果"
+        Text = "表 1 第一轮结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 3 第二轮结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二轮 | 通过 |"
         ExpectedRule = 'TABLE_NUMBER_SEQUENCE_INVALID'
     },
     @{
-        Name = '个人文档表题在上失败'
-        Text = "表 1 检查结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |"
+        Name = '默认表题在下失败'
+        Text = "| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 1 检查结果"
         ExpectedRule = 'TABLE_TITLE_POSITION_INVALID'
     },
     @{
@@ -505,27 +545,27 @@ $cases = @(
     },
     @{
         Name = '表格章节编号不匹配失败'
-        Text = "## 2 结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 1.1 检查结果"
+        Text = "## 2 结果`n`n表 1.1 检查结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |"
         ExpectedRule = 'TABLE_NUMBER_SECTION_MISMATCH'
     },
     @{
         Name = '章节内表格使用单一编号失败'
-        Text = "## 2 结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 1 检查结果"
+        Text = "## 2 结果`n`n表 1 检查结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |"
         ExpectedRule = 'TABLE_NUMBER_FORMAT_MUST_MATCH_SECTION'
     },
     @{
         Name = '表格零编号失败'
-        Text = "## 1 结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 0.1 检查结果"
+        Text = "## 1 结果`n`n表 0.1 检查结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |"
         ExpectedRule = 'TABLE_NUMBER_MUST_NOT_USE_ZERO'
     },
     @{
         Name = '表格连字符编号失败'
-        Text = "## 1 结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 1-1 检查结果"
+        Text = "## 1 结果`n`n表 1-1 检查结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |"
         ExpectedRule = 'TABLE_NUMBER_FORMAT_MUST_MATCH_SECTION'
     },
     @{
         Name = '表格跨章节没有重新编号失败'
-        Text = "## 1 第一章`n`n| 项目 | 结果 |`n|---|---|`n| 第一项 | 通过 |`n`n表 1.1 第一项结果`n`n## 2 第二章`n`n| 项目 | 结果 |`n|---|---|`n| 第二项 | 通过 |`n`n表 2.2 第二项结果"
+        Text = "## 1 第一章`n`n表 1.1 第一项结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一项 | 通过 |`n`n## 2 第二章`n`n表 2.2 第二项结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二项 | 通过 |"
         ExpectedRule = 'TABLE_NUMBER_SEQUENCE_INVALID'
     },
     @{
@@ -554,8 +594,8 @@ $cases = @(
         ExpectedRule = 'VISUAL_CAPTION_SHOULD_BE_CENTERED'
     },
     @{
-        Name = '个人文档表题没有随表格居中失败'
-        Text = "<div align=`"center`">`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n</div>`n`n表 1 第一轮结果"
+        Name = '默认表题没有随表格居中失败'
+        Text = "表 1 第一轮结果`n`n<div align=`"center`">`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n</div>"
         ExpectedRule = 'VISUAL_CAPTION_SHOULD_BE_CENTERED'
     },
     @{
@@ -565,8 +605,8 @@ $cases = @(
         ExpectedRule = 'VISUAL_CAPTION_SHOULD_BE_CENTERED'
     },
     @{
-        Name = '同一汇总文档混合题注样式通过'
-        Text = "## 1 案例汇总`n`n<div align=`"center`">`n`n| 项目 | 结果 |`n|---|---|`n| 个人文档 | 通过 |`n`n表 1.1 个人文档结果`n`n</div>`n`n<!-- caption-style: publication -->`n`n<div align=`"center`">`n`n表 1.2 出版文档结果`n`n| 项目 | 结果 |`n|---|---|`n| 出版文档 | 通过 |`n`n</div>`n`n<!-- caption-style: end -->"
+        Name = '同一汇总文档统一题注样式通过'
+        Text = "## 1 案例汇总`n`n<div align=`"center`">`n`n表 1.1 第一组结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一组 | 通过 |`n`n表 1.2 第二组结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二组 | 通过 |`n`n</div>"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -669,7 +709,7 @@ $cases = @(
 $failures = [Collections.Generic.List[object]]::new()
 $caseResults = [Collections.Generic.List[object]]::new()
 foreach ($case in $cases) {
-    # 每个案例可以单独声明出版题注或问答标题，未声明时使用个人文档默认值
+    # 旧题注参数继续传入以验证兼容性，全部文档仍统一要求表题在上
     $captionStyle = if ($case.ContainsKey('CaptionStyle')) { $case.CaptionStyle } else { 'Personal' }
     $allowQuestionHeadings = $case.ContainsKey('AllowQuestionHeadings') -and $case.AllowQuestionHeadings
     $requiredTerms = if ($case.ContainsKey('RequiredTerms')) { @($case.RequiredTerms) } else { @() }
