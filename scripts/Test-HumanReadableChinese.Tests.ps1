@@ -10,6 +10,7 @@ function Invoke-Lint(
     [string]$Value,
     [string]$CaptionStyle = 'Personal',
     [bool]$AllowQuestionHeadings = $false,
+    [bool]$AllowEditorialProcessNarrative = $false,
     [string[]]$RequiredTerms = @()
 ) {
     # 把正文安全传给独立检查进程，避免测试文字被 PowerShell 当成命令解释
@@ -30,9 +31,10 @@ function Invoke-Lint(
         "`$requiredTerms = @()`n"
     }
     $questionHeadingArgument = if ($AllowQuestionHeadings) { ' -AllowQuestionHeadings' } else { '' }
+    $editorialProcessArgument = if ($AllowEditorialProcessNarrative) { ' -AllowEditorialProcessNarrative' } else { '' }
     $child = @"
 `$text = [Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('$encoded'))
-$requiredTermSetup& '$lintPath' -Text `$text -CaptionStyle '$CaptionStyle' -RequiredTerm `$requiredTerms$questionHeadingArgument
+$requiredTermSetup& '$lintPath' -Text `$text -CaptionStyle '$CaptionStyle' -RequiredTerm `$requiredTerms$questionHeadingArgument$editorialProcessArgument
 "@
     $output = & pwsh -NoLogo -NoProfile -NonInteractive -Command $child 2>&1
     $exitCode = $LASTEXITCODE
@@ -711,6 +713,48 @@ $cases = @(
         ExpectedStatus = 'PASS'
     },
     @{
+        Name = '文档状态与后续补充失败'
+        Text = '文档状态：第一部分已经形成真实截图、命令输出和智能体连接记录，后续章节将在同一时间线上继续补充'
+        ExpectedRule = 'EDITORIAL_PROCESS_META_NARRATIVE_FORBIDDEN'
+    },
+    @{
+        Name = '单独后续章节补充失败'
+        Text = '后续章节将在同一时间线上继续补充'
+        ExpectedRule = 'EDITORIAL_PROCESS_META_NARRATIVE_FORBIDDEN'
+    },
+    @{
+        Name = '章节占位说明失败'
+        Text = '本节先占位，稍后补充截图'
+        ExpectedRule = 'EDITORIAL_PROCESS_META_NARRATIVE_FORBIDDEN'
+    },
+    @{
+        Name = '跨行编辑过程说明失败'
+        Text = "当前文档已经整理第一部分`n`n后续补充其余内容"
+        ExpectedRule = 'EDITORIAL_PROCESS_META_NARRATIVE_FORBIDDEN'
+    },
+    @{
+        Name = '多章节编辑过程说明复发失败'
+        Text = "## 1 第一部分`n`n后续章节继续补充`n`n## 2 第二部分`n`n本节先占位"
+        ExpectedRule = 'EDITORIAL_PROCESS_META_NARRATIVE_FORBIDDEN'
+        ExpectedRuleCount = 2
+    },
+    @{
+        Name = '逐字引用编辑过程说明通过'
+        Text = "> 文档状态：第一部分已经形成真实截图，后续章节继续补充`n`n这句话只汇报写作进度，正式报告应当直接写明已经取得的证据"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '用户要求写作进度时通过'
+        Text = '文档状态：第一部分已经形成真实截图，后续章节继续补充'
+        AllowEditorialProcessNarrative = $true
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '证据范围正文通过'
+        Text = "当前能够核实的证据包括真实截图、命令输出和智能体连接记录`n`n其余结论缺少对应证据，证据负责人补齐原始材料前不能写入正式结论"
+        ExpectedStatus = 'PASS'
+    },
+    @{
         Name = '简单键值拆行失败'
         Text = "项目 Vivado 冻结版本为：`n2024.1"
         ExpectedRule = 'SIMPLE_KEY_VALUE_SHOULD_STAY_INLINE'
@@ -743,8 +787,9 @@ foreach ($case in $cases) {
     # 旧题注参数继续传入以验证兼容性，全部文档仍统一要求表题在上
     $captionStyle = if ($case.ContainsKey('CaptionStyle')) { $case.CaptionStyle } else { 'Personal' }
     $allowQuestionHeadings = $case.ContainsKey('AllowQuestionHeadings') -and $case.AllowQuestionHeadings
+    $allowEditorialProcessNarrative = $case.ContainsKey('AllowEditorialProcessNarrative') -and $case.AllowEditorialProcessNarrative
     $requiredTerms = if ($case.ContainsKey('RequiredTerms')) { @($case.RequiredTerms) } else { @() }
-    $run = Invoke-Lint -Value $case.Text -CaptionStyle $captionStyle -AllowQuestionHeadings $allowQuestionHeadings -RequiredTerms $requiredTerms
+    $run = Invoke-Lint -Value $case.Text -CaptionStyle $captionStyle -AllowQuestionHeadings $allowQuestionHeadings -AllowEditorialProcessNarrative $allowEditorialProcessNarrative -RequiredTerms $requiredTerms
     if ($case.ContainsKey('ExpectedStatus') -and $case.ExpectedStatus -eq 'PASS') {
         $passed = $run.Result.status -eq 'PASS'
         $caseResults.Add([pscustomobject]@{

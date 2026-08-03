@@ -8,7 +8,8 @@ $ErrorActionPreference = 'Stop'
 
 $skillRoot = Split-Path -Parent $PSScriptRoot
 $linter = Join-Path $skillRoot 'scripts\Test-HumanReadableChinese.ps1'
-$currentGeneration = '2026-08-03-large-task-delivery-gate'
+$currentGeneration = '2026-08-03-editorial-meta-narrative-gate'
+$largeTaskGeneration = '2026-08-03-large-task-delivery-gate'
 $naturalNarrativeGeneration = '2026-07-30-natural-technical-narrative'
 $previousGeneration = '2026-07-30-repository-self-audit'
 
@@ -2330,7 +2331,7 @@ API 应用程序接口（Application Programming Interface）负责在不同软�
     },
     [pscustomobject]@{
         Id = 'new-large-task-negation-drift-gate'
-        IntroducedIn = $currentGeneration
+        IntroducedIn = $largeTaskGeneration
         Length = 'very-long'
         Difficulty = 'adversarial'
         Direction = 'large-task-negation-drift'
@@ -2421,6 +2422,42 @@ API 应用程序接口（Application Programming Interface）负责在不同软�
 
 任何一项仍然缺少证据时，项目负责人应继续保留迁移任务，并在状态记录中写明缺失内容和负责补齐的主体
 '@
+    },
+    [pscustomobject]@{
+        Id = 'new-editorial-meta-narrative-rewrite'
+        IntroducedIn = $currentGeneration
+        Length = 'medium'
+        Difficulty = 'medium'
+        Direction = 'editorial-meta-narrative-removal'
+        Tone = 'evidence-focused'
+        Audience = 'project-owner'
+        TaskType = 'report-rewrite'
+        InputShape = 'draft-progress-statement'
+        Structure = 'evidence-scope-gap-action'
+        Prompt = '把这句话改成正式报告正文：文档状态：第一部分已经形成真实截图、命令输出和智能体连接记录，后续章节将在同一时间线上继续补充'
+        Response = @'
+根据用户本次提供的材料，当前能够核实的证据包括：
+
+- 真实截图
+- 命令输出
+- 智能体连接记录
+
+智能体是按照指令调用工具并处理任务的软件
+
+智能体连接记录保存了软件与外部工具建立连接时留下的信息，项目负责人可以使用这类记录核对连接时间和连接对象
+
+真实截图能够证明界面当时显示的内容
+
+命令输出能够证明对应命令当时返回的结果
+
+三类材料共同确定了当前能够核实的证据范围
+
+现有材料没有提供其他结论所需的原始记录，所以项目负责人目前只能采用上述证据
+
+证据负责人需要补齐缺失的原始材料，并由项目负责人核对材料来源和对应结论
+
+材料通过核对后，项目负责人才能把对应结论写入正式报告
+'@
     }
 )
 
@@ -2457,6 +2494,7 @@ function Get-MaxCategorySharePercent([object[]]$Items, [string]$PropertyName) {
 $results = foreach ($case in $cases) {
     # 根据案例声明选择问答标题并保留需要核对的原始术语
     $allowQuestionHeadings = Get-CaseBoolean $case 'AllowQuestionHeadings' $false
+    $allowEditorialProcessNarrative = Get-CaseBoolean $case 'AllowEditorialProcessNarrative' $false
     $requiredTermsProperty = $case.PSObject.Properties['RequiredTerms']
     $requiredTerms = @(
         if ($null -ne $requiredTermsProperty) {
@@ -2469,6 +2507,9 @@ $results = foreach ($case in $cases) {
     }
     if ($allowQuestionHeadings) {
         $lintArguments.AllowQuestionHeadings = $true
+    }
+    if ($allowEditorialProcessNarrative) {
+        $lintArguments.AllowEditorialProcessNarrative = $true
     }
     $lint = & $linter @lintArguments | ConvertFrom-Json
     # 统一换行符后再统计字符，避免同一回答在不同操作系统上落入不同长度分类

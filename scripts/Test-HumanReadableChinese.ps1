@@ -11,7 +11,9 @@ param(
 
     [string[]]$RequiredTerm = @(),
 
-    [switch]$AllowQuestionHeadings
+    [switch]$AllowQuestionHeadings,
+
+    [switch]$AllowEditorialProcessNarrative
 )
 
 Set-StrictMode -Version Latest
@@ -825,6 +827,22 @@ foreach ($match in $negativeFirstContrastMatches) {
         line = Get-LineNumber $withoutCodeBlocks $match.Index
         excerpt = Get-Excerpt $withoutCodeBlocks $match.Index $match.Length
     })
+}
+
+# 最终文档默认禁止汇报文档正在怎样编写，明确的写作进度任务可以通过开关保留这类内容
+if (-not $AllowEditorialProcessNarrative) {
+    $editorialProcessPattern = '(?<term>文档状态[：:](?:(?![。！？!?#]).){0,240}?(?:后续|其余)(?:章节|部分|内容)(?:(?![。！？!?#]).){0,120}?(?:补充|完善|编写|更新)|(?:后续|其余)(?:章节|部分)(?:(?![。！？!?#]).){0,120}?(?:继续|另行|逐步|随后)?(?:补充|完善|编写|更新)|(?:本节|本章|此处)(?:(?![。！？!?#]).){0,40}?(?:先)?(?:占位|待补充|稍后补充)|(?:本文|本报告|本章|本节|当前文档)(?:(?![。！？!?#]).){0,100}?(?:后续|稍后|以后)(?:(?![。！？!?#]).){0,80}?(?:补充|完善|编写|更新))'
+    $editorialProcessMatches = [regex]::Matches(
+        $negativeContrastScanText,
+        $editorialProcessPattern
+    )
+    foreach ($match in $editorialProcessMatches) {
+        $issues.Add([pscustomobject]@{
+            rule = 'EDITORIAL_PROCESS_META_NARRATIVE_FORBIDDEN'
+            line = Get-LineNumber $withoutCodeBlocks $match.Index
+            excerpt = Get-Excerpt $withoutCodeBlocks $match.Index $match.Length
+        })
+    }
 }
 
 foreach ($lineMatch in $lineMatches) {

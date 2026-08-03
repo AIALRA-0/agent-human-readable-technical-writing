@@ -109,6 +109,16 @@ $progressiveLoadingValid = (
     $skillText -notmatch '质量测试至少包含二十四组'
 )
 
+# 核心规则、复杂报告规则和自动检查器必须同时保留编辑过程元叙述门禁
+$complexReportText = Get-Content -LiteralPath (Join-Path $skillRoot 'references\complex-reports.md') -Raw -Encoding UTF8
+$linterText = Get-Content -LiteralPath $linter -Raw -Encoding UTF8
+$editorialProcessGateValid = (
+    $skillText -match '编辑过程元叙述' -and
+    $complexReportText -match '编辑过程边界' -and
+    $linterText -match 'EDITORIAL_PROCESS_META_NARRATIVE_FORBIDDEN' -and
+    $linterText -match 'AllowEditorialProcessNarrative'
+)
+
 # 核对全部相对文档链接，避免仓库页面指向不存在的本地文件
 $missingLinks = [Collections.Generic.List[string]]::new()
 foreach ($file in $markdownFiles) {
@@ -138,6 +148,7 @@ $status = if (
     $qualityCasesCurrent -and
     $readmeStatisticsCurrent -and
     $progressiveLoadingValid -and
+    $editorialProcessGateValid -and
     $missingLinks.Count -eq 0
 ) {
     'PASS'
@@ -157,6 +168,7 @@ $output = [ordered]@{
     readme_statistics_current = $readmeStatisticsCurrent
     skill_line_count = $skillLineCount
     progressive_loading_valid = $progressiveLoadingValid
+    editorial_process_gate_valid = $editorialProcessGateValid
     missing_progressive_references = $missingProgressiveReferences
     missing_link_count = $missingLinks.Count
     documents = @($documentResults)
