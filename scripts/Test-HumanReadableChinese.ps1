@@ -805,6 +805,28 @@ $numericSourcePattern = '(?:来自|依据|根据|取自|读取自|记录于|用�
 $documentNumericSourcePattern = '(?:本文|本报告|本次(?:回答|分析|报告)?|以下|后续)(?:中|所用|使用)?(?:的|全部|所有)?数值[^；\r\n]{0,100}' + $numericSourcePattern
 $hasDocumentNumericProvenance = $withoutCodeBlocks -match $documentNumericSourcePattern
 $numericSourceAvailableInSection = $false
+
+# 在整份正文上扫描否定先行转折，覆盖同一行、跨行和跨段复发
+$negativeContrastNarrative = Hide-NonNarrativeZones $withoutCodeBlocks
+$negativeContrastNarrative = [regex]::Replace(
+    $negativeContrastNarrative,
+    '(?m)^[ \t]*(?:>|\|).*$|^[ \t]*\[[1-9]\d*\][ \t]+.*$',
+    ${function:Hide-Match}
+)
+$negativeContrastScanText = $negativeContrastNarrative.Replace([char]10, [char]32)
+$negativeFirstContrastPattern = '(?<term>(?:不是|并非)(?:(?![；;。！？!?#]).){1,220}?(?:而是|真正(?:的)?(?:原因|问题|重点|关键)?(?:是|在于))|(?:重点|关键|问题)?不在于(?:(?![；;。！？!?#]).){1,220}?(?:而在于|真正(?:的)?(?:原因|问题|重点|关键)?(?:是|在于)))'
+$negativeFirstContrastMatches = [regex]::Matches(
+    $negativeContrastScanText,
+    $negativeFirstContrastPattern
+)
+foreach ($match in $negativeFirstContrastMatches) {
+    $issues.Add([pscustomobject]@{
+        rule = 'NEGATIVE_FIRST_CONTRAST_SHOULD_BE_DIRECT'
+        line = Get-LineNumber $withoutCodeBlocks $match.Index
+        excerpt = Get-Excerpt $withoutCodeBlocks $match.Index $match.Length
+    })
+}
+
 foreach ($lineMatch in $lineMatches) {
     $line = $lineMatch.Value
     if (-not $frontmatterFinished -and $lineMatch.Index -eq 0 -and $line -eq '---') {
@@ -842,18 +864,6 @@ foreach ($lineMatch in $lineMatches) {
     foreach ($match in $doubleNegativeMatches) {
         $issues.Add([pscustomobject]@{
             rule = 'DOUBLE_NEGATIVE_SHOULD_BE_SIMPLIFIED'
-            line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
-            excerpt = $match.Groups['term'].Value
-        })
-    }
-
-    $negativeFirstContrastMatches = [regex]::Matches(
-        $screenedNarrativeLine,
-        '(?<term>(?:不是|并非)[^，；！？\r\n]{1,80}，?而是|不在于[^，；！？\r\n]{1,80}，?而在于)'
-    )
-    foreach ($match in $negativeFirstContrastMatches) {
-        $issues.Add([pscustomobject]@{
-            rule = 'NEGATIVE_FIRST_CONTRAST_SHOULD_BE_DIRECT'
             line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
             excerpt = $match.Groups['term'].Value
         })

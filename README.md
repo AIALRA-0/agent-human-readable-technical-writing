@@ -6,8 +6,8 @@
 
 [![Quality checks](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml/badge.svg)](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml)
 [![MIT License](https://img.shields.io/badge/license-MIT-315c4c.svg)](LICENSE)
-[![130 rule checks](https://img.shields.io/badge/rule_checks-130-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
-[![46 full answers](https://img.shields.io/badge/full_QA_cases-46-657067.svg)](QA-CASES.md)
+[![136 rule checks](https://img.shields.io/badge/rule_checks-136-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
+[![47 full answers](https://img.shields.io/badge/full_QA_cases-47-657067.svg)](QA-CASES.md)
 [![Local first](https://img.shields.io/badge/data-local_first-6b5b95.svg)](#9-隐私边界)
 
 [查看改写效果](#1-改写效果) · [开始使用](#3-开始使用) · [了解处理过程](#4-处理过程) · [检查完整案例](QA-CASES.md) · [阅读详细规则](references/style-rules.md) · [运行质量检查](#7-质量检查)
@@ -237,9 +237,9 @@ Copy-Item "$HOME\.codex\skills\human-readable-technical-writing\AGENTS.example.m
 
 需要明确调用时，可以在问题开头加入下面这段话：
 
-> 使用 `$human-readable-technical-writing`，按照我的中文技术写作规范回答；交付前运行写作检查，检查失败就先修改再回答
+> 使用 `$human-readable-technical-writing`，按照我的中文技术写作规范回答；只加载当前任务需要的参考文件，大型任务交付前检查完整正文，检查失败就先修改再回答
 
-这条指令会要求智能体读取技能规则，并在交付前检查明显的格式问题
+这条指令会要求智能体读取核心规则，再根据任务类型加载报告、结构或技术内容规则
 
 ## 4 处理过程
 
@@ -252,11 +252,12 @@ Copy-Item "$HOME\.codex\skills\human-readable-technical-writing\AGENTS.example.m
 flowchart TD
     A["收到问题或原始材料"] --> B["确定读者需要判断什么"]
     B --> C["找出事实和缺失证据"]
-    C --> D["按照原因和后果组织内容"]
-    D --> E["解释必要术语"]
-    E --> F["拆分列表和条件分支"]
-    F --> G["运行写作规则检查"]
-    G --> H["交付能够核对和执行的结果"]
+    C --> D["识别当前任务需要的规则"]
+    D --> E["只加载命中的参考文件"]
+    E --> F["按照原因和后果组织内容"]
+    F --> G["解释必要术语"]
+    G --> H["运行最终正文检查"]
+    H --> I["交付能够核对和执行的结果"]
 ```
 
 图 4.1 中文技术内容处理流程
@@ -278,19 +279,22 @@ flowchart TD
 | 内容 | 什么时候读取 | 解决什么问题 |
 |---|---|---|
 | 全局规则模板 | 每次中文写作 | 保存不能违反的表达边界 |
-| 核心技能 | 中文写作任务开始时 | 安排因果顺序并处理术语和列表 |
-| 详细写作规则 | 复杂报告或争议案例出现时 | 提供边界条件和完整示例 |
-| 完整测试材料 | 运行质量检查时 | 检查规则是否只适合少数短回答 |
+| 核心技能 | 中文写作任务开始时 | 安排因果顺序、明确主体并选择按需资源 |
+| 结构化文档规则 | 出现章节、步骤、分支、图表、流程图或引用时 | 统一结构、编号、题注和引用 |
+| 技术内容规则 | 出现术语、内部名称、数值、公式或代码时 | 保留可追踪名称并补齐解释和来源 |
+| 复杂报告规则 | 编写报告、审计材料、复盘或交接文档时 | 控制长篇叙事、证据边界和全文检查 |
+| 详细正反示例 | 用户指出问题或规则发生冲突时 | 处理边界条件和争议写法 |
+| 技能开发测试 | 修改技能、检查器或案例时 | 验证规则、完整问答和仓库一致性 |
 
 </div>
 
-完整测试材料不会自动进入普通对话，因此增加测试案例不会等量增加每次回答需要读取的内容
+普通回答不会读取复杂报告规则和技能开发测试，因此新增案例不会等量增加每次回答需要处理的内容
 
 ## 6 完整案例
 
-读者需要亲自判断实际回答是否自然、清楚并且有足够依据，所以[完整问答案例](QA-CASES.md)公开展示四十六个问题和对应回答
+读者需要亲自判断实际回答是否自然、清楚并且有足够依据，所以[完整问答案例](QA-CASES.md)公开展示四十七个问题和对应回答
 
-案例文档先展示本轮新增的五组案例，再保留四十一组历史案例用于回归检查
+案例文档先展示本轮新增的大型任务防漂移案例，再保留四十六组历史案例用于回归检查
 
 这种排列让读者能够直接找到新内容，同时继续验证新规则没有破坏原有写作能力
 
@@ -375,21 +379,21 @@ flowchart TD
 
 当前公开测试包含下面这些差异：
 
-- 一百三十组规则正反测试
-- 四十六组完整问答测试
+- 一百三十六组规则正反测试
+- 四十七组完整问答测试
 - 二十一组原始术语保留问答测试
 - 五种回答长度
-- 四十六个内容方向
+- 四十七个内容方向
 - 三十一种表达语气
-- 三十五类目标读者
-- 三十六类任务
-- 三十五种内容结构
+- 三十六类目标读者
+- 三十七类任务
+- 三十六种内容结构
 
 运行全部检查：
 
 ```powershell
-pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行一百三十组规则正反测试
-pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # 执行四十六组完整问答质量测试
+pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行一百三十六组规则正反测试
+pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # 执行四十七组完整问答质量测试
 pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # 使用已经通过检查的结果重新生成案例文档
 pwsh -NoProfile -File ".\scripts\Test-RepositoryContent.ps1" # 检查全部公开文档、案例同步状态和相对链接
 ```
@@ -408,7 +412,11 @@ pwsh -NoProfile -File ".\scripts\Test-RepositoryContent.ps1" # 检查全部公�
 |---|---|
 | `SKILL.md` | 智能体开始写作时读取的核心规则 |
 | `AGENTS.example.md` | 可以合并到个人配置中的全局规则模板 |
-| `references/style-rules.md` | 复杂写作问题需要的详细规则和示例 |
+| `references/structured-documents.md` | 章节、步骤、分支、图表、流程图和引用规则 |
+| `references/technical-content.md` | 术语、内部名称、数值、公式和代码规则 |
+| `references/complex-reports.md` | 完整报告、审计材料、复盘和交接文档规则 |
+| `references/style-rules.md` | 争议写法需要的详细正反示例 |
+| `references/quality-development.md` | 修改技能时才读取的质量测试流程 |
 | `scripts/Test-HumanReadableChinese.ps1` | 检查能够明确识别的写作问题 |
 | `scripts/Test-HumanReadableChinese.Tests.ps1` | 验证检查器能接受正确写法并拒绝错误写法 |
 | `scripts/Export-QualityCases.ps1` | 使用正式测试结果生成完整案例文档 |

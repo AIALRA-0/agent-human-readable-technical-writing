@@ -11,6 +11,7 @@ $linter = Join-Path $PSScriptRoot 'Test-HumanReadableChinese.ps1'
 $exporter = Join-Path $PSScriptRoot 'Export-QualityCases.ps1'
 $qualityCases = Join-Path $skillRoot 'QA-CASES.md'
 $readme = Join-Path $skillRoot 'README.md'
+$skillDefinition = Join-Path $skillRoot 'SKILL.md'
 $ruleTests = Join-Path $PSScriptRoot 'Test-HumanReadableChinese.Tests.ps1'
 
 # 检查仓库中的全部 Markdown 文档，新增文档也会自动进入检查范围
@@ -84,6 +85,30 @@ $readmeStatisticsCurrent = (
     $readmeText -match "full_QA_cases-$qualityCaseCount-"
 )
 
+# 核心技能只保留运行规则和资源路由，复杂报告与开发测试通过独立参考文件按需加载
+$skillText = Get-Content -LiteralPath $skillDefinition -Raw -Encoding UTF8
+$skillLineCount = @(Get-Content -LiteralPath $skillDefinition -Encoding UTF8).Count
+$requiredProgressiveReferences = @(
+    'references/structured-documents.md'
+    'references/technical-content.md'
+    'references/complex-reports.md'
+    'references/style-rules.md'
+    'references/quality-development.md'
+)
+$missingProgressiveReferences = @(
+    $requiredProgressiveReferences |
+        Where-Object {
+            -not (Test-Path -LiteralPath (Join-Path $skillRoot $_) -PathType Leaf) -or
+            $skillText -notmatch [regex]::Escape($_)
+        }
+)
+$progressiveLoadingValid = (
+    $skillLineCount -le 120 -and
+    $missingProgressiveReferences.Count -eq 0 -and
+    $skillText -match '普通回答不得加载质量测试说明' -and
+    $skillText -notmatch '质量测试至少包含二十四组'
+)
+
 # 核对全部相对文档链接，避免仓库页面指向不存在的本地文件
 $missingLinks = [Collections.Generic.List[string]]::new()
 foreach ($file in $markdownFiles) {
@@ -112,6 +137,7 @@ $status = if (
     $scriptParseErrors.Count -eq 0 -and
     $qualityCasesCurrent -and
     $readmeStatisticsCurrent -and
+    $progressiveLoadingValid -and
     $missingLinks.Count -eq 0
 ) {
     'PASS'
@@ -129,6 +155,9 @@ $output = [ordered]@{
     rule_case_count = $ruleCaseCount
     quality_case_count = $qualityCaseCount
     readme_statistics_current = $readmeStatisticsCurrent
+    skill_line_count = $skillLineCount
+    progressive_loading_valid = $progressiveLoadingValid
+    missing_progressive_references = $missingProgressiveReferences
     missing_link_count = $missingLinks.Count
     documents = @($documentResults)
     powershell_parse_errors = @($scriptParseErrors)

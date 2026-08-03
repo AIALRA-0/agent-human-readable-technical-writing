@@ -680,6 +680,37 @@ $cases = @(
         ExpectedRule = 'NEGATIVE_FIRST_CONTRAST_SHOULD_BE_DIRECT'
     },
     @{
+        Name = '并非而是否定先行失败'
+        Text = '当前瓶颈并非服务器容量，而是审批记录缺少负责人'
+        ExpectedRule = 'NEGATIVE_FIRST_CONTRAST_SHOULD_BE_DIRECT'
+    },
+    @{
+        Name = '不在于而在于否定先行失败'
+        Text = '当前风险不在于切换速度，而在于回滚证据没有保存'
+        ExpectedRule = 'NEGATIVE_FIRST_CONTRAST_SHOULD_BE_DIRECT'
+    },
+    @{
+        Name = '跨行否定先行失败'
+        Text = "当前需要处理的不是服务器容量`n而是审批记录缺少负责人"
+        ExpectedRule = 'NEGATIVE_FIRST_CONTRAST_SHOULD_BE_DIRECT'
+    },
+    @{
+        Name = '跨段真正问题否定先行失败'
+        Text = "当前需要处理的并非服务器容量`n`n真正的问题是审批记录缺少负责人"
+        ExpectedRule = 'NEGATIVE_FIRST_CONTRAST_SHOULD_BE_DIRECT'
+    },
+    @{
+        Name = '长文多章节否定先行复发失败'
+        Text = "## 1 审批记录`n`n当前需要处理的不是服务器容量，而是审批记录缺少负责人`n`n## 2 回滚证据`n`n当前风险不在于切换速度，而在于回滚证据没有保存"
+        ExpectedRule = 'NEGATIVE_FIRST_CONTRAST_SHOULD_BE_DIRECT'
+        ExpectedRuleCount = 2
+    },
+    @{
+        Name = '逐字引用否定先行通过'
+        Text = "> 当前需要处理的不是服务器容量，而是审批记录缺少负责人`n`n审批记录没有负责人，所以项目负责人需要先补齐责任信息"
+        ExpectedStatus = 'PASS'
+    },
+    @{
         Name = '简单键值拆行失败'
         Text = "项目 Vivado 冻结版本为：`n2024.1"
         ExpectedRule = 'SIMPLE_KEY_VALUE_SHOULD_STAY_INLINE'
@@ -735,10 +766,19 @@ foreach ($case in $cases) {
     }
 
     $actualRules = @($run.Result.issues | ForEach-Object { $_.rule })
-    $passed = $actualRules -contains $case.ExpectedRule
+    $expectedRuleCount = if ($case.ContainsKey('ExpectedRuleCount')) {
+        [int]$case.ExpectedRuleCount
+    }
+    else {
+        1
+    }
+    $actualRuleCount = @($actualRules | Where-Object { $_ -eq $case.ExpectedRule }).Count
+    $passed = $actualRuleCount -ge $expectedRuleCount
     $caseResults.Add([pscustomobject]@{
         name = $case.Name
         expected = $case.ExpectedRule
+        expected_rule_count = $expectedRuleCount
+        actual_rule_count = $actualRuleCount
         actual = $run.Result.status
         rules = $actualRules
         passed = $passed
@@ -747,6 +787,8 @@ foreach ($case in $cases) {
         $failures.Add([pscustomobject]@{
             name = $case.Name
             expected = $case.ExpectedRule
+            expected_rule_count = $expectedRuleCount
+            actual_rule_count = $actualRuleCount
             actual = $run.Result.status
             rules = $actualRules
         })

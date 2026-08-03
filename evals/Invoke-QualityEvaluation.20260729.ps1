@@ -8,7 +8,8 @@ $ErrorActionPreference = 'Stop'
 
 $skillRoot = Split-Path -Parent $PSScriptRoot
 $linter = Join-Path $skillRoot 'scripts\Test-HumanReadableChinese.ps1'
-$currentGeneration = '2026-07-30-natural-technical-narrative'
+$currentGeneration = '2026-08-03-large-task-delivery-gate'
+$naturalNarrativeGeneration = '2026-07-30-natural-technical-narrative'
 $previousGeneration = '2026-07-30-repository-self-audit'
 
 $cases = @(
@@ -2186,7 +2187,7 @@ RTO 恢复时间目标（Recovery Time Objective）为两小时；故障发生�
     },
     [pscustomobject]@{
         Id = 'new-precise-maintenance-verbs'
-        IntroducedIn = $currentGeneration
+        IntroducedIn = $naturalNarrativeGeneration
         Length = 'short'
         Difficulty = 'easy'
         Direction = 'maintenance-language'
@@ -2202,7 +2203,7 @@ RTO 恢复时间目标（Recovery Time Objective）为两小时；故障发生�
     },
     [pscustomobject]@{
         Id = 'new-single-scope-release-note'
-        IntroducedIn = $currentGeneration
+        IntroducedIn = $naturalNarrativeGeneration
         Length = 'medium'
         Difficulty = 'hard'
         Direction = 'release-scope'
@@ -2229,7 +2230,7 @@ RTO 恢复时间目标（Recovery Time Objective）为两小时；故障发生�
     },
     [pscustomobject]@{
         Id = 'new-natural-engineering-retrospective'
-        IntroducedIn = $currentGeneration
+        IntroducedIn = $naturalNarrativeGeneration
         Length = 'long'
         Difficulty = 'hard'
         Direction = 'engineering-retrospective'
@@ -2285,7 +2286,7 @@ API 应用程序接口（Application Programming Interface）负责在不同软�
     },
     [pscustomobject]@{
         Id = 'new-owner-led-action-list'
-        IntroducedIn = $currentGeneration
+        IntroducedIn = $naturalNarrativeGeneration
         Length = 'short'
         Difficulty = 'medium'
         Direction = 'responsibility-grouping'
@@ -2313,7 +2314,7 @@ API 应用程序接口（Application Programming Interface）负责在不同软�
     },
     [pscustomobject]@{
         Id = 'new-micro-direct-verb'
-        IntroducedIn = $currentGeneration
+        IntroducedIn = $naturalNarrativeGeneration
         Length = 'micro'
         Difficulty = 'easy'
         Direction = 'micro-verb-rewrite'
@@ -2325,6 +2326,100 @@ API 应用程序接口（Application Programming Interface）负责在不同软�
         Prompt = '一句话改写“维护人员进行日志检查”'
         Response = @'
 维护人员检查日志
+'@
+    },
+    [pscustomobject]@{
+        Id = 'new-large-task-negation-drift-gate'
+        IntroducedIn = $currentGeneration
+        Length = 'very-long'
+        Difficulty = 'adversarial'
+        Direction = 'large-task-negation-drift'
+        Tone = 'audit-ready'
+        Audience = 'program-manager'
+        TaskType = 'long-report-rewrite'
+        InputShape = 'repeated-negation-across-sections'
+        Structure = 'numbered-evidence-cause-actions-gate'
+        Prompt = '把跨部门迁移复盘改成长报告，原稿每章都在用“不是……而是……”和“不在于……而在于……”，请彻底改成直接因果表达：已知事实包括审批记录缺负责人、回滚演练通过、切换后的订单核对缺少两小时记录和客户验收尚未开展'
+        Response = @'
+本报告使用的全部数值和状态均根据用户本次提供的材料整理
+
+审批记录缺少负责人，所以项目负责人无法确认每项迁移动作由谁批准
+
+切换后的订单核对缺少两小时记录，所以项目负责人无法证明切换后的订单已经全部核对
+
+回滚演练已经通过，说明技术团队具备恢复切换前版本的操作记录
+
+客户验收尚未开展，因此本轮迁移仍缺少客户确认
+
+## 1 当前完成范围
+
+技术团队已经留下回滚演练通过记录
+
+回滚是把系统恢复到切换前版本的处理方式
+
+演练通过说明恢复步骤能够按照记录运行
+
+迁移出现问题时，技术团队可以使用这套步骤降低持续影响
+
+现有材料没有提供正式切换后的恢复记录，所以回滚演练只能证明恢复方案经过练习
+
+迁移团队已经进入切换后的订单核对阶段
+
+订单核对记录缺少连续两小时内容，项目负责人无法确认这段时间内的订单是否完整进入新系统
+
+## 2 审批记录
+
+审批记录缺少负责人姓名
+
+负责人姓名决定谁确认了切换条件、谁接受了当时的风险，以及后续出现争议时由谁补充证据
+
+项目负责人需要先从审批系统、会议记录或值班交接记录中查找原始信息
+
+项目负责人找到原始信息后，应把负责人姓名、批准时间和批准范围补回审批记录
+
+原始材料没有提供这些信息时，项目负责人需要把审批状态标记为来源待核对，不能自行推断批准人
+
+## 3 订单核对记录
+
+切换后的订单核对缺少两小时记录
+
+这段缺口会让订单总量、处理状态和异常数量失去连续依据，项目团队因此无法根据现有记录确认订单迁移完整性
+
+订单负责人需要从订单系统日志和业务记录中恢复缺失时段的数据
+
+恢复数据后，订单负责人需要核对以下内容：
+
+- 缺失时段收到的订单数量
+- 已经进入新系统的订单数量
+- 仍然停留在旧系统的订单
+- 出现重复、遗漏或状态不一致的订单
+
+这些结果需要同时写明订单系统日志或业务记录来源
+
+四项结果全部核对后，订单负责人才能提交订单完整性结论
+
+## 4 客户验收
+
+客户尚未开展验收，所以当前材料没有客户对功能、数据和业务结果的确认
+
+项目负责人需要先补齐审批记录和订单核对记录，再向客户提交验收材料
+
+验收材料至少需要包含迁移范围、已知问题、回滚记录和订单核对结论
+
+客户根据这些材料检查实际业务结果，并决定是否接受本轮迁移
+
+## 5 关闭条件
+
+本轮迁移需要同时满足以下条件：
+
+- 审批记录写明负责人、批准时间和批准范围
+- 订单核对补齐缺失时段，并留下能够重新核对的来源
+- 回滚演练记录与正式迁移版本保持一致
+- 客户留下验收结果
+
+审批负责人、订单负责人、技术团队和客户分别留下对应证据后，项目负责人才能提交迁移关闭决定
+
+任何一项仍然缺少证据时，项目负责人应继续保留迁移任务，并在状态记录中写明缺失内容和负责补齐的主体
 '@
     }
 )
