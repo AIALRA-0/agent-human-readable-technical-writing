@@ -6,7 +6,7 @@
 
 [![Quality checks](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml/badge.svg)](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml)
 [![MIT License](https://img.shields.io/badge/license-MIT-315c4c.svg)](LICENSE)
-[![144 rule checks](https://img.shields.io/badge/rule_checks-144-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
+[![150 rule checks](https://img.shields.io/badge/rule_checks-150-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
 [![48 full answers](https://img.shields.io/badge/full_QA_cases-48-657067.svg)](QA-CASES.md)
 [![Local first](https://img.shields.io/badge/data-local_first-6b5b95.svg)](#9-隐私边界)
 
@@ -393,7 +393,7 @@ flowchart TD
 
 当前公开测试包含下面这些差异：
 
-- 一百四十四组规则正反测试
+- 一百五十组规则正反测试
 - 四十八组完整问答测试
 - 二十一组原始术语保留问答测试
 - 五种回答长度

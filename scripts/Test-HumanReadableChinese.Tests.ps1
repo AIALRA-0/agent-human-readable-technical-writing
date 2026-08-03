@@ -755,6 +755,36 @@ $cases = @(
         ExpectedStatus = 'PASS'
     },
     @{
+        Name = '第二章下次再写失败'
+        Text = '第一章已经整理完成，第二章等下一次再写'
+        ExpectedRule = 'EDITORIAL_PROCESS_META_NARRATIVE_FORBIDDEN'
+    },
+    @{
+        Name = '段落暂留空白失败'
+        Text = '这一段暂留空白，等材料到了再填'
+        ExpectedRule = 'EDITORIAL_PROCESS_META_NARRATIVE_FORBIDDEN'
+    },
+    @{
+        Name = '报告以后添加内容失败'
+        Text = '报告目前只写完截图部分，命令输出以后添加'
+        ExpectedRule = 'EDITORIAL_PROCESS_META_NARRATIVE_FORBIDDEN'
+    },
+    @{
+        Name = '正文下一轮继续失败'
+        Text = '正文先放到这里，下一轮继续'
+        ExpectedRule = 'EDITORIAL_PROCESS_META_NARRATIVE_FORBIDDEN'
+    },
+    @{
+        Name = '证据负责人补齐记录通过'
+        Text = '命令输出缺少执行时间，证据负责人需要从服务器日志中补齐执行记录'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '正式报告更新任务通过'
+        Text = '项目负责人需要在周五更新风险报告，并把审批结果发送给客户'
+        ExpectedStatus = 'PASS'
+    },
+    @{
         Name = '简单键值拆行失败'
         Text = "项目 Vivado 冻结版本为：`n2024.1"
         ExpectedRule = 'SIMPLE_KEY_VALUE_SHOULD_STAY_INLINE'
