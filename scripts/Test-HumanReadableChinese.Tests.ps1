@@ -147,7 +147,12 @@ $cases = @(
     },
     @{
         Name = '中文顺序步骤通过'
-        Text = "第一步 安装依赖`n`n安装完成后检查命令能否正常运行`n`n第二步 运行检查`n`n检查失败时先修复问题，再生成交付文件"
+        Text = "- 第一步，安装依赖`n`n安装完成后检查命令能否正常运行`n`n- 第二步，运行检查`n`n检查失败时先修复问题，再生成交付文件"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '冒号步骤缩进通过'
+        Text = "- 第一步：核对以下内容`n  - 输入文件`n  - 输出目录`n`n- 第二步，运行检查"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -348,6 +353,21 @@ $cases = @(
         ExpectedRule = 'STOCK_META_WRITING_PHRASE'
     },
     @{
+        Name = '空洞准确表述引导句失败'
+        Text = "本项目的准确表述如下：`n`n服务已经恢复"
+        ExpectedRule = 'LOW_INFORMATION_LEAD_SHOULD_BE_REMOVED'
+    },
+    @{
+        Name = '空洞章节说明失败'
+        Text = "## 1 当前状态`n`n本节将进行说明：`n`n服务已经恢复"
+        ExpectedRule = 'LOW_INFORMATION_LEAD_SHOULD_BE_REMOVED'
+    },
+    @{
+        Name = '有信息量的列表引导句通过'
+        Text = "发布前需要核对以下证据：`n`n- 测试记录`n- 审批记录`n`n两类记录共同证明测试结果和批准范围"
+        ExpectedStatus = 'PASS'
+    },
+    @{
         Name = '延迟主语失败'
         Text = '已经完成的是芯片本轮实现验证；'
         ExpectedRule = 'POSSIBLY_DELAYED_SUBJECT'
@@ -403,14 +423,26 @@ $cases = @(
         ExpectedRule = 'FIELD_LABEL_EXPLANATION_SHOULD_BE_NATURAL_PROSE'
     },
     @{
-        Name = '小写英文正文失败'
-        Text = '当前 backlog 数量增加；'
-        ExpectedRule = 'POSSIBLY_UNTRANSLATED_LOWERCASE_ENGLISH'
+        Name = '小写英文正文提醒'
+        Text = '当前 backlog 数量增加'
+        ExpectedWarning = 'POSSIBLY_UNTRANSLATED_LOWERCASE_ENGLISH'
     },
     @{
-        Name = '未解释缩写失败'
-        Text = '当前 DNS 出现故障；'
-        ExpectedRule = 'POSSIBLY_UNEXPLAINED_FIRST_ENGLISH_TERM'
+        Name = '未解释缩写提醒'
+        Text = '当前 DNS 出现故障'
+        ExpectedWarning = 'POSSIBLY_UNEXPLAINED_FIRST_ENGLISH_TERM'
+    },
+    @{
+        Name = '跨章节术语只解释一次通过'
+        Text = "## 1 工具`n`nVivado 芯片设计套件（Vivado Design Suite）负责处理芯片设计`n`nModelSim 硬件仿真工具（ModelSim Hardware Simulation Tool）负责检查设计行为`n`nSynthPilot 综合辅助工具（SynthPilot Synthesis Assistant）负责整理综合任务`n`n## 2 复核`n`nVivado 生成实现结果`n`nModelSim 保存仿真记录`n`nSynthPilot 保存综合记录"
+        ExpectedStatus = 'PASS'
+        ExpectedWarningCount = 0
+    },
+    @{
+        Name = '跨章节未解释术语只提醒一次'
+        Text = "## 1 首次记录`n`n当前 DNS 出现故障`n`n## 2 后续记录`n`nDNS 仍然没有恢复"
+        ExpectedWarning = 'POSSIBLY_UNEXPLAINED_FIRST_ENGLISH_TERM'
+        ExpectedWarningCount = 1
     },
     @{
         Name = '原始术语被替换失败'
@@ -516,13 +548,28 @@ $cases = @(
     },
     @{
         Name = '步骤未从第一步开始失败'
-        Text = "第二步 运行检查`n`n检查完成后生成结果"
+        Text = "- 第二步，运行检查`n`n检查完成后生成结果"
         ExpectedRule = 'PROCEDURAL_STEPS_MUST_START_AT_FIRST'
     },
     @{
         Name = '步骤之间没有空行失败'
-        Text = "第一步 安装依赖`n第二步 运行检查"
+        Text = "- 第一步，安装依赖`n- 第二步，运行检查"
         ExpectedRule = 'PROCEDURAL_STEPS_REQUIRE_BLANK_LINE'
+    },
+    @{
+        Name = '步骤缺少列表失败'
+        Text = "第一步，安装依赖`n`n第二步，运行检查"
+        ExpectedRule = 'PROCEDURAL_STEPS_REQUIRE_LIST'
+    },
+    @{
+        Name = '步骤缺少标点失败'
+        Text = '- 第一步 安装依赖'
+        ExpectedRule = 'PROCEDURAL_STEP_REQUIRES_COMMA_OR_COLON'
+    },
+    @{
+        Name = '冒号步骤缺少缩进内容失败'
+        Text = "- 第一步：核对以下内容`n输入文件"
+        ExpectedRule = 'PROCEDURAL_COLON_STEP_REQUIRES_INDENTED_CONTENT'
     },
     @{
         Name = '表格缺少编号标题失败'
@@ -820,13 +867,53 @@ foreach ($case in $cases) {
     $allowEditorialProcessNarrative = $case.ContainsKey('AllowEditorialProcessNarrative') -and $case.AllowEditorialProcessNarrative
     $requiredTerms = if ($case.ContainsKey('RequiredTerms')) { @($case.RequiredTerms) } else { @() }
     $run = Invoke-Lint -Value $case.Text -CaptionStyle $captionStyle -AllowQuestionHeadings $allowQuestionHeadings -AllowEditorialProcessNarrative $allowEditorialProcessNarrative -RequiredTerms $requiredTerms
+    $actualWarnings = @($run.Result.warnings | ForEach-Object { $_.rule })
+    if ($case.ContainsKey('ExpectedWarning')) {
+        $expectedWarningCount = if ($case.ContainsKey('ExpectedWarningCount')) {
+            [int]$case.ExpectedWarningCount
+        }
+        else {
+            1
+        }
+        $actualWarningCount = @($actualWarnings | Where-Object { $_ -eq $case.ExpectedWarning }).Count
+        $passed = $run.Result.status -eq 'PASS' -and $actualWarningCount -eq $expectedWarningCount
+        $caseResults.Add([pscustomobject]@{
+            name = $case.Name
+            expected = $case.ExpectedWarning
+            expected_warning_count = $expectedWarningCount
+            actual_warning_count = $actualWarningCount
+            actual = $run.Result.status
+            warnings = $actualWarnings
+            passed = $passed
+        })
+        if (-not $passed) {
+            $failures.Add([pscustomobject]@{
+                name = $case.Name
+                expected = $case.ExpectedWarning
+                expected_warning_count = $expectedWarningCount
+                actual_warning_count = $actualWarningCount
+                actual = $run.Result.status
+                warnings = $actualWarnings
+            })
+        }
+        continue
+    }
     if ($case.ContainsKey('ExpectedStatus') -and $case.ExpectedStatus -eq 'PASS') {
-        $passed = $run.Result.status -eq 'PASS'
+        $expectedWarningCount = if ($case.ContainsKey('ExpectedWarningCount')) {
+            [int]$case.ExpectedWarningCount
+        }
+        else {
+            $null
+        }
+        $warningCountPassed = $null -eq $expectedWarningCount -or $run.Result.warning_count -eq $expectedWarningCount
+        $passed = $run.Result.status -eq 'PASS' -and $warningCountPassed
         $caseResults.Add([pscustomobject]@{
             name = $case.Name
             expected = 'PASS'
             actual = $run.Result.status
             rules = @($run.Result.issues | ForEach-Object { $_.rule })
+            warning_count = $run.Result.warning_count
+            warnings = $actualWarnings
             passed = $passed
         })
         if (-not $passed) {
@@ -835,6 +922,8 @@ foreach ($case in $cases) {
                 expected = 'PASS'
                 actual = $run.Result.status
                 rules = @($run.Result.issues | ForEach-Object { $_.rule })
+                warning_count = $run.Result.warning_count
+                warnings = $actualWarnings
             })
         }
         continue

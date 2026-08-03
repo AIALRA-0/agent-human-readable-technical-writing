@@ -31,6 +31,8 @@ foreach ($file in $markdownFiles) {
         status = $lintResult.status
         issue_count = $lintResult.issue_count
         rules = @($lintResult.issues | ForEach-Object { $_.rule })
+        warning_count = $lintResult.warning_count
+        warnings = @($lintResult.warnings | ForEach-Object { $_.rule })
     })
 }
 
@@ -119,6 +121,21 @@ $editorialProcessGateValid = (
     $linterText -match 'AllowEditorialProcessNarrative'
 )
 
+# 段落级主体、列表步骤和英文术语提醒需要分别进入核心规则、按需参考和检查器
+$structuredText = Get-Content -LiteralPath (Join-Path $skillRoot 'references\structured-documents.md') -Raw -Encoding UTF8
+$technicalText = Get-Content -LiteralPath (Join-Path $skillRoot 'references\technical-content.md') -Raw -Encoding UTF8
+$paragraphAndWarningModelValid = (
+    $skillText -match '段落层面完整' -and
+    $skillText -match '相邻句子必须增加' -and
+    $structuredText -match '第一步，安装依赖' -and
+    $structuredText -match '第一步：核对以下内容' -and
+    $technicalText -match '一份连续文档只在术语首次出现时完整解释一次' -and
+    $linterText -match 'PROCEDURAL_STEPS_REQUIRE_LIST' -and
+    $linterText -match 'LOW_INFORMATION_LEAD_SHOULD_BE_REMOVED' -and
+    $linterText -match 'warning_count' -and
+    $linterText -match 'seenInDocument'
+)
+
 # 核对全部相对文档链接，避免仓库页面指向不存在的本地文件
 $missingLinks = [Collections.Generic.List[string]]::new()
 foreach ($file in $markdownFiles) {
@@ -149,6 +166,7 @@ $status = if (
     $readmeStatisticsCurrent -and
     $progressiveLoadingValid -and
     $editorialProcessGateValid -and
+    $paragraphAndWarningModelValid -and
     $missingLinks.Count -eq 0
 ) {
     'PASS'
@@ -169,6 +187,8 @@ $output = [ordered]@{
     skill_line_count = $skillLineCount
     progressive_loading_valid = $progressiveLoadingValid
     editorial_process_gate_valid = $editorialProcessGateValid
+    paragraph_and_warning_model_valid = $paragraphAndWarningModelValid
+    warning_count = [int](($documentResults | Measure-Object warning_count -Sum).Sum)
     missing_progressive_references = $missingProgressiveReferences
     missing_link_count = $missingLinks.Count
     documents = @($documentResults)

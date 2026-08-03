@@ -8,7 +8,8 @@ $ErrorActionPreference = 'Stop'
 
 $skillRoot = Split-Path -Parent $PSScriptRoot
 $linter = Join-Path $skillRoot 'scripts\Test-HumanReadableChinese.ps1'
-$currentGeneration = '2026-08-03-editorial-meta-narrative-gate'
+$currentGeneration = '2026-08-03-paragraph-scope-step-warning'
+$editorialGeneration = '2026-08-03-editorial-meta-narrative-gate'
 $largeTaskGeneration = '2026-08-03-large-task-delivery-gate'
 $naturalNarrativeGeneration = '2026-07-30-natural-technical-narrative'
 $previousGeneration = '2026-07-30-repository-self-audit'
@@ -1686,7 +1687,7 @@ flowchart TD
         Response = @'
 下面的步骤先验证本地结果，再决定是否允许发布；检查失败时停止在当前步骤，避免把已知问题带到正式环境
 
-第一步 下载代码
+- 第一步，下载代码
 
 ```powershell
 git clone https://example.com/project.git # 下载项目文件并保留版本历史
@@ -1695,7 +1696,7 @@ Set-Location .\project # 进入项目目录，让后续命令作用于正确项�
 
 下载失败通常来自地址错误或访问权限不足；解决失败原因后重新执行这一步
 
-第二步 安装依赖
+- 第二步，安装依赖
 
 ```powershell
 npm install # 安装项目声明的依赖，缺少依赖时程序无法完成检查
@@ -1704,7 +1705,7 @@ npm audit # 检查已知依赖风险，并保存检查结果
 
 依赖安装必须完整结束；如果出现错误，不进入下一步
 
-第三步 运行检查
+- 第三步，运行检查
 
 ```powershell
 npm test # 运行自动测试，确认已有功能没有被当前修改破坏
@@ -1713,11 +1714,11 @@ npm run build # 生成交付文件，并确认项目能够完成构建
 
 两条命令都成功后，交付文件才具备发布候选资格
 
-第四步 决定是否发布
+- 第四步：根据检查结果决定是否发布
 
-- 如果自动测试失败，修复失败用例后重新运行检查
-- 如果构建失败，修复配置或代码后重新生成交付文件
-- 如果两项都通过，记录版本号和检查结果，再进入发布流程
+  - 如果自动测试失败，修复失败用例后重新运行检查
+  - 如果构建失败，修复配置或代码后重新生成交付文件
+  - 如果两项都通过，记录版本号和检查结果，再进入发布流程
 
 这些条件把失败限制在发布之前，避免新手把“命令已经执行”误解成“结果已经通过”
 '@
@@ -2019,7 +2020,7 @@ PowerShell 命令行环境（PowerShell）负责在 Windows 操作系统（Windo
 
 下面的步骤先复制配置，再比较原文件和副本的摘要；摘要一致表示两个文件的内容相同
 
-第一步 创建副本
+- 第一步，创建副本
 
 ```powershell
 $source = ".\config.json" # 指定需要备份的原始配置文件
@@ -2028,7 +2029,7 @@ New-Item -ItemType Directory -Path ".\backup" -Force # 创建副本目录，让�
 Copy-Item -LiteralPath $source -Destination $backup -Force # 复制配置文件，并在同名旧副本存在时更新副本
 ```
 
-第二步 核对内容
+- 第二步，核对内容
 
 ```powershell
 $sourceHash = (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash # 计算原文件摘要，用于代表原文件内容
@@ -2425,7 +2426,7 @@ API 应用程序接口（Application Programming Interface）负责在不同软�
     },
     [pscustomobject]@{
         Id = 'new-editorial-meta-narrative-rewrite'
-        IntroducedIn = $currentGeneration
+        IntroducedIn = $editorialGeneration
         Length = 'medium'
         Difficulty = 'medium'
         Direction = 'editorial-meta-narrative-removal'
@@ -2457,6 +2458,54 @@ API 应用程序接口（Application Programming Interface）负责在不同软�
 证据负责人需要补齐缺失的原始材料，并由项目负责人核对材料来源和对应结论
 
 材料通过核对后，项目负责人才能把对应结论写入正式报告
+'@
+    },
+    [pscustomobject]@{
+        Id = 'new-paragraph-scope-tool-handover'
+        IntroducedIn = $currentGeneration
+        Length = 'medium'
+        Difficulty = 'hard'
+        Direction = 'toolchain-handover'
+        Tone = 'natural-engineering'
+        Audience = 'new-engineer'
+        TaskType = 'technical-handover-rewrite'
+        InputShape = 'repetitive-subjects-and-term-definitions'
+        Structure = 'numbered-paragraph-and-indented-steps'
+        RequiredTerms = @('Vivado', 'ModelSim', 'SynthPilot')
+        Prompt = '把一份交接说明改自然：原稿每句话都重复“工程团队”，每一章又重新解释 Vivado、ModelSim 和 SynthPilot，步骤也都挤在普通段落里'
+        Response = @'
+Vivado 芯片设计套件（Vivado Design Suite）负责把芯片设计转换成能够实现的硬件结构
+
+ModelSim 硬件仿真工具（ModelSim Hardware Simulation Tool）负责在生成硬件前检查设计行为
+
+SynthPilot 综合辅助工具（SynthPilot Synthesis Assistant）负责整理综合任务和对应记录
+
+## 1 当前交接范围
+
+根据用户提供的原稿，工程团队已经保存三种工具产生的记录
+
+实现日志说明芯片设计经过了实现处理
+
+仿真记录保存了输入条件和输出结果，接手人员可以据此复查设计行为
+
+综合任务记录连接了输入文件和综合结果，因此接手人员能够继续追踪结果来源
+
+三类记录共同覆盖工具处理过程，但原稿没有提供真实硬件测试结果
+
+## 2 接手步骤
+
+- 第一步：核对以下材料
+  - 实现日志
+  - 仿真记录
+  - 综合任务记录
+
+- 第二步，确认三类记录使用同一份输入设计
+
+- 第三步，记录缺失材料和对应负责人
+
+输入设计一致时，接手人员可以继续复查工具结果
+
+任何记录缺失时，接手人员需要先补齐来源，再提交工具链完整性结论
 '@
     }
 )
@@ -2551,6 +2600,9 @@ $results = foreach ($case in $cases) {
         issue_count = @($lint.issues).Count
         rules = @($lint.issues | ForEach-Object { $_.rule })
         issues = @($lint.issues)
+        warning_count = @($lint.warnings).Count
+        warning_rules = @($lint.warnings | ForEach-Object { $_.rule })
+        warnings = @($lint.warnings)
     }
 }
 
@@ -2617,6 +2669,7 @@ $output = [ordered]@{
     current_generation = $currentGeneration
     case_count = $results.Count
     failed_writing_case_count = $failedWritingCases.Count
+    warning_count = [int](($results | Measure-Object warning_count -Sum).Sum)
     failed_coverage_check_count = $failedCoverageChecks.Count
     character_count = [ordered]@{
         minimum = [int](($characterCounts | Measure-Object -Minimum).Minimum)

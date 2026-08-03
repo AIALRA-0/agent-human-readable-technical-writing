@@ -101,6 +101,7 @@ function Get-NumberedChapterAtIndex([string]$Value, [int]$Index) {
 }
 
 $issues = [Collections.Generic.List[object]]::new()
+$warnings = [Collections.Generic.List[object]]::new()
 $period = [char]0x3002
 for ($i = 0; $i -lt $Text.Length; $i++) {
     if ($Text[$i] -eq $period) {
@@ -710,7 +711,7 @@ foreach ($citation in $citationMatches) {
     }
 }
 
-# 操作步骤使用中文顺序词，并在相邻步骤之间保留空行
+# 操作步骤使用项目符号和中文顺序词，并在相邻顶层步骤之间保留空行
 $proceduralNumericMatches = [regex]::Matches(
     $withoutCodeBlocks,
     '(?m)^[ \t]*\d+\.[ \t]+(?:先|再|最后|安装|打开|运行|执行|检查|确认|核对|配置|创建|复制|启动|停止|提交|验证|导出|部署|登录|选择|输入|下载|上传)\S*'
@@ -722,13 +723,61 @@ foreach ($match in $proceduralNumericMatches) {
         excerpt = $match.Value.Trim()
     })
 }
-$stepMatches = [regex]::Matches($withoutCodeBlocks, '(?m)^[ \t]*第(?<number>[一二三四五六七八九十]+)步[ \t]+\S.*$')
+$bareStepMatches = [regex]::Matches(
+    $withoutCodeBlocks,
+    '(?m)^[ \t]*(?<step>第[一二三四五六七八九十]+步(?:[，,:：]|[ \t]+)\S.*)$'
+)
+foreach ($match in $bareStepMatches) {
+    $issues.Add([pscustomobject]@{
+        rule = 'PROCEDURAL_STEPS_REQUIRE_LIST'
+        line = Get-LineNumber $withoutCodeBlocks $match.Index
+        excerpt = $match.Groups['step'].Value.Trim()
+    })
+}
+
+$allBulletStepMatches = [regex]::Matches(
+    $withoutCodeBlocks,
+    '(?m)^(?<indent>[ \t]*)[-*][ \t]+第(?<number>[一二三四五六七八九十]+)步(?<tail>[^\r\n]*)$'
+)
+foreach ($match in $allBulletStepMatches) {
+    if ($match.Groups['tail'].Value -notmatch '^[，：]\S') {
+        $issues.Add([pscustomobject]@{
+            rule = 'PROCEDURAL_STEP_REQUIRES_COMMA_OR_COLON'
+            line = Get-LineNumber $withoutCodeBlocks $match.Index
+            excerpt = $match.Value.Trim()
+        })
+    }
+}
+
+$stepMatches = [regex]::Matches(
+    $withoutCodeBlocks,
+    '(?m)^(?<indent>[ \t]*)[-*][ \t]+第(?<number>[一二三四五六七八九十]+)步(?<punct>[，：])\S.*$'
+)
 if ($stepMatches.Count -gt 0 -and $stepMatches[0].Groups['number'].Value -ne '一') {
     $issues.Add([pscustomobject]@{
         rule = 'PROCEDURAL_STEPS_MUST_START_AT_FIRST'
         line = Get-LineNumber $withoutCodeBlocks $stepMatches[0].Index
         excerpt = $stepMatches[0].Value.Trim()
     })
+}
+foreach ($stepMatch in $stepMatches) {
+    if ($stepMatch.Groups['punct'].Value -ne '：') {
+        continue
+    }
+    $stepLineEnd = $stepMatch.Index + $stepMatch.Length
+    $remainingText = $withoutCodeBlocks.Substring($stepLineEnd)
+    $nextContentMatch = [regex]::Match($remainingText, '(?m)^\r?\n(?:[ \t]*\r?\n)*(?<line>[^\r\n]+)')
+    $parentIndentLength = $stepMatch.Groups['indent'].Value.Length
+    $hasIndentedChild = $nextContentMatch.Success -and
+        $nextContentMatch.Groups['line'].Value -match '^(?<indent>[ \t]+)[-*][ \t]+\S' -and
+        $Matches['indent'].Length -gt $parentIndentLength
+    if (-not $hasIndentedChild) {
+        $issues.Add([pscustomobject]@{
+            rule = 'PROCEDURAL_COLON_STEP_REQUIRES_INDENTED_CONTENT'
+            line = Get-LineNumber $withoutCodeBlocks $stepMatch.Index
+            excerpt = $stepMatch.Value.Trim()
+        })
+    }
 }
 for ($stepIndex = 1; $stepIndex -lt $stepMatches.Count; $stepIndex++) {
     $betweenSteps = $withoutCodeBlocks.Substring(
@@ -797,8 +846,7 @@ for ($lineIndex = 0; $lineIndex -lt $branchLines.Count; $lineIndex++) {
 }
 
 $lineMatches = [regex]::Matches($withoutCodeBlocks, '(?m)^.*$')
-$section = 0
-$seenInSection = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+$seenInDocument = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 $insideFrontmatter = $false
 $frontmatterFinished = $false
 $insideDisplayMath = $false
@@ -905,8 +953,6 @@ foreach ($lineMatch in $lineMatches) {
     }
 
     if ($line -match '^#{1,6}\s+') {
-        $section++
-        $seenInSection.Clear()
         $numericSourceAvailableInSection = $false
         $boundaryClaimCountInUnit = 0
     }
@@ -1008,7 +1054,7 @@ foreach ($lineMatch in $lineMatches) {
         $line -match '^\s*#{1,6}\s+' -or
         $line -match '^\s*\[[1-9]\d*\]\s+\S' -or
         $line -match '^\s*(?:图|表)\s+[1-9]\d*(?:\.[1-9]\d*)?\s+\S' -or
-        $line -match '^\s*第[一二三四五六七八九十]+步\s+' -or
+        $line -match '^\s*[-*]\s+第[一二三四五六七八九十]+步[，：]' -or
         $line -match '(?:版本|器件(?:名称|型号)?|内部标识)(?:冻结|设定|记录)?为\s*[：:]' -or
         $line -match '状态码\s*\$?\d+\$?'
     )
@@ -1050,6 +1096,18 @@ foreach ($lineMatch in $lineMatches) {
     foreach ($match in $stockPhraseMatches) {
         $issues.Add([pscustomobject]@{
             rule = 'STOCK_META_WRITING_PHRASE'
+            line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
+            excerpt = Get-Excerpt $withoutCodeBlocks ($lineMatch.Index + $match.Index) $match.Length
+        })
+    }
+
+    $emptyLeadMatches = [regex]::Matches(
+        $structuralLine,
+        '^\s*(?:[-*]\s+|>\s*)?(?<term>本(?:项目|报告|文档|节|章)的?准确表述如下|以下是对当前情况的具体说明|现将有关情况说明如下|本(?:节|章|文|报告)将(?:进行)?(?:说明|介绍|阐述|分析))\s*[：，,:]?\s*$'
+    )
+    foreach ($match in $emptyLeadMatches) {
+        $issues.Add([pscustomobject]@{
+            rule = 'LOW_INFORMATION_LEAD_SHOULD_BE_REMOVED'
             line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
             excerpt = Get-Excerpt $withoutCodeBlocks ($lineMatch.Index + $match.Index) $match.Length
         })
@@ -1221,8 +1279,8 @@ foreach ($lineMatch in $lineMatches) {
         '(?<![A-Za-z0-9_])(?<term>[A-Za-z]{1,8}/[A-Za-z]{1,8})(?![A-Za-z0-9_])|(?<=\d)(?<term>[A-Za-z]{1,6})(?![A-Za-z0-9_])'
     )
     foreach ($match in $unitMatches) {
-        $key = "$section|unit|$($match.Groups['term'].Value)"
-        if (-not $seenInSection.Add($key)) {
+        $key = "unit|$($match.Groups['term'].Value)"
+        if (-not $seenInDocument.Add($key)) {
             continue
         }
 
@@ -1233,7 +1291,7 @@ foreach ($lineMatch in $lineMatches) {
             ''
         }
         if ($tail -notmatch '^\s*[一-龥][^（\r\n]{0,30}（[^）]*[A-Za-z][^）]*）') {
-            $issues.Add([pscustomobject]@{
+            $warnings.Add([pscustomobject]@{
                 rule = 'POSSIBLY_UNEXPLAINED_UNIT_ABBREVIATION'
                 line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
                 excerpt = Get-Excerpt $withoutCodeBlocks ($lineMatch.Index + $match.Index) $match.Length
@@ -1246,11 +1304,11 @@ foreach ($lineMatch in $lineMatches) {
         '(?<![A-Za-z0-9_./\\-])(?<term>[a-z]{3,}(?:[ -]+[a-z]{3,})*)(?![A-Za-z0-9_./\\-])'
     )
     foreach ($match in $lowercaseEnglishMatches) {
-        $key = "$section|lower|$($match.Groups['term'].Value)"
-        if (-not $seenInSection.Add($key)) {
+        $key = "lower|$($match.Groups['term'].Value)"
+        if (-not $seenInDocument.Add($key)) {
             continue
         }
-        $issues.Add([pscustomobject]@{
+        $warnings.Add([pscustomobject]@{
             rule = 'POSSIBLY_UNTRANSLATED_LOWERCASE_ENGLISH'
             line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
             excerpt = Get-Excerpt $withoutCodeBlocks ($lineMatch.Index + $match.Index) $match.Length
@@ -1262,8 +1320,8 @@ foreach ($lineMatch in $lineMatches) {
         '(?<![A-Za-z0-9_])(?:[A-Z][A-Za-z0-9_]{1,}|[a-z][A-Za-z0-9_]*[A-Z][A-Za-z0-9_]*)(?![A-Za-z0-9_])'
     )
     foreach ($match in $technicalMatches) {
-        $key = "$section|$($match.Value)"
-        if (-not $seenInSection.Add($key)) {
+        $key = "term|$($match.Value)"
+        if (-not $seenInDocument.Add($key)) {
             continue
         }
 
@@ -1275,7 +1333,7 @@ foreach ($lineMatch in $lineMatches) {
         }
         $hasAbbreviationMapping = $tail -match '^\s*[一-龥][^（\r\n]{0,40}（[^）]*[A-Za-z][^）]*）'
         if (-not $hasAbbreviationMapping) {
-            $issues.Add([pscustomobject]@{
+            $warnings.Add([pscustomobject]@{
                 rule = 'POSSIBLY_UNEXPLAINED_FIRST_ENGLISH_TERM'
                 line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
                 excerpt = Get-Excerpt $withoutCodeBlocks ($lineMatch.Index + $match.Index) $match.Length
@@ -1346,6 +1404,8 @@ $result = [pscustomobject]@{
     status = if ($issues.Count -eq 0) { 'PASS' } else { 'FAIL' }
     issue_count = $issues.Count
     issues = @($issues)
+    warning_count = $warnings.Count
+    warnings = @($warnings)
 }
 
 $result | ConvertTo-Json -Depth 6

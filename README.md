@@ -6,8 +6,8 @@
 
 [![Quality checks](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml/badge.svg)](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml)
 [![MIT License](https://img.shields.io/badge/license-MIT-315c4c.svg)](LICENSE)
-[![150 rule checks](https://img.shields.io/badge/rule_checks-150-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
-[![48 full answers](https://img.shields.io/badge/full_QA_cases-48-657067.svg)](QA-CASES.md)
+[![159 rule checks](https://img.shields.io/badge/rule_checks-159-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
+[![49 full answers](https://img.shields.io/badge/full_QA_cases-49-657067.svg)](QA-CASES.md)
 [![Local first](https://img.shields.io/badge/data-local_first-6b5b95.svg)](#9-隐私边界)
 
 [查看改写效果](#1-改写效果) · [开始使用](#3-开始使用) · [了解处理过程](#4-处理过程) · [检查完整案例](QA-CASES.md) · [阅读详细规则](references/style-rules.md) · [运行质量检查](#7-质量检查)
@@ -81,17 +81,21 @@
 
 ## 2 写作规则
 
-这个技能把写作要求整理成十七项能够检查的规则
+这个技能把写作要求整理成十八项能够检查的规则
 
 ### 2.1 正式术语需要保留并解释
 
 原文已经使用的正式术语、英文缩写和内部名称继续保留，读者可以使用原名称搜索日志、核对配置并与专业人员沟通
 
-术语首次出现后，正文立即说明它是什么、为什么重要以及失败会造成什么
+术语在整份连续文档首次出现后，正文立即说明它是什么、为什么重要以及失败会造成什么
 
 术语和解释共同构成完整内容；术语不能独自承担说明任务，通俗解释也不能抹掉原始名称
 
 正文使用自然短句解释，不使用字段标签拼接括号定义
+
+完成首次解释后，各章节直接使用已经解释过的名称，避免每章重新定义同一工具
+
+能够脱离正文单独传播的表格、摘要或常见问题可以补充一句简短解释
 
 ### 2.2 判断需要事实支撑
 
@@ -149,9 +153,19 @@
 
 ### 2.9 步骤需要明确顺序
 
-需要读者依次操作时，使用“第一步”“第二步”这种中文顺序
+需要读者依次操作时，使用项目符号和中文顺序
 
-相邻步骤之间保留一个空行，避免操作说明挤成连续段落
+单个行动使用逗号：
+
+- 第一步，安装依赖
+
+步骤包含多个子项时使用冒号，并把子项缩进一级：
+
+- 第二步：核对以下内容
+  - 输入文件
+  - 输出目录
+
+相邻顶层步骤之间保留一个空行，避免操作说明挤成连续段落
 
 ### 2.10 换行需要服从逻辑
 
@@ -185,7 +199,11 @@ Vivado 芯片设计套件（Vivado Design Suite）负责完成芯片设计处理
 
 ### 2.13 主语对象需要明确
 
-每个动作、状态、判断和责任都要写明对应主体
+主体、因果关系和证据边界在段落层面完整即可
+
+同一段落持续讨论一个明确主体时，后续句子不用反复写相同名称
+
+每个后续句子需要增加新证据、新后果、新行动或新结论；只换词重复同一事实的句子应当删除或合并
 
 前文同时出现服务器和监督器时，后文不能只写“它会生成报告”；正文需要直接写明由监督器生成报告，避免读者猜测代词指向
 
@@ -357,12 +375,11 @@ flowchart TD
 - 正确写法不会被错误拦截
 - 已知的机械写作问题能够被发现
 
-检查器目前能够发现下面这些问题：
+检查器会把能够确定的违规列为硬错误，任何硬错误都会阻止交付：
 
 - 中文句号
 - 行尾中文分号
 - 字段标签式括号定义
-- 未解释的英文缩写
 - 挤在同一行的并列内容
 - 没有缩进的多结果分支
 - 抽象结论先出现而具体原因后补充
@@ -370,7 +387,7 @@ flowchart TD
 - 只注释重要行的独立代码语句
 - 没有使用数学公式排版语法的上下标和公式符号
 - 缺少十进制层级编号的多章节文档
-- 没有使用中文顺序的操作步骤
+- 没有使用项目符号、中文顺序或规定标点的操作步骤
 - 缺少编号题注的图表
 - 图表编号与所属章节不匹配
 - 图表使用零编号或进入新章节后没有重新计数
@@ -388,26 +405,31 @@ flowchart TD
 - 同时承担多次逻辑转折的嵌套长句
 - 同一解释单元中重复出现的防御性范围说明
 - 混入正式正文的编写进度、占位说明和未来补写计划
+- 不增加事实、范围或行动的空洞引导句
+
+英文术语是否需要补充解释可能依赖全文语境，所以检查器把这类结果单独列为人工提醒
+
+人工提醒不会改变检查通过状态，维护者仍需逐项复核；不能为了清零而在每个章节重复定义同一术语
 
 第二类检查使用完整问题和完整回答，验证不同篇幅和不同场景，避免项目只对少数样例表现良好
 
 当前公开测试包含下面这些差异：
 
-- 一百五十组规则正反测试
-- 四十八组完整问答测试
-- 二十一组原始术语保留问答测试
+- 一百五十九组规则正反测试
+- 四十九组完整问答测试
+- 二十二组原始术语保留问答测试
 - 五种回答长度
-- 四十八个内容方向
-- 三十二种表达语气
-- 三十六类目标读者
-- 三十八类任务
-- 三十七种内容结构
+- 四十九个内容方向
+- 三十三种表达语气
+- 三十七类目标读者
+- 三十九类任务
+- 三十八种内容结构
 
 运行全部检查：
 
 ```powershell
-pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行一百三十六组规则正反测试
-pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # 执行四十七组完整问答质量测试
+pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行一百五十九组规则正反测试
+pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # 执行四十九组完整问答质量测试
 pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # 使用已经通过检查的结果重新生成案例文档
 pwsh -NoProfile -File ".\scripts\Test-RepositoryContent.ps1" # 检查全部公开文档、案例同步状态和相对链接
 ```
