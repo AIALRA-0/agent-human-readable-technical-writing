@@ -69,6 +69,30 @@ function Hide-NonNarrativeZones([string]$Value) {
     return $masked
 }
 
+function Test-HasNaturalEnglishExplanation([string]$Line, [int]$TermEndIndex) {
+    # 原生名称后出现足够的中文和解释性动词时，正文已经提供首次阅读所需的信息
+    $tailLength = [Math]::Min(220, $Line.Length - $TermEndIndex)
+    $tail = if ($tailLength -gt 0) {
+        $Line.Substring($TermEndIndex, $tailLength)
+    }
+    else {
+        ''
+    }
+    $chineseCharacterCount = [regex]::Matches($tail, '[\p{IsCJKUnifiedIdeographs}]').Count
+    $hasExplanationVerb = $tail -match '(?:表示|是|指|负责|用于|说明|意味着|会|决定|属于|记录|包含|比较|统计|规定|转换|衡量|名称)'
+    return $chineseCharacterCount -ge 8 -and $hasExplanationVerb
+}
+
+function Test-HasNearbyCalculationProcess([string]$Value, [int]$Index) {
+    # 关系性数值前后需要出现可复算的 LaTeX 公式，允许先给公式再解释结果
+    $start = [Math]::Max(0, $Index - 600)
+    $length = [Math]::Min(1800, $Value.Length - $start)
+    $context = $Value.Substring($start, $length)
+    $displayFormula = '(?s)\$\$[^$]{0,900}(?:=|\\sum|\\times|\\div|\\frac|\\operatorname)[^$]{0,900}\$\$'
+    $inlineFormula = '\$[^$\r\n]{0,300}(?:=|\\sum|\\times|\\div|\\frac|\\operatorname)[^$\r\n]{0,300}\$'
+    return $context -match $displayFormula -or $context -match $inlineFormula
+}
+
 function Test-InCenteredContainer([string]$Value, [int]$Index) {
     # 解析当前位置之前仍未闭合的容器，确认对象或题注处于页面居中区域
     $prefix = $Value.Substring(0, [Math]::Min($Index, $Value.Length))
@@ -1038,6 +1062,51 @@ foreach ($lineMatch in $lineMatches) {
         ${function:Hide-Match}
     )
 
+    # 高置信度的精确数量优先使用阿拉伯数字，操作顺序、专有名称和逐字引用不做机械替换
+    $quantityLine = [regex]::Replace(
+        $narrativeLine,
+        '[“"][^”"\r\n]{1,160}[”"]',
+        ${function:Hide-Match}
+    )
+    $writtenExactQuantityMatches = [regex]::Matches(
+        $quantityLine,
+        '(?<!第)(?<term>[零〇一二两三四五六七八九十百千万亿]{2,})\s*(?:个|项|条|笔|份|台|组|名|人|次|轮|天|周|个月|年|小时|分钟|秒|字|字符|页|类|种|套|支|批|件|元|美元|摄氏度)'
+    )
+    foreach ($match in $writtenExactQuantityMatches) {
+        $issues.Add([pscustomobject]@{
+            rule = 'EXACT_QUANTITY_SHOULD_USE_ARABIC_DIGITS'
+            line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
+            excerpt = Get-Excerpt $withoutCodeBlocks ($lineMatch.Index + $match.Index) $match.Length
+        })
+    }
+
+    # 展开、汇总、去重和换算形成的新数值必须展示输入、规则与可复算公式
+    $numericRelationLine = [regex]::Replace($withoutInlineCode, '[“"][^”"\r\n]{1,200}[”"]', ${function:Hide-Match})
+    $numericTokens = [regex]::Matches(
+        $numericRelationLine,
+        '(?<![A-Za-z0-9_.])(?:\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)(?![A-Za-z0-9_.])'
+    )
+    $hasRelationalWording = $numericRelationLine -match '(?:展开为|折合为|换算为|转换为|合计(?:为|保存|包含)?|汇总为|得到|生成|对应|约为|相当于)'
+    $hasAggregateCountWording = (
+        $numericRelationLine -match '(?:共|合计|总计|累计|覆盖|包含|统计出|汇总为)\s*\d+(?:,\d{3})*(?:\.\d+)?\s*(?:种|类|项|个|条|笔|份|台|组|名|人|次|轮|套|支|批|件|位)' -and
+        $numericRelationLine -notmatch '(?:至少|至多|不少于|不超过)[^，；\r\n]{0,12}(?:覆盖|包含)'
+    )
+    if (
+        (($numericTokens.Count -ge 2 -and $hasRelationalWording) -or $hasAggregateCountWording) -and
+        -not (Test-HasNearbyCalculationProcess $withoutCodeBlocks $lineMatch.Index)
+    ) {
+        $issues.Add([pscustomobject]@{
+            rule = if ($hasAggregateCountWording) {
+                'AGGREGATE_COUNT_REQUIRES_DERIVATION'
+            }
+            else {
+                'RELATIONAL_NUMBERS_REQUIRE_CALCULATION'
+            }
+            line = Get-LineNumber $withoutCodeBlocks $lineMatch.Index
+            excerpt = Get-Excerpt $withoutCodeBlocks $lineMatch.Index $line.Length
+        })
+    }
+
     # 一条来源说明可以覆盖同一章节中紧随其后的一组连续数值
     if ($fieldLabelLine -match $numericSourcePattern) {
         $numericSourceAvailableInSection = $true
@@ -1290,7 +1359,9 @@ foreach ($lineMatch in $lineMatches) {
         } else {
             ''
         }
-        if ($tail -notmatch '^\s*[一-龥][^（\r\n]{0,30}（[^）]*[A-Za-z][^）]*）') {
+        $hasUnitMapping = $tail -match '^\s*[一-龥][^（\r\n]{0,30}（[^）]*[A-Za-z][^）]*）'
+        $hasNaturalExplanation = Test-HasNaturalEnglishExplanation $line ($match.Index + $match.Length)
+        if (-not $hasUnitMapping -and -not $hasNaturalExplanation) {
             $warnings.Add([pscustomobject]@{
                 rule = 'POSSIBLY_UNEXPLAINED_UNIT_ABBREVIATION'
                 line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
@@ -1306,6 +1377,9 @@ foreach ($lineMatch in $lineMatches) {
     foreach ($match in $lowercaseEnglishMatches) {
         $key = "lower|$($match.Groups['term'].Value)"
         if (-not $seenInDocument.Add($key)) {
+            continue
+        }
+        if (Test-HasNaturalEnglishExplanation $line ($match.Index + $match.Length)) {
             continue
         }
         $warnings.Add([pscustomobject]@{
@@ -1332,7 +1406,8 @@ foreach ($lineMatch in $lineMatches) {
             ''
         }
         $hasAbbreviationMapping = $tail -match '^\s*[一-龥][^（\r\n]{0,40}（[^）]*[A-Za-z][^）]*）'
-        if (-not $hasAbbreviationMapping) {
+        $hasNaturalExplanation = Test-HasNaturalEnglishExplanation $line ($match.Index + $match.Length)
+        if (-not $hasAbbreviationMapping -and -not $hasNaturalExplanation) {
             $warnings.Add([pscustomobject]@{
                 rule = 'POSSIBLY_UNEXPLAINED_FIRST_ENGLISH_TERM'
                 line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)

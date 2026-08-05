@@ -6,8 +6,8 @@
 
 [![Quality checks](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml/badge.svg)](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml)
 [![MIT License](https://img.shields.io/badge/license-MIT-315c4c.svg)](LICENSE)
-[![159 rule checks](https://img.shields.io/badge/rule_checks-159-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
-[![49 full answers](https://img.shields.io/badge/full_QA_cases-49-657067.svg)](QA-CASES.md)
+[![172 rule checks](https://img.shields.io/badge/rule_checks-172-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
+[![51 full answers](https://img.shields.io/badge/full_QA_cases-51-657067.svg)](QA-CASES.md)
 [![Local first](https://img.shields.io/badge/data-local_first-6b5b95.svg)](#9-隐私边界)
 
 [查看改写效果](#1-改写效果) · [开始使用](#3-开始使用) · [了解处理过程](#4-处理过程) · [检查完整案例](QA-CASES.md) · [阅读详细规则](references/style-rules.md) · [运行质量检查](#7-质量检查)
@@ -81,7 +81,7 @@
 
 ## 2 写作规则
 
-这个技能把写作要求整理成十八项能够检查的规则
+根据本节规则目录，这个技能把写作要求整理成 21项能够检查的规则
 
 ### 2.1 正式术语需要保留并解释
 
@@ -252,6 +252,46 @@ Word 文字处理文档（Microsoft Word）、PDF 便携式文档格式（Portab
 
 正文优先使用直接肯定或单一否定
 
+### 2.19 精确数量优先使用阿拉伯数字
+
+精确数量、测量值、日期、时长、金额、百分比、阈值和配置值优先使用阿拉伯数字
+
+例如把 `四百二十六个传感器` 改成 `426个传感器`，读者可以更快识别并比较数量
+
+“第一步”等操作顺序、固定短语、专有名称和逐字证据保持原样，避免机械替换破坏中文语法或原始记录
+
+### 2.20 原生名称需要准确保留
+
+产品、品牌、软件、型号、计量单位或其他名称没有自然通行的中文译名时，保留官方原生名称
+
+例如 `lux` 比编造的中文音译更准确，也便于读者检索原始标准和资料
+
+原生名称首次出现后仍要紧跟自然中文解释，名称本身不能代替说明
+
+普通英文词已有稳定中文名称时，正文先写中文名称，再在需要检索的位置保留英文原名
+
+### 2.21 关系性数值需要展示计算过程
+
+新数值首次出现时要说明统计范围、筛选条件、记录位置或测量方法，读者才能判断这个数值为什么成立
+
+一个数值由其他数值展开、汇总、去重或换算得到时，正文依次展示输入、关系规则、代入公式和结果
+
+例如多通道对象从 74个展开为 179个时，正文需要列出各通道数组成，并用求和公式验证 179
+
+$$
+179 = 19 \times 1 + 20 \times 2 + 20 \times 3 + 15 \times 4
+$$
+
+MiB 二进制兆字节（Mebibyte）使用 $1024^2$ 个字节作为1个容量单位
+
+有效数据位数从 8,605,650 换算为 1.026 MiB 时，正文需要展示除以 `8` 和除以 `1024^2` 的连续过程
+
+$$
+1.026\ \mathrm{MiB} \approx \frac{8{,}605{,}650}{8 \times 1024^2}
+$$
+
+“45种形状”这类汇总数量也要说明统计字段、纳入范围、排除规则和去重计算，不能只写最终数量
+
 ## 3 开始使用
 
 先把仓库复制到个人技能目录：
@@ -322,9 +362,9 @@ flowchart TD
 
 ## 6 完整案例
 
-读者需要亲自判断实际回答是否自然、清楚并且有足够依据，所以[完整问答案例](QA-CASES.md)公开展示四十八个问题和对应回答
+读者需要亲自判断实际回答是否自然、清楚并且有足够依据，所以[完整问答案例](QA-CASES.md)公开展示 51个问题和对应回答
 
-案例文档先展示本轮新增的编辑过程元叙述改写案例，再保留四十七组历史案例用于回归检查
+案例文档先展示本轮新增的关系性数值、阿拉伯数字与原生名称案例，再保留 49组历史案例用于回归检查
 
 这种排列让读者能够直接找到新内容，同时继续验证新规则没有破坏原有写作能力
 
@@ -368,7 +408,7 @@ flowchart TD
 
 ## 7 质量检查
 
-当前版本必须同时通过两类检查
+当前版本需要同时通过规则检查和完整问答检查
 
 第一类检查把正确写法和错误写法组成测试对，确认下面两件事：
 
@@ -406,30 +446,34 @@ flowchart TD
 - 同一解释单元中重复出现的防御性范围说明
 - 混入正式正文的编写进度、占位说明和未来补写计划
 - 不增加事实、范围或行动的空洞引导句
+- 使用汉字数字书写的高置信度精确数量
+- 展开、汇总、去重或换算数值缺少可复算公式
 
 英文术语是否需要补充解释可能依赖全文语境，所以检查器把这类结果单独列为人工提醒
+
+官方原生名称后已经提供自然中文解释时，检查器接受原生写法，不再要求编造中文音译
 
 人工提醒不会改变检查通过状态，维护者仍需逐项复核；不能为了清零而在每个章节重复定义同一术语
 
 第二类检查使用完整问题和完整回答，验证不同篇幅和不同场景，避免项目只对少数样例表现良好
 
-当前公开测试包含下面这些差异：
+根据当前仓库中的测试脚本和完整问答案例自动统计，公开测试包含下面这些差异：
 
-- 一百五十九组规则正反测试
-- 四十九组完整问答测试
-- 二十二组原始术语保留问答测试
-- 五种回答长度
-- 四十九个内容方向
-- 三十三种表达语气
-- 三十七类目标读者
-- 三十九类任务
-- 三十八种内容结构
+- 172组规则正反测试
+- 51组完整问答测试
+- 24组原始术语保留问答测试
+- 5种回答长度
+- 51个内容方向
+- 34种表达语气
+- 38类目标读者
+- 41类任务
+- 40种内容结构
 
 运行全部检查：
 
 ```powershell
-pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行一百五十九组规则正反测试
-pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # 执行四十九组完整问答质量测试
+pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行 172组规则正反测试
+pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # 执行 51组完整问答质量测试
 pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # 使用已经通过检查的结果重新生成案例文档
 pwsh -NoProfile -File ".\scripts\Test-RepositoryContent.ps1" # 检查全部公开文档、案例同步状态和相对链接
 ```

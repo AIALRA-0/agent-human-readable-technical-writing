@@ -388,6 +388,56 @@ $cases = @(
         ExpectedRule = 'NUMERIC_CLAIM_REQUIRES_PROVENANCE'
     },
     @{
+        Name = '精确数量使用阿拉伯数字通过'
+        Text = '根据库存系统记录，仓库现有 426个传感器'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '精确数量使用汉字数字失败'
+        Text = '根据库存系统记录，仓库现有四百二十六个传感器'
+        ExpectedRule = 'EXACT_QUANTITY_SHOULD_USE_ARABIC_DIGITS'
+    },
+    @{
+        Name = '中文操作顺序保持原样通过'
+        Text = '- 第一步，核对库存系统记录'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '逐字证据中的汉字数字保持原样通过'
+        Text = '用户原文写道：“仓库现有四百二十六个传感器”'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '展开关系缺少计算过程失败'
+        Text = '根据结构清单统计，74个多通道包装层按照各自通道数展开为 179个独立单端口存储体'
+        ExpectedRule = 'RELATIONAL_NUMBERS_REQUIRE_CALCULATION'
+    },
+    @{
+        Name = '展开关系展示计算过程通过'
+        Text = "根据结构清单统计，74个包装层由 19个单通道、20个双通道、20个三通道和 15个四通道包装层组成，并展开为 179个独立单端口存储体`n`n`$`$`n74 = 19 + 20 + 20 + 15`n`$`$`n`n`$`$`n179 = 19 \times 1 + 20 \times 2 + 20 \times 3 + 15 \times 4`n`$`$"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '存储容量换算缺少计算过程失败'
+        Text = '根据语义存储清单统计，193个语义存储体合计保存 8,605,650位有效数据，约为 1.026 MiB'
+        ExpectedRule = 'RELATIONAL_NUMBERS_REQUIRE_CALCULATION'
+    },
+    @{
+        Name = '存储容量换算展示计算过程通过'
+        Text = "根据语义存储清单统计，193个语义存储体分为 100个甲类、80个乙类和 13个丙类，合计保存 8,605,650位有效数据`n`n`$`$`n193 = 100 + 80 + 13`n`$`$`n`n`$`$`n8{,}605{,}650 = 4{,}000{,}000 + 4{,}000{,}000 + 605{,}650`n`$`$`n`n`$`$`n1.026\ \mathrm{MiB} \approx \frac{8{,}605{,}650}{8 \times 1024^2}`n`$`$"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '汇总数量缺少推导失败'
+        Text = '根据测试清单统计，当前测试覆盖45种形状'
+        ExpectedRule = 'AGGREGATE_COUNT_REQUIRES_DERIVATION'
+    },
+    @{
+        Name = '汇总数量展示去重推导通过'
+        Text = "根据测试清单的形状字段统计，当前测试覆盖45种形状`n`n`$`$`n45 = \operatorname{count}(\operatorname{distinct}(shape))`n`$`$"
+        ExpectedStatus = 'PASS'
+    },
+    @{
         Name = '装饰性引号失败'
         Text = '更像是“查地址的服务”暂时失灵；'
         ExpectedRule = 'POSSIBLY_DECORATIVE_QUOTATION'
@@ -426,6 +476,26 @@ $cases = @(
         Name = '小写英文正文提醒'
         Text = '当前 backlog 数量增加'
         ExpectedWarning = 'POSSIBLY_UNTRANSLATED_LOWERCASE_ENGLISH'
+    },
+    @{
+        Name = '原生单位名称加自然解释通过'
+        Text = 'lux 是衡量照度的国际通用单位名称，数值越高，单位面积接收到的光越多'
+        RequiredTerms = @('lux')
+        ExpectedStatus = 'PASS'
+        ExpectedWarningCount = 0
+    },
+    @{
+        Name = '生硬音译替换原生名称失败'
+        Text = '拉克丝是衡量照度的单位'
+        RequiredTerms = @('lux')
+        ExpectedRule = 'ORIGINAL_TERM_MUST_BE_RETAINED'
+    },
+    @{
+        Name = '软件原生名称加自然解释通过'
+        Text = 'Grafana 是用于查看监控数据的软件，运维人员可以用它定位异常时间'
+        RequiredTerms = @('Grafana')
+        ExpectedStatus = 'PASS'
+        ExpectedWarningCount = 0
     },
     @{
         Name = '未解释缩写提醒'

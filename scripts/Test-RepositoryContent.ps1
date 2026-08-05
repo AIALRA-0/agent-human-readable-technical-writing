@@ -136,6 +136,18 @@ $paragraphAndWarningModelValid = (
     $linterText -match 'seenInDocument'
 )
 
+# 阿拉伯数字偏好和原生名称保留必须同时进入核心规则、技术参考和自动检查
+$numericAndNativeNameModelValid = (
+    $skillText -match '精确数量、测量值、日期、时长、金额、百分比和阈值优先使用阿拉伯数字' -and
+    $skillText -match '不编造生硬音译' -and
+    $technicalText -match '四百二十六个.*426个' -and
+    $technicalText -match '行业惯例和原始名称的可检索性高于逐词翻译' -and
+    $linterText -match 'EXACT_QUANTITY_SHOULD_USE_ARABIC_DIGITS' -and
+    $linterText -match 'RELATIONAL_NUMBERS_REQUIRE_CALCULATION' -and
+    $linterText -match 'AGGREGATE_COUNT_REQUIRES_DERIVATION' -and
+    $linterText -match 'Test-HasNaturalEnglishExplanation'
+)
+
 # 核对全部相对文档链接，避免仓库页面指向不存在的本地文件
 $missingLinks = [Collections.Generic.List[string]]::new()
 foreach ($file in $markdownFiles) {
@@ -167,6 +179,7 @@ $status = if (
     $progressiveLoadingValid -and
     $editorialProcessGateValid -and
     $paragraphAndWarningModelValid -and
+    $numericAndNativeNameModelValid -and
     $missingLinks.Count -eq 0
 ) {
     'PASS'
@@ -188,6 +201,7 @@ $output = [ordered]@{
     progressive_loading_valid = $progressiveLoadingValid
     editorial_process_gate_valid = $editorialProcessGateValid
     paragraph_and_warning_model_valid = $paragraphAndWarningModelValid
+    numeric_and_native_name_model_valid = $numericAndNativeNameModelValid
     warning_count = [int](($documentResults | Measure-Object warning_count -Sum).Sum)
     missing_progressive_references = $missingProgressiveReferences
     missing_link_count = $missingLinks.Count
