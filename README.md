@@ -1,18 +1,31 @@
 <div align="center">
 
-# 面向智能体的中文可读技术写作
+<h1>面向智能体的中文可读技术写作</h1>
 
-**让智能体生成的中文技术内容第一次就能被读懂、核对并执行**
+<p><strong>让智能体生成的中文技术内容第一次就能被读懂、核对并执行</strong></p>
 
-[![Quality checks](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml/badge.svg)](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml)
-[![MIT License](https://img.shields.io/badge/license-MIT-315c4c.svg)](LICENSE)
-[![172 rule checks](https://img.shields.io/badge/rule_checks-172-805a46.svg)](scripts/Test-HumanReadableChinese.Tests.ps1)
-[![51 full answers](https://img.shields.io/badge/full_QA_cases-51-657067.svg)](QA-CASES.md)
-[![Local first](https://img.shields.io/badge/data-local_first-6b5b95.svg)](#9-隐私边界)
+<p>
+  <a href=".github/workflows/quality.yml"><img src="docs/images/badges/quality.svg" alt="仓库配置持续质量检查"></a>
+  <a href="LICENSE"><img src="docs/images/badges/license.svg" alt="仓库使用 MIT 许可证"></a>
+  <a href="scripts/Test-HumanReadableChinese.Tests.ps1"><img src="docs/images/badges/rules.svg" alt="规则检查器完整测试入口"></a>
+  <a href="QA-CASES.md"><img src="docs/images/badges/cases.svg" alt="完整问答案例入口"></a>
+  <a href="#privacy-boundary"><img src="docs/images/badges/privacy.svg" alt="仓库采用本地优先的数据边界"></a>
+</p>
 
-[查看改写效果](#1-改写效果) · [开始使用](#3-开始使用) · [了解处理过程](#4-处理过程) · [检查完整案例](QA-CASES.md) · [阅读详细规则](references/style-rules.md) · [运行质量检查](#7-质量检查)
+<p>
+  <a href="#rewrite-effect">改写效果</a> ·
+  <a href="#get-started">开始使用</a> ·
+  <a href="#processing-workflow">处理过程</a> ·
+  <a href="QA-CASES.md">完整案例</a> ·
+  <a href="references/style-rules.md">详细规则</a> ·
+  <a href="#quality-validation">质量检查</a>
+</p>
+
+<p><a href="README.md">简体中文</a> · <a href="README.en.md">English</a></p>
 
 </div>
+
+<!-- Repository quality-check markers 读取自仓库测试脚本和完整案例文档: rule_checks-172- full_QA_cases-51- -->
 
 智能体会按照用户指令生成或修改内容
 
@@ -21,6 +34,8 @@
 这个技能先找出读者真正需要判断的事情，再用普通中文说明事实和下一步行动
 
 读者不需要预先了解项目历史，也不需要猜测某个状态名称允许采取什么行动
+
+<a id="rewrite-effect"></a>
 
 ## 1 改写效果
 
@@ -292,6 +307,8 @@ $$
 
 “45种形状”这类汇总数量也要说明统计字段、纳入范围、排除规则和去重计算，不能只写最终数量
 
+<a id="get-started"></a>
+
 ## 3 开始使用
 
 先把仓库复制到个人技能目录：
@@ -310,6 +327,8 @@ Copy-Item "$HOME\.codex\skills\human-readable-technical-writing\AGENTS.example.m
 > 使用 `$human-readable-technical-writing`，按照我的中文技术写作规范回答；只加载当前任务需要的参考文件，大型任务交付前检查完整正文，检查失败就先修改再回答
 
 这条指令会要求智能体读取核心规则，再根据任务类型加载报告、结构或技术内容规则
+
+<a id="processing-workflow"></a>
 
 ## 4 处理过程
 
@@ -405,6 +424,8 @@ flowchart TD
 - 编辑过程元叙述清理
 
 同一套规则在短句和长报告中可能出现不同问题，所以测试必须保留这些差异
+
+<a id="quality-validation"></a>
 
 ## 7 质量检查
 
@@ -507,6 +528,8 @@ pwsh -NoProfile -File ".\scripts\Test-RepositoryContent.ps1" # 检查全部公�
 </div>
 
 这些文件按照实际用途分开保存，既保留验证证据，也避免普通任务读取无关内容
+
+<a id="privacy-boundary"></a>
 
 ## 9 隐私边界
 
