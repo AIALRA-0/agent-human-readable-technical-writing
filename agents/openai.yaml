@@ -1,4 +1,7 @@
 interface:
-  display_name: "面向智能体的人类可读技术写作"
-  short_description: "让智能体生成的中文技术内容第一次就能被读懂、核对并直接执行"
-  default_prompt: "使用 $human-readable-technical-writing，只加载当前任务需要的规则，保留原始术语并补充解释，按照因果顺序和明确主语重写内容，删除编辑过程元叙述，交付大型任务前检查完整正文"
+  display_name: "中文人类可读技术写作"
+  short_description: "把中文解释、状态、计划和技术结论写得直接、清楚、可核对"
+  default_prompt: "使用 $human-readable-technical-writing 直接回答当前问题，只补充相关依据、后果和下一步"
+
+policy:
+  allow_implicit_invocation: true
