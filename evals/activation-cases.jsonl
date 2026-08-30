@@ -1,0 +1,24 @@
+{"id":"ACT-E01","category":"explicit","expected_invocation":true,"prompt":"使用 $human-readable-technical-writing 解释一个来源未知的错误"}
+{"id":"ACT-E02","category":"explicit","expected_invocation":true,"prompt":"调用 human-readable-technical-writing 写一段简短项目状态"}
+{"id":"ACT-E03","category":"explicit","expected_invocation":true,"prompt":"请按人类可读技术写作 Skill 比较两个方案"}
+{"id":"ACT-E04","category":"explicit","expected_invocation":true,"prompt":"用指定中文写作技能改写一段技术结论"}
+{"id":"ACT-E05","category":"explicit","expected_invocation":true,"prompt":"使用 $human-readable-technical-writing 把这段 UI 文案写自然"}
+{"id":"ACT-E06","category":"explicit","expected_invocation":true,"prompt":"调用中文可读技术写作技能编写 README 项目简介"}
+{"id":"ACT-E07","category":"explicit","expected_invocation":true,"prompt":"用 human-readable-technical-writing 解释 HTTP 202 Accepted"}
+{"id":"ACT-E08","category":"explicit","expected_invocation":true,"prompt":"请按人类可读技术写作规则审计这段事故状态"}
+{"id":"ACT-I01","category":"implicit","expected_invocation":true,"prompt":"订单系统返回错误代码 17；根因不知道；请给第一次接触系统的人解释结果和下一步"}
+{"id":"ACT-I02","category":"implicit","expected_invocation":true,"prompt":"根据我本次给的数据写状态：20 项检查通过 17 项、失败 3 项；说明为什么重要"}
+{"id":"ACT-I03","category":"implicit","expected_invocation":true,"prompt":"方案 A 今天上线但没有回滚验证；方案 B 晚 1 天并完成回滚验证；帮我说明取舍"}
+{"id":"ACT-I04","category":"implicit","expected_invocation":true,"prompt":"第一次给非技术同事解释 OutputEnvelope，它保存正文、摘要和检查结果"}
+{"id":"ACT-I05","category":"implicit","expected_invocation":true,"prompt":"把导航里的删除回执改成普通用户能看懂的中文"}
+{"id":"ACT-I06","category":"implicit","expected_invocation":true,"prompt":"给这个工具写一段简短中文 README，先说用途和入口"}
+{"id":"ACT-I07","category":"implicit","expected_invocation":true,"prompt":"把任务状态 running 解释给第一次接触系统的人"}
+{"id":"ACT-I08","category":"implicit","expected_invocation":true,"prompt":"把事故记录改清楚：缓存可能是原因，服务已经恢复，但根因尚未确认"}
+{"id":"ACT-N01","category":"negative","expected_invocation":false,"prompt":"Return only the integer result of 19 multiplied by 7","response_pattern":"^133$"}
+{"id":"ACT-N02","category":"negative","expected_invocation":false,"prompt":"Echo exactly READY","response_pattern":"^READY$"}
+{"id":"ACT-N03","category":"negative","expected_invocation":false,"prompt":"Translate hello into Spanish and output one word","response_pattern":"(?i)^hola$"}
+{"id":"ACT-N04","category":"negative","expected_invocation":false,"prompt":"Output only the JSON literal {\"ok\":true}","response_pattern":"^\\{\\s*\"ok\"\\s*:\\s*true\\s*\\}$"}
+{"id":"ACT-N05","category":"negative","expected_invocation":false,"prompt":"Return only the hexadecimal representation of 255","response_pattern":"(?i)^ff$"}
+{"id":"ACT-N06","category":"negative","expected_invocation":false,"prompt":"Output only the word blue","response_pattern":"(?i)^blue$"}
+{"id":"ACT-N07","category":"negative","expected_invocation":false,"prompt":"Return only 8*8 as an integer","response_pattern":"^64$"}
+{"id":"ACT-N08","category":"negative","expected_invocation":false,"prompt":"Output only []","response_pattern":"^\\[\\]$"}

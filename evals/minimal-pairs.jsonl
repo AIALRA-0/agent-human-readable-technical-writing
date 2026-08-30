@@ -1,0 +1,72 @@
+{"id":"TR-001","register":"ui","source":"DeletionReceipt","rejected":"删除回执","accepted":"数据清理记录","reason":"导航应告诉用户能看到什么，内部类型名不应逐字泄漏到 UI"}
+{"id":"TR-002","register":"compliance","source":"DeletionReceipt","rejected":"删除状态","accepted":"数据删除证明","reason":"合规场景需要证明和可核对证据，不只是进度"}
+{"id":"TR-003","register":"ui","source":"确认任务正文和元数据保留任务已经执行","rejected":"确认任务正文和元数据保留任务已经执行","accepted":"查看任务正文和元数据何时按保留策略删除","reason":"恢复主体、动作和保留策略的真实关系"}
+{"id":"TR-004","register":"architecture","source":"task closure report","rejected":"任务关闭报告","accepted":"任务收尾报告","reason":"行动任务的收尾与工单关闭不是同一语义"}
+{"id":"TR-005","register":"ticket","source":"task closed","rejected":"任务结束","accepted":"工单已关闭","reason":"工单系统中的关闭是稳定状态术语"}
+{"id":"TR-006","register":"status","source":"task succeeded","rejected":"任务已关闭","accepted":"任务已完成","reason":"成功完成不等于被关闭"}
+{"id":"TR-007","register":"architecture","source":"single-task contract","rejected":"单任务合同","accepted":"每次任务都附带一份完整约束","reason":"普通设计说明需要展开约束关系"}
+{"id":"TR-008","register":"api","source":"task_contract","rejected":"任务约束","accepted":"`task_contract`","reason":"API 字段必须保留机器标识，并在说明中解释"}
+{"id":"TR-009","register":"ui","source":"audit log","rejected":"审计日志","accepted":"审计记录","reason":"管理台导航更适合对象名称，技术正文仍可保留审计日志"}
+{"id":"TR-010","register":"architecture","source":"audit log","rejected":"操作记录","accepted":"审计日志","reason":"安全架构中的审计日志是成熟术语"}
+{"id":"TR-011","register":"ui","source":"terminal state","rejected":"终态","accepted":"最终状态","reason":"普通用户更熟悉最终状态"}
+{"id":"TR-012","register":"state_machine","source":"terminal state","rejected":"最终情况","accepted":"终态","reason":"形式化状态机中的终态准确且可检索"}
+{"id":"TR-013","register":"architecture","source":"evidence ledger","rejected":"证据账本","accepted":"证据记录","reason":"没有账本结构时不能机械翻译 ledger"}
+{"id":"TR-014","register":"compliance","source":"append-only evidence ledger","rejected":"证据记录","accepted":"只追加的证据台账","reason":"确有台账和不可覆写语义时需要保留"}
+{"id":"TR-015","register":"tutorial","source":"quality gate","rejected":"该门禁会完成输出质量闭环","accepted":"检查不通过时，系统不会发布这份输出","reason":"直接说明检查结果和失败后果"}
+{"id":"TR-016","register":"ci","source":"quality gate","rejected":"发布前看一下","accepted":"质量门禁","reason":"CI 专业语境中的质量门禁可以作为稳定术语"}
+{"id":"TR-017","register":"architecture","source":"security closure","rejected":"这是安全收口","accepted":"首版直接拒绝联网任务，避免系统在权限不足时切换到能力更弱的路径","reason":"展开真实安全行为"}
+{"id":"TR-018","register":"architecture","source":"trusted scheduling worker","rejected":"受信调度 Worker","accepted":"有权调度任务的 Worker","reason":"说明信任具体体现为权限"}
+{"id":"TR-019","register":"chat","source":"close the loop","rejected":"下一步把闭环补齐","accepted":"下一步让验证结果自动回写到规则库","reason":"说出实际回写动作"}
+{"id":"TR-020","register":"control_theory","source":"closed-loop controller","rejected":"反馈控制器","accepted":"闭环控制器","reason":"闭环是控制理论正式术语"}
+{"id":"TR-021","register":"architecture","source":"centralize the entry point","rejected":"统一收口到 API 层","accepted":"所有请求统一从 API 层进入","reason":"把工程黑话还原为具体路径"}
+{"id":"TR-022","register":"status","source":"write to disk","rejected":"完成结果落盘","accepted":"结果已写入磁盘","reason":"状态更新优先主体、动作和结果"}
+{"id":"TR-023","register":"engineer_chat","source":"write to disk","rejected":"结果已经写入持久化存储","accepted":"结果已经落盘","reason":"工程师即时沟通中落盘可以自然使用"}
+{"id":"TR-024","register":"readme","source":"end-to-end closed loop","rejected":"系统提供端到端闭环能力","accepted":"系统会接收输入、执行任务、验证结果，并把失败原因返回给调用方","reason":"README 应说明用户实际能完成的流程"}
+{"id":"TR-025","register":"docs","source":"performs validation","rejected":"系统对配置进行了验证","accepted":"系统验证配置","reason":"删除无必要名词化"}
+{"id":"TR-026","register":"docs","source":"efficiency improved","rejected":"基于上述分析，我们实现了效率的提升","accepted":"上述改动提高了效率；衡量方法见后文","reason":"使用直接动作，同时不编造具体原因"}
+{"id":"TR-027","register":"readme","source":"systematic mechanism","rejected":"它不是一个工具，而是一套系统性机制","accepted":"它除了命令行入口，还包含规则、检查器和回归用例","reason":"对比需要落到已经证实的组成"}
+{"id":"TR-028","register":"docs","source":"审计日志会记录登录、密钥变更和任务取消","rejected":"审计日志会记录登录、密钥变更和任务取消","accepted":"审计日志会记录登录、密钥变更和任务取消","reason":"原句专业、清楚且自然，应保持不变"}
+{"id":"TR-029","register":"heading","source":"安全与证据","rejected":"安全与证据","accepted":"安全与证据","reason":"自然并列标题不应因为包含与字被拒绝"}
+{"id":"TR-030","register":"docs","source":"读取配置、验证字段、提交结果","rejected":"第一步，读取配置；第二步，验证字段；第三步，提交结果","accepted":"先读取配置并验证字段，再提交结果","reason":"简单流程不需要机械分号化"}
+{"id":"TR-031","register":"ui","source":"Accepted","rejected":"已接受","accepted":"已受理","reason":"任务进入处理队列时，已受理更符合中文业务状态"}
+{"id":"TR-032","register":"ui","source":"Accepted","rejected":"已受理","accepted":"已接收，等待处理","reason":"面向首次用户时可以直接说明尚未开始执行"}
+{"id":"TR-033","register":"ui","source":"Success","rejected":"已成功","accepted":"已完成","reason":"任务状态通常说明动作完成"}
+{"id":"TR-034","register":"api","source":"HTTP 202 Accepted","rejected":"HTTP 202 已完成","accepted":"HTTP 202 Accepted：请求已接收，处理尚未完成","reason":"保留协议语义和未完成状态"}
+{"id":"TR-035","register":"docs","source":"用户提出 A、B 和 C 三项要求","rejected":"用户提出 A、B 和 C 三项要求","accepted":"用户提出 A、B 和 C 三项要求","reason":"自然并列不应被机械改写"}
+{"id":"AR-001","register":"chat","source":"写作 Skill 的范围","rejected":"继续建设发布器、安装回执和权限体系","accepted":"只处理写作 Skill 的触发、长度和遵守问题","reason":"保持用户已经限定的任务范围"}
+{"id":"AR-002","register":"architecture","source":"通用运行时架构","rejected":"用具体购物平台解释通用运行时","accepted":"用与领域无关的对象解释约束和执行关系","reason":"通用架构不能受单个领域案例污染"}
+{"id":"AR-003","register":"architecture","source":"执行协议改为 Mermaid","rejected":"增加大量分支、角色和新协议节点","accepted":"保留原执行顺序，只把流程改成 Mermaid，并写清每个节点","reason":"可视化改造不能扩大流程复杂度"}
+{"id":"AR-004","register":"docs","source":"YAML 结构说明","rejected":"顶层直接排列多个无分类字段","accepted":"所有条目先进入一个大分类，再进入二级和三级内容","reason":"顶层分类能让读者先理解内容边界"}
+{"id":"AR-005","register":"docs","source":"工作流节点说明","rejected":"只列节点名称","accepted":"每个节点名称后紧跟一句话说明它处理什么","reason":"节点名称不能替代作用说明"}
+{"id":"AR-006","register":"docs","source":"并列信息","rejected":"在一个句子中连续排列 A、B、C、D、E","accepted":"改成缩进列表，每项使用“名称：一句解释”","reason":"降低单句信息密度"}
+{"id":"AR-007","register":"tutorial","source":"术语解释","rejected":"机械填满很长的固定五要素","accepted":"按当前问题补充必要的定义、用途、组成、来源和关系","reason":"完整性必须服从当前读者的实际需要"}
+{"id":"AR-008","register":"chat","source":"量化结果汇报","rejected":"测试通过 196 项","accepted":"196 项测试全部通过；结果来自完整逐案运行，说明机械规则没有回归；语义正确仍需独立评估","reason":"量化结果需要说明来源、含义和边界"}
+{"id":"AR-009","register":"tutorial","source":"command argv 数组","rejected":"传入 command argv 数组","accepted":"把命令和每个参数分开保存成一个数组，例如 `[\"git\", \"status\"]`；执行器可以据此直接启动程序，避免把整段文字交给命令行解释器","reason":"术语需要同时说明形状和实际用途"}
+{"id":"AR-010","register":"status","source":"running 状态","rejected":"任务状态为 running","accepted":"任务正在执行；这个状态只说明进程尚未结束，不代表执行结果已经正确","reason":"状态名称需要说明对象和边界"}
+{"id":"AR-011","register":"tutorial","source":"shell=false","rejected":"设置 shell=false","accepted":"`shell=false` 表示程序直接启动目标命令，不先交给命令行外壳解析；这样可以减少参数被重新解释的风险","reason":"配置项需要说明行为变化和作用"}
+{"id":"AR-012","register":"architecture","source":"外部执行器","rejected":"外部节点返回 runner 反悔动作并提交 schema JSON","accepted":"外部程序必须返回实际执行结果，以及失败后用于撤销本次修改的动作；返回数据需要符合约定的 JSON 结构，系统才能继续处理","reason":"展开内部角色、失败行为和数据形状"}
+{"id":"AR-013","register":"docs","source":"数字、错误和取舍","rejected":"只报告数字、错误或选择结果","accepted":"结果后就近说明来源、直接原因、实际影响和下一步","reason":"用户明确要求所有重要结果都附带因果解释"}
+{"id":"NW-001","register":"docs","source":"一级章节标题","rejected":"## 1 简介","accepted":"## 1. 简介","reason":"章节序号与标题之间保留点号和空格，读者可以立即识别编号边界"}
+{"id":"NW-002","register":"docs","source":"二级章节标题","rejected":"### 1.1 使用方法","accepted":"### 1.1. 使用方法","reason":"多级章节编号的最后一级同样保留点号"}
+{"id":"NW-003","register":"docs","source":"三级章节标题","rejected":"#### 1.1.1 参数说明","accepted":"#### 1.1.1. 参数说明","reason":"三级编号使用与一级和二级一致的完整格式"}
+{"id":"NW-004","register":"report","source":"普通表格题注","rejected":"表 2.1 测试结果\n\n| 项目 | 结果 |","accepted":"| 项目 | 结果 |\n|---|---|\n| 测试 | 通过 |\n\n表 2.1 测试结果","reason":"未指定出版规范时，表题默认放在表格下方"}
+{"id":"NW-005","register":"report","source":"IEEE 表格题注","rejected":"| Item | Result |\n|---|---|\n| Test | Pass |\n\nTable I. Test Results","accepted":"Table I. Test Results\n\n| Item | Result |\n|---|---|\n| Test | Pass |","reason":"显式采用 IEEE 时，表题放在表格上方"}
+{"id":"NW-006","register":"report","source":"图片题注","rejected":"图 3.1 系统结构\n\n![系统结构](architecture.png)","accepted":"![系统结构](architecture.png)\n\n图 3.1 系统结构","reason":"图片题注默认放在图片下方"}
+{"id":"NW-007","register":"report","source":"Mermaid 题注","rejected":"图 4.1 发布流程\n\n```mermaid\nflowchart LR\nA --> B\n```","accepted":"```mermaid\nflowchart LR\nA --> B\n```\n\n图 4.1 发布流程","reason":"流程图题注与其他图片一致放在对象下方"}
+{"id":"NW-008","register":"tutorial","source":"冒号后两个并列项目","rejected":"检查包括：配置文件、安装目录","accepted":"检查包括：\n\n- 配置文件：确认内容是否完整\n- 安装目录：确认文件是否已经复制","reason":"冒号后出现两个以上并列项目时换行，列表项目同时说明用途"}
+{"id":"NW-009","register":"tutorial","source":"例如后两个并列项目","rejected":"例如 HTTP、CI 都需要解释","accepted":"例如：\n\n- HTTP：说明浏览器与服务器如何交换请求和响应\n- CI：说明代码提交后自动运行的检查流程","reason":"例如引出的并列内容需要换行并补充读者所需解释"}
+{"id":"NW-010","register":"docs","source":"列表中的二级分类","rejected":"- 发布：检查隐私、检查测试、推送代码","accepted":"- 发布：完成发送前检查\n  - 隐私：确认没有秘密和个人路径\n  - 测试：确认项目原有测试通过\n  - 推送：把核验后的提交发送到远程仓库","reason":"列表项目再次包含并列分类时增加一级缩进"}
+{"id":"NW-011","register":"architecture","source":"包含分支和重试的流程","rejected":"系统先检查；失败就修复；然后重新检查；成功后发布","accepted":"```mermaid\nflowchart TD\nA[检查] --> B{是否通过}\nB -- 否 --> C[修复]\nC --> A\nB -- 是 --> D[发布]\n```","reason":"存在条件分支和返回前一步时，流程图能直接显示路径关系"}
+{"id":"NW-012","register":"tutorial","source":"HTTP 首次出现","rejected":"HTTP 返回 202","accepted":"超文本传输协议（Hypertext Transfer Protocol，HTTP）用于在客户端与服务器之间传递请求和响应；这里返回 202，表示服务器已经接收请求并准备继续处理","reason":"读者需要理解 HTTP 才能判断状态码含义，因此首次出现需要解释定义、用途和表现"}
+{"id":"NW-013","register":"api","source":"状态码 202","rejected":"请求成功，状态码是 202","accepted":"服务器返回 HTTP 状态码 202，表示请求已经被接收，但处理尚未完成；调用方需要使用任务 ID 继续查询结果","reason":"202 代表已受理，不代表最终处理成功"}
+{"id":"NW-014","register":"readme","source":"CI 首次出现","rejected":"在 CI 中运行测试","accepted":"持续集成（Continuous Integration，CI）会在代码提交后自动运行测试；测试失败时，本次发布会停止","reason":"解释 CI 的定义、触发时机和实际影响"}
+{"id":"NW-015","register":"tutorial","source":"PNG 和 WebP","rejected":"把 PNG 转为 WEBP","accepted":"PNG 是常用的无损图片格式，适合保留清晰边缘和透明背景；WebP 是浏览器常用的图片格式，通常可以减小文件体积；本步骤把 PNG 转为 WebP，以降低页面加载量","reason":"保持 PNG 与 WebP 的官方拼写，并解释转换原因和结果"}
+{"id":"NW-016","register":"tutorial","source":"npm 命令","rejected":"运行 npm install","accepted":"运行 `npm install`；npm 是 Node.js 项目常用的包管理工具，这条命令会读取项目依赖清单并下载所需组件；完成后会生成或更新依赖目录","reason":"保持 npm 官方小写，并解释命令用途与可观察结果"}
+{"id":"NW-017","register":"api","source":"任务 ID","rejected":"返回 task_id","accepted":"接口返回任务 ID（`task_id`）；它是本次异步任务的唯一标识，后续查询状态和获取结果都需要携带这个值","reason":"保留代码字段并解释它的形状、用途和影响"}
+{"id":"NW-018","register":"api","source":"幂等键","rejected":"请求需要幂等键","accepted":"请求需要幂等键；它是调用方为同一次操作生成的稳定标识，重复提交相同标识时，服务器会识别为同一请求，从而减少重复创建任务的风险","reason":"解释陌生术语的定义、工作表现和实际作用"}
+{"id":"NW-019","register":"architecture","source":"task_contract","rejected":"保存 task_contract","accepted":"保存任务约束对象（`task_contract`）；它记录本次任务允许执行的范围、停止条件和输出要求，后续执行器会据此判断某个动作是否符合约束","reason":"代码标识符保持原样，正文说明它保存什么以及谁会使用"}
+{"id":"NW-020","register":"status","source":"量化结果","rejected":"224 个测试通过","accepted":"224 个测试全部通过；结果来自逐案运行，形成原因是每个输入都得到预期判断；这说明当前机械规则没有回归，语义质量仍需独立评审","reason":"数量结果同时说明来源、原因、影响和边界"}
+{"id":"NW-021","register":"status","source":"错误结果","rejected":"发布失败","accepted":"发布没有完成；远程仓库拒绝了身份验证，因此提交没有被上传；更新登录状态后可以重新执行","reason":"错误说明按照事件、原因、结果和下一步展开"}
+{"id":"NW-022","register":"status","source":"避免重复结论","rejected":"任务仍在排队；任务尚未开始；这不代表任务已经成功","accepted":"任务仍在排队，尚未开始执行；开始后才能取得处理结果","reason":"删除前文已经蕴含的重复结论，同时保留状态边界"}
+{"id":"NW-023","register":"tutorial","source":"逻辑顺序","rejected":"完成后会生成报告；先安装依赖；如果缺少依赖就无法启动；最后运行命令","accepted":"先安装依赖；缺少依赖时程序无法启动；安装完成后运行命令，命令结束时生成报告","reason":"内容按照操作和因果顺序展开，避免读者来回重组信息"}
+{"id":"NW-024","register":"tutorial","source":"代码注释","rejected":"# 运行测试\nnpm test","accepted":"# 运行测试以确认修改没有破坏既有行为；命令结束后，终端会显示通过数量或失败原因\nnpm test","reason":"注释需要说明动作、原因和可观察结果，不能只复述命令"}

@@ -36,6 +36,8 @@ foreach ($file in $markdownFiles) {
     }
     if ($file.FullName -eq $qualityCases) {
         $lintArguments.AllowQuestionHeadings = $true
+        # 汇总文档同时包含默认题注和用户明确指定的出版题注；每个原始案例已经使用自己的题注配置通过检查
+        $lintArguments.AllowMixedTableCaptionPositions = $true
     }
     $lintResult = (& $linter @lintArguments | Out-String) | ConvertFrom-Json
     $documentResults.Add([pscustomobject]@{
@@ -103,6 +105,7 @@ $readmeStatisticsCurrent = (
 $skillText = Get-Content -LiteralPath $skillDefinition -Raw -Encoding UTF8
 $skillLineCount = @(Get-Content -LiteralPath $skillDefinition -Encoding UTF8).Count
 $requiredProgressiveReferences = @(
+    'references/natural-chinese.md'
     'references/structured-documents.md'
     'references/technical-content.md'
     'references/complex-reports.md'
@@ -122,10 +125,40 @@ $progressiveLoadingValid = (
     $skillText -match '普通回答不得加载质量测试说明' -and
     $skillText -notmatch '质量测试至少包含二十四组'
 )
+$linterText = Get-Content -LiteralPath $linter -Raw -Encoding UTF8
+
+# 自然化开发文件必须保持单一场景参考、平衡最小对照和独立语义评估入口
+$naturalChineseReference = Join-Path $skillRoot 'references\natural-chinese.md'
+$semanticCases = Join-Path $skillRoot 'evals\semantic-adversarial.jsonl'
+$minimalPairs = Join-Path $skillRoot 'evals\minimal-pairs.jsonl'
+$preferences = Join-Path $skillRoot 'evals\user-preferences.jsonl'
+$naturalEvaluation = Join-Path $skillRoot 'evals\Invoke-NaturalChineseEvaluation.ps1'
+$liveEvaluation = Join-Path $skillRoot 'evals\Measure-NaturalChineseLive.ps1'
+$activationCases = Join-Path $skillRoot 'evals\activation-cases.jsonl'
+$freshCases = Join-Path $skillRoot 'evals\fresh-generation-prompts.jsonl'
+$semanticCaseCount = if (Test-Path -LiteralPath $semanticCases) { @(Get-Content -LiteralPath $semanticCases | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }).Count } else { 0 }
+$minimalPairCount = if (Test-Path -LiteralPath $minimalPairs) { @(Get-Content -LiteralPath $minimalPairs | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }).Count } else { 0 }
+$preferenceCount = if (Test-Path -LiteralPath $preferences) { @(Get-Content -LiteralPath $preferences | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }).Count } else { 0 }
+$activationCaseCount = if (Test-Path -LiteralPath $activationCases) { @(Get-Content -LiteralPath $activationCases | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }).Count } else { 0 }
+$freshCaseCount = if (Test-Path -LiteralPath $freshCases) { @(Get-Content -LiteralPath $freshCases | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }).Count } else { 0 }
+$naturalChineseModelValid = (
+    (Test-Path -LiteralPath $naturalChineseReference -PathType Leaf) -and
+    (Test-Path -LiteralPath $naturalEvaluation -PathType Leaf) -and
+    (Test-Path -LiteralPath $liveEvaluation -PathType Leaf) -and
+    $semanticCaseCount -eq 40 -and
+    $minimalPairCount -eq 72 -and
+    $preferenceCount -eq 33 -and
+    $activationCaseCount -eq 24 -and
+    $freshCaseCount -eq 48 -and
+    $skillText -match '事实与关系' -and
+    $skillText -match 'references/natural-chinese.md' -and
+    $skillText -match '标题可以使用“和、与、及、顿号”' -and
+    $linterText -match 'PROTECTED_TOKEN_MISSING' -and
+    $linterText -notmatch "title -match '\(\?:和\|与\|及\|、\)'"
+)
 
 # 核心规则、复杂报告规则和自动检查器必须同时保留编辑过程元叙述门禁
 $complexReportText = Get-Content -LiteralPath (Join-Path $skillRoot 'references\complex-reports.md') -Raw -Encoding UTF8
-$linterText = Get-Content -LiteralPath $linter -Raw -Encoding UTF8
 $editorialProcessGateValid = (
     $skillText -match '编辑过程元叙述' -and
     $complexReportText -match '编辑过程边界' -and
@@ -192,6 +225,7 @@ $status = if (
     $editorialProcessGateValid -and
     $paragraphAndWarningModelValid -and
     $numericAndNativeNameModelValid -and
+    $naturalChineseModelValid -and
     $missingLinks.Count -eq 0
 ) {
     'PASS'
@@ -214,6 +248,12 @@ $output = [ordered]@{
     editorial_process_gate_valid = $editorialProcessGateValid
     paragraph_and_warning_model_valid = $paragraphAndWarningModelValid
     numeric_and_native_name_model_valid = $numericAndNativeNameModelValid
+    natural_chinese_model_valid = $naturalChineseModelValid
+    semantic_case_count = $semanticCaseCount
+    minimal_pair_count = $minimalPairCount
+    user_preference_count = $preferenceCount
+    activation_case_count = $activationCaseCount
+    fresh_generation_case_count = $freshCaseCount
     warning_count = [int](($documentResults | Measure-Object warning_count -Sum).Sum)
     missing_progressive_references = $missingProgressiveReferences
     missing_link_count = $missingLinks.Count

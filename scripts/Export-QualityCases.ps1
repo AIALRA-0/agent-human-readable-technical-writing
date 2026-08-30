@@ -28,7 +28,7 @@ $lines.Add('# 完整问答案例')
 $lines.Add('')
 $lines.Add('这些案例来自正式质量测试文件，本轮新增案例排在历史回归案例之前')
 $lines.Add('')
-$lines.Add('## 1 案例构成')
+$lines.Add('## 1. 案例构成')
 $lines.Add('')
 $lines.Add("- 全部案例数量：$($evaluation.case_count)")
 $lines.Add("- 本轮新增案例数量：$($currentCases.Count)")
@@ -41,7 +41,7 @@ $lines.Add('质量测试源文件保留每个回答的原始标题和图表编�
 $lines.Add('')
 $lines.Add('导出程序只调整合并文档中的标题层级和图表编号，让图表编号与所属一级章节保持一致')
 $lines.Add('')
-$lines.Add('## 2 完整问答')
+$lines.Add('## 2. 完整问答')
 $lines.Add('')
 
 # 逐个写入完整问题和完整回答，并分别累计表格编号和图形编号
@@ -51,28 +51,28 @@ for ($index = 0; $index -lt $orderedCases.Count; $index++) {
     $case = $orderedCases[$index]
     $caseNumber = $index + 1
     $caseGroup = if ($case.introduced_in -eq $currentGeneration) { '本轮新增案例' } else { '历史回归案例' }
-    $lines.Add("### 2.$caseNumber $caseGroup")
+    $lines.Add("### 2.$caseNumber. $caseGroup")
     $lines.Add('')
     $lines.Add("案例来源标识为：``$($case.id)``")
     $lines.Add('')
-    $lines.Add("#### 2.$caseNumber.1 问题")
+    $lines.Add("#### 2.$caseNumber.1. 问题")
     $lines.Add('')
     foreach ($promptLine in ($case.prompt -split '\r?\n')) {
         $lines.Add("> $promptLine")
     }
     $lines.Add('')
-    $lines.Add("#### 2.$caseNumber.2 回答")
+    $lines.Add("#### 2.$caseNumber.2. 回答")
     $lines.Add('')
     foreach ($responseLine in ($case.response -split '\r?\n')) {
         $responseHeading = [regex]::Match(
             $responseLine,
-            '^(?<hash>#{2,4})\s+(?<number>\d+(?:\.\d+)*)\s+(?<title>.+)$'
+            '^(?<hash>#{2,4})\s+(?<number>\d+(?:\.\d+)*)\.\s+(?<title>.+)$'
         )
         if ($responseHeading.Success) {
             $headingLevel = [Math]::Min(6, $responseHeading.Groups['hash'].Value.Length + 3)
             $headingPrefix = '#' * $headingLevel
             $nestedNumber = "2.$caseNumber.2.$($responseHeading.Groups['number'].Value)"
-            $lines.Add("$headingPrefix $nestedNumber $($responseHeading.Groups['title'].Value)")
+            $lines.Add("$headingPrefix $nestedNumber. $($responseHeading.Groups['title'].Value)")
             continue
         }
         $tableCaption = [regex]::Match(

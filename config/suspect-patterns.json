@@ -1,0 +1,33 @@
+{
+  "schema": {
+    "version": "1.0.0"
+  },
+  "vocabulary": {
+    "terms": [
+      {"surface": "删除回执", "category": "schema_leakage", "severity": "high"},
+      {"surface": "任务关闭", "category": "state_machine_leakage", "severity": "medium"},
+      {"surface": "证据账本", "category": "literal_calque", "severity": "medium"},
+      {"surface": "单任务合同", "category": "literal_calque", "severity": "high"},
+      {"surface": "安全收口", "category": "engineering_jargon", "severity": "high"},
+      {"surface": "统一收口", "category": "engineering_jargon", "severity": "medium"},
+      {"surface": "闭环验收", "category": "corporate_jargon", "severity": "medium"},
+      {"surface": "验证闭环", "category": "corporate_jargon", "severity": "medium"},
+      {"surface": "质量门禁", "category": "context_sensitive", "severity": "low"},
+      {"surface": "门禁", "category": "context_sensitive", "severity": "low"},
+      {"surface": "终态", "category": "context_sensitive", "severity": "low"},
+      {"surface": "回执", "category": "context_sensitive", "severity": "low"},
+      {"surface": "底座", "category": "abstract_jargon", "severity": "low"},
+      {"surface": "抓手", "category": "corporate_jargon", "severity": "medium"},
+      {"surface": "赋能", "category": "corporate_jargon", "severity": "medium"},
+      {"surface": "落盘", "category": "register_sensitive", "severity": "low"},
+      {"surface": "沉淀", "category": "corporate_jargon", "severity": "low"},
+      {"surface": "链路打通", "category": "engineering_jargon", "severity": "medium"}
+    ],
+    "patterns": [
+      {"name": "nominalization", "pattern": "(?:进行|实现|完成|开展|作出|提供)(?:了|对)?[^。！？\\n]{0,18}(?:优化|提升|验证|分析|检查|处理|改进|建设|管理)", "severity": "low"},
+      {"name": "formulaic_contrast", "pattern": "不是[^。！？\\n]{1,60}(?:而是|是)[^。！？\\n]{1,60}", "severity": "low"},
+      {"name": "based_on_chain", "pattern": "基于[^，。！？\\n]{2,40}[，,]?(?:通过|围绕|针对)", "severity": "low"},
+      {"name": "empty_closure", "pattern": "(?:综上所述|本质上|归根结底|值得注意的是|需要指出的是)", "severity": "low"}
+    ]
+  }
+}

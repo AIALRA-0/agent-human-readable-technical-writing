@@ -1,6 +1,6 @@
 interface:
   display_name: "中文人类可读技术写作"
-  short_description: "硬性约束中文解释、数字、错误、取舍与技术结论"
+  short_description: "用于中文解释、状态、报告与自然化，纯数字和非中文格式不触发"
   default_prompt: "使用 $human-readable-technical-writing 直接回答当前问题，并遵守标点、因果、术语、列表和范围硬规则"
 
 policy:

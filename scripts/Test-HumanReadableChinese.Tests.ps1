@@ -8,9 +8,11 @@ $lintPath = Join-Path $PSScriptRoot 'Test-HumanReadableChinese.ps1'
 
 function Invoke-Lint(
     [string]$Value,
+    [string]$SourceText = '',
     [string]$CaptionStyle = 'Personal',
     [bool]$AllowQuestionHeadings = $false,
     [bool]$AllowEditorialProcessNarrative = $false,
+    [bool]$RequireMermaid = $false,
     [string[]]$RequiredTerms = @()
 ) {
     # 把正文安全传给独立检查进程，避免测试文字被 PowerShell 当成命令解释
@@ -30,11 +32,14 @@ function Invoke-Lint(
     } else {
         "`$requiredTerms = @()`n"
     }
+    $encodedSource = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($SourceText))
     $questionHeadingArgument = if ($AllowQuestionHeadings) { ' -AllowQuestionHeadings' } else { '' }
     $editorialProcessArgument = if ($AllowEditorialProcessNarrative) { ' -AllowEditorialProcessNarrative' } else { '' }
+    $requireMermaidArgument = if ($RequireMermaid) { ' -RequireMermaid' } else { '' }
     $child = @"
 `$text = [Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('$encoded'))
-$requiredTermSetup& '$lintPath' -Text `$text -CaptionStyle '$CaptionStyle' -RequiredTerm `$requiredTerms$questionHeadingArgument$editorialProcessArgument
+`$sourceText = [Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('$encodedSource'))
+$requiredTermSetup& '$lintPath' -Text `$text -SourceText `$sourceText -CaptionStyle '$CaptionStyle' -RequiredTerm `$requiredTerms$questionHeadingArgument$editorialProcessArgument$requireMermaidArgument
 "@
     $output = & pwsh -NoLogo -NoProfile -NonInteractive -Command $child 2>&1
     $exitCode = $LASTEXITCODE
@@ -115,7 +120,7 @@ $cases = @(
     },
     @{
         Name = '徽章和表格结构通过'
-        Text = "[![Quality checks](https://example.com/badge.svg)](https://example.com/checks)`n`n<div align=`"center`">`n`n表 1 检查结果`n`n| 项目 | 内容 |`n|---|---|`n| 状态、原因和后果 | 原始证据 |`n`n</div>"
+        Text = "[![Quality checks](https://example.com/badge.svg)](https://example.com/checks)`n`n<div align=`"center`">`n`n| 项目 | 内容 |`n|---|---|`n| 状态、原因和后果 | 原始证据 |`n`n表 1 检查结果`n`n</div>"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -142,7 +147,7 @@ $cases = @(
     },
     @{
         Name = '十进制层级章节通过'
-        Text = "## 1 环境`n`nVivado 芯片设计套件（Vivado Design Suite）负责完成芯片设计处理`n`n项目 Vivado 冻结版本为：2024.1`n`n### 1.1 目标器件`n`n目标器件冻结为：``xcvu19p-fsva3824-1-e```n`n## 2 结果`n`n全部检查已经完成"
+        Text = "## 1. 环境`n`nVivado 芯片设计套件（Vivado Design Suite）负责完成芯片设计处理`n`n项目 Vivado 冻结版本为：2024.1`n`n### 1.1. 目标器件`n`n目标器件冻结为：``xcvu19p-fsva3824-1-e```n`n## 2. 结果`n`n全部检查已经完成"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -162,7 +167,7 @@ $cases = @(
     },
     @{
         Name = '图表独立编号通过'
-        Text = "<div align=`"center`">`n`n表 1 第一轮结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 2 第二轮结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二轮 | 通过 |`n`n![处理结果](https://example.com/result.png)`n`n图 1 处理结果`n`n![复查结果](https://example.com/review.png)`n`n图 2 复查结果`n`n</div>"
+        Text = "<div align=`"center`">`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 1 第一轮结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二轮 | 通过 |`n`n表 2 第二轮结果`n`n![处理结果](https://example.com/result.png)`n`n图 1 处理结果`n`n![复查结果](https://example.com/review.png)`n`n图 2 复查结果`n`n</div>"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -173,23 +178,23 @@ $cases = @(
     },
     @{
         Name = '陈述式标题通过'
-        Text = "## 1 本项目禁止形式化验证的原因`n`n形式化验证不在当前范围内`n`n## 2 历史证据的独立保存方式`n`n历史证据保存在独立目录中"
+        Text = "## 1. 本项目禁止形式化验证的原因`n`n形式化验证不在当前范围内`n`n## 2. 历史证据的独立保存方式`n`n历史证据保存在独立目录中"
         ExpectedStatus = 'PASS'
     },
     @{
         Name = '问答页面疑问句标题通过'
-        Text = "## 1 为什么本项目禁止形式化验证`n`n形式化验证不在当前范围内`n`n## 2 历史证据怎样独立保存`n`n历史证据保存在独立目录中"
+        Text = "## 1. 为什么本项目禁止形式化验证`n`n形式化验证不在当前范围内`n`n## 2. 历史证据怎样独立保存`n`n历史证据保存在独立目录中"
         AllowQuestionHeadings = $true
         ExpectedStatus = 'PASS'
     },
     @{
         Name = '按章节重新编号图表通过'
-        Text = "## 1 第一章`n`n<div align=`"center`">`n`n表 1.1 第一项结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一项 | 通过 |`n`n表 1.2 第二项结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二项 | 通过 |`n`n![第一章结果](https://example.com/one.png)`n`n图 1.1 第一章结果`n`n</div>`n`n## 2 第二章`n`n<div align=`"center`">`n`n表 2.1 第三项结果`n`n| 项目 | 结果 |`n|---|---|`n| 第三项 | 通过 |`n`n![第二章结果](https://example.com/two.png)`n`n图 2.1 第二章结果`n`n</div>"
+        Text = "## 1. 第一章`n`n<div align=`"center`">`n`n| 项目 | 结果 |`n|---|---|`n| 第一项 | 通过 |`n`n表 1.1 第一项结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二项 | 通过 |`n`n表 1.2 第二项结果`n`n![第一章结果](https://example.com/one.png)`n`n图 1.1 第一章结果`n`n</div>`n`n## 2. 第二章`n`n<div align=`"center`">`n`n| 项目 | 结果 |`n|---|---|`n| 第三项 | 通过 |`n`n表 2.1 第三项结果`n`n![第二章结果](https://example.com/two.png)`n`n图 2.1 第二章结果`n`n</div>"
         ExpectedStatus = 'PASS'
     },
     @{
         Name = 'IEEE顺序引用通过'
-        Text = "正式文稿按照正文首次引用的顺序分配编号 [1]`n`n图题放在图形下方，表题放在表格上方 [2]`n`n## 1 参考文献`n`n[1] IEEE, IEEE Editorial Style Manual for Authors, 2025. [Online]. Available: https://example.com/style`n`n[2] IEEE, Guidelines for Figures and Tables, 2025. [Online]. Available: https://example.com/figures"
+        Text = "## 1. 参考文献`n`n[1] IEEE, IEEE Editorial Style Manual for Authors, 2025. [Online]. Available: https://example.com/style`n`n[2] IEEE, Guidelines for Figures and Tables, 2025. [Online]. Available: https://example.com/figures"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -333,23 +338,23 @@ $cases = @(
         ExpectedRule = 'FORBIDDEN_CHINESE_PERIOD'
     },
     @{
-        Name = '含糊并列标题失败'
-        Text = "# 结果与风险`n内容；"
-        ExpectedRule = 'PARALLEL_OR_AMBIGUOUS_HEADING'
+        Name = '自然并列标题通过'
+        Text = "# 结果与风险`n`n本节说明检查结果及其风险"
+        ExpectedStatus = 'PASS'
     },
     @{
         Name = '先说结论套话失败'
-        Text = '先说结论：项目已经完成；'
+        Text = '先说结论：项目已经完成'
         ExpectedRule = 'STOCK_META_WRITING_PHRASE'
     },
     @{
         Name = '简单来说套话失败'
-        Text = '简单来说：项目已经完成；'
+        Text = '简单来说：项目已经完成'
         ExpectedRule = 'STOCK_META_WRITING_PHRASE'
     },
     @{
         Name = '需要注意套话失败'
-        Text = '需要注意的是，仍然存在风险；'
+        Text = '需要注意的是，仍然存在风险'
         ExpectedRule = 'STOCK_META_WRITING_PHRASE'
     },
     @{
@@ -359,7 +364,7 @@ $cases = @(
     },
     @{
         Name = '空洞章节说明失败'
-        Text = "## 1 当前状态`n`n本节将进行说明：`n`n服务已经恢复"
+        Text = "## 1. 当前状态`n`n本节将进行说明：`n`n服务已经恢复"
         ExpectedRule = 'LOW_INFORMATION_LEAD_SHOULD_BE_REMOVED'
     },
     @{
@@ -369,7 +374,7 @@ $cases = @(
     },
     @{
         Name = '延迟主语失败'
-        Text = '已经完成的是芯片本轮实现验证；'
+        Text = '已经完成的是芯片本轮实现验证'
         ExpectedRule = 'POSSIBLY_DELAYED_SUBJECT'
     },
     @{
@@ -439,32 +444,32 @@ $cases = @(
     },
     @{
         Name = '装饰性引号失败'
-        Text = '更像是“查地址的服务”暂时失灵；'
+        Text = '更像是“查地址的服务”暂时失灵'
         ExpectedRule = 'POSSIBLY_DECORATIVE_QUOTATION'
     },
     @{
         Name = '行内四类列表失败'
-        Text = '优先找出四类订单：逾期订单、重要订单、缺货订单、停滞订单；'
+        Text = '优先找出四类订单：逾期订单、重要订单、缺货订单、停滞订单'
         ExpectedRule = 'INLINE_ENUMERATION_SHOULD_BREAK'
     },
     @{
         Name = '行内以下列表失败'
-        Text = '特别要确认：税款、设备投入、日常经营资金；'
+        Text = '特别要确认：税款、设备投入、日常经营资金'
         ExpectedRule = 'INLINE_ENUMERATION_SHOULD_BREAK'
     },
     @{
         Name = '行内分支失败'
-        Text = '核对数字是过去结果还是未来预测；'
+        Text = '核对数字是过去结果还是未来预测'
         ExpectedRule = 'INLINE_BRANCH_SHOULD_BREAK'
     },
     @{
         Name = '多个的堆叠失败'
-        Text = '芯片本轮的实现流程的验证工作的结果已经完成；'
+        Text = '芯片本轮的实现流程的验证工作的结果已经完成'
         ExpectedRule = 'POSSIBLY_STACKED_DE_MODIFIERS'
     },
     @{
         Name = '括号过载失败'
-        Text = '结果（第一项）（第二项）（第三项）；'
+        Text = '结果（第一项）（第二项）（第三项）'
         ExpectedRule = 'PARENTHESIS_OVERLOAD'
     },
     @{
@@ -504,13 +509,13 @@ $cases = @(
     },
     @{
         Name = '跨章节术语只解释一次通过'
-        Text = "## 1 工具`n`nVivado 芯片设计套件（Vivado Design Suite）负责处理芯片设计`n`nModelSim 硬件仿真工具（ModelSim Hardware Simulation Tool）负责检查设计行为`n`nSynthPilot 综合辅助工具（SynthPilot Synthesis Assistant）负责整理综合任务`n`n## 2 复核`n`nVivado 生成实现结果`n`nModelSim 保存仿真记录`n`nSynthPilot 保存综合记录"
+        Text = "## 1. 工具`n`nVivado 芯片设计套件（Vivado Design Suite）负责处理芯片设计`n`nModelSim 硬件仿真工具（ModelSim Hardware Simulation Tool）负责检查设计行为`n`nSynthPilot 综合辅助工具（SynthPilot Synthesis Assistant）负责整理综合任务`n`n## 2. 复核`n`nVivado 生成实现结果`n`nModelSim 保存仿真记录`n`nSynthPilot 保存综合记录"
         ExpectedStatus = 'PASS'
         ExpectedWarningCount = 0
     },
     @{
         Name = '跨章节未解释术语只提醒一次'
-        Text = "## 1 首次记录`n`n当前 DNS 出现故障`n`n## 2 后续记录`n`nDNS 仍然没有恢复"
+        Text = "## 1. 首次记录`n`n当前 DNS 出现故障`n`n## 2. 后续记录`n`nDNS 仍然没有恢复"
         ExpectedWarning = 'POSSIBLY_UNEXPLAINED_FIRST_ENGLISH_TERM'
         ExpectedWarningCount = 1
     },
@@ -533,17 +538,17 @@ $cases = @(
     },
     @{
         Name = '行内名词排比失败'
-        Text = '问题可能来自网站名称转换、浏览器设置或网站本身；'
+        Text = '问题可能来自网站名称转换、浏览器设置或网站本身'
         ExpectedRule = 'INLINE_NOUN_ENUMERATION_SHOULD_BREAK'
     },
     @{
         Name = '项目符号内部排比失败'
-        Text = '- 核对银行流水、纳税记录和财务记录；'
+        Text = '- 核对银行流水、纳税记录和财务记录'
         ExpectedRule = 'INLINE_NOUN_ENUMERATION_SHOULD_BREAK'
     },
     @{
         Name = '行内数字证据失败'
-        Text = '按时足量交付率为91%；180笔订单尚未处理；'
+        Text = '按时足量交付率为91%；180笔订单尚未处理'
         ExpectedRule = 'PARALLEL_NUMERIC_FACTS_SHOULD_BREAK'
     },
     @{
@@ -593,22 +598,22 @@ $cases = @(
     },
     @{
         Name = '章节从零开始失败'
-        Text = "## 0 环境`n`n环境已经核对`n`n## 1 结果`n`n结果已经确认"
+        Text = "## 0. 环境`n`n环境已经核对`n`n## 1. 结果`n`n结果已经确认"
         ExpectedRule = 'SECTION_NUMBER_MUST_START_AT_ONE'
     },
     @{
         Name = '章节编号跳号失败'
-        Text = "## 1 环境`n`n环境已经核对`n`n## 3 结果`n`n结果已经确认"
+        Text = "## 1. 环境`n`n环境已经核对`n`n## 3. 结果`n`n结果已经确认"
         ExpectedRule = 'SECTION_NUMBER_SEQUENCE_INVALID'
     },
     @{
         Name = '章节编号层级错误失败'
-        Text = "## 1 环境`n`n### 2 版本`n`n版本已经核对`n`n## 2 结果`n`n结果已经确认"
+        Text = "## 1. 环境`n`n### 2. 版本`n`n版本已经核对`n`n## 2. 结果`n`n结果已经确认"
         ExpectedRule = 'SECTION_NUMBER_DEPTH_MUST_MATCH_HEADING'
     },
     @{
         Name = '三级标题所属章节错误失败'
-        Text = "## 1 环境`n`n### 2.1 版本`n`n版本已经核对`n`n## 2 结果`n`n结果已经确认"
+        Text = "## 1. 环境`n`n### 2.1. 版本`n`n版本已经核对`n`n## 2. 结果`n`n结果已经确认"
         ExpectedRule = 'SECTION_NUMBER_PARENT_MISMATCH'
     },
     @{
@@ -652,8 +657,8 @@ $cases = @(
         ExpectedRule = 'TABLE_NUMBER_SEQUENCE_INVALID'
     },
     @{
-        Name = '默认表题在下失败'
-        Text = "| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 1 检查结果"
+        Name = '旧默认表题在上失败'
+        Text = "<div align=`"center`">`n`n表 1 检查结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n</div>"
         ExpectedRule = 'TABLE_TITLE_POSITION_INVALID'
     },
     @{
@@ -664,27 +669,27 @@ $cases = @(
     },
     @{
         Name = '表格章节编号不匹配失败'
-        Text = "## 2 结果`n`n表 1.1 检查结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |"
+        Text = "## 2. 结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 1.1 检查结果"
         ExpectedRule = 'TABLE_NUMBER_SECTION_MISMATCH'
     },
     @{
         Name = '章节内表格使用单一编号失败'
-        Text = "## 2 结果`n`n表 1 检查结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |"
+        Text = "## 2. 结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 1 检查结果"
         ExpectedRule = 'TABLE_NUMBER_FORMAT_MUST_MATCH_SECTION'
     },
     @{
         Name = '表格零编号失败'
-        Text = "## 1 结果`n`n表 0.1 检查结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |"
+        Text = "## 1. 结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 0.1 检查结果"
         ExpectedRule = 'TABLE_NUMBER_MUST_NOT_USE_ZERO'
     },
     @{
         Name = '表格连字符编号失败'
-        Text = "## 1 结果`n`n表 1-1 检查结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |"
+        Text = "## 1. 结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n表 1-1 检查结果"
         ExpectedRule = 'TABLE_NUMBER_FORMAT_MUST_MATCH_SECTION'
     },
     @{
         Name = '表格跨章节没有重新编号失败'
-        Text = "## 1 第一章`n`n表 1.1 第一项结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一项 | 通过 |`n`n## 2 第二章`n`n表 2.2 第二项结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二项 | 通过 |"
+        Text = "## 1. 第一章`n`n| 项目 | 结果 |`n|---|---|`n| 第一项 | 通过 |`n`n表 1.1 第一项结果`n`n## 2. 第二章`n`n| 项目 | 结果 |`n|---|---|`n| 第二项 | 通过 |`n`n表 2.2 第二项结果"
         ExpectedRule = 'TABLE_NUMBER_SEQUENCE_INVALID'
     },
     @{
@@ -714,7 +719,7 @@ $cases = @(
     },
     @{
         Name = '默认表题没有随表格居中失败'
-        Text = "表 1 第一轮结果`n`n<div align=`"center`">`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n</div>"
+        Text = "<div align=`"center`">`n`n| 项目 | 结果 |`n|---|---|`n| 第一轮 | 通过 |`n`n</div>`n`n表 1 第一轮结果"
         ExpectedRule = 'VISUAL_CAPTION_SHOULD_BE_CENTERED'
     },
     @{
@@ -725,7 +730,7 @@ $cases = @(
     },
     @{
         Name = '同一汇总文档统一题注样式通过'
-        Text = "## 1 案例汇总`n`n<div align=`"center`">`n`n表 1.1 第一组结果`n`n| 项目 | 结果 |`n|---|---|`n| 第一组 | 通过 |`n`n表 1.2 第二组结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二组 | 通过 |`n`n</div>"
+        Text = "## 1. 案例汇总`n`n<div align=`"center`">`n`n| 项目 | 结果 |`n|---|---|`n| 第一组 | 通过 |`n`n表 1.1 第一组结果`n`n| 项目 | 结果 |`n|---|---|`n| 第二组 | 通过 |`n`n表 1.2 第二组结果`n`n</div>"
         ExpectedStatus = 'PASS'
     },
     @{
@@ -750,27 +755,27 @@ $cases = @(
     },
     @{
         Name = '图片章节编号不匹配失败'
-        Text = "## 2 结果`n`n![处理结果](https://example.com/result.png)`n`n图 1.1 处理结果"
+        Text = "## 2. 结果`n`n![处理结果](https://example.com/result.png)`n`n图 1.1 处理结果"
         ExpectedRule = 'FIGURE_NUMBER_SECTION_MISMATCH'
     },
     @{
         Name = '章节内图片使用单一编号失败'
-        Text = "## 2 结果`n`n![处理结果](https://example.com/result.png)`n`n图 1 处理结果"
+        Text = "## 2. 结果`n`n![处理结果](https://example.com/result.png)`n`n图 1 处理结果"
         ExpectedRule = 'FIGURE_NUMBER_FORMAT_MUST_MATCH_SECTION'
     },
     @{
         Name = '图片零编号失败'
-        Text = "## 1 结果`n`n![处理结果](https://example.com/result.png)`n`n图 0.1 处理结果"
+        Text = "## 1. 结果`n`n![处理结果](https://example.com/result.png)`n`n图 0.1 处理结果"
         ExpectedRule = 'FIGURE_NUMBER_MUST_NOT_USE_ZERO'
     },
     @{
         Name = '图片零编号连字符失败'
-        Text = "## 1 结果`n`n![处理结果](https://example.com/result.png)`n`n图 0-1 处理结果"
+        Text = "## 1. 结果`n`n![处理结果](https://example.com/result.png)`n`n图 0-1 处理结果"
         ExpectedRule = 'FIGURE_NUMBER_MUST_NOT_USE_ZERO'
     },
     @{
         Name = '图片跨章节没有重新编号失败'
-        Text = "## 1 第一章`n`n![第一章结果](https://example.com/one.png)`n`n图 1.1 第一章结果`n`n## 2 第二章`n`n![第二章结果](https://example.com/two.png)`n`n图 2.2 第二章结果"
+        Text = "## 1. 第一章`n`n![第一章结果](https://example.com/one.png)`n`n图 1.1 第一章结果`n`n## 2. 第二章`n`n![第二章结果](https://example.com/two.png)`n`n图 2.2 第二章结果"
         ExpectedRule = 'FIGURE_NUMBER_SEQUENCE_INVALID'
     },
     @{
@@ -785,7 +790,7 @@ $cases = @(
     },
     @{
         Name = 'IEEE引用首次出现跳号失败'
-        Text = "现有规则要求先说明事实 [2]`n`n## 1 参考文献`n`n[2] IEEE, Example, 2025. [Online]. Available: https://example.com"
+        Text = "现有规则要求先说明事实 [2]`n`n## 1. 参考文献`n`n[2] IEEE, Example, 2025. [Online]. Available: https://example.com"
         ExpectedRule = 'IEEE_CITATION_ORDER_INVALID'
     },
     @{
@@ -820,7 +825,7 @@ $cases = @(
     },
     @{
         Name = '长文多章节否定先行复发失败'
-        Text = "## 1 审批记录`n`n当前需要处理的不是服务器容量，而是审批记录缺少负责人`n`n## 2 回滚证据`n`n当前风险不在于切换速度，而在于回滚证据没有保存"
+        Text = "## 1. 审批记录`n`n当前需要处理的不是服务器容量，而是审批记录缺少负责人`n`n## 2. 回滚证据`n`n当前风险不在于切换速度，而在于回滚证据没有保存"
         ExpectedRule = 'NEGATIVE_FIRST_CONTRAST_SHOULD_BE_DIRECT'
         ExpectedRuleCount = 2
     },
@@ -851,7 +856,7 @@ $cases = @(
     },
     @{
         Name = '多章节编辑过程说明复发失败'
-        Text = "## 1 第一部分`n`n后续章节继续补充`n`n## 2 第二部分`n`n本节先占位"
+        Text = "## 1. 第一部分`n`n后续章节继续补充`n`n## 2. 第二部分`n`n本节先占位"
         ExpectedRule = 'EDITORIAL_PROCESS_META_NARRATIVE_FORBIDDEN'
         ExpectedRuleCount = 2
     },
@@ -913,30 +918,336 @@ $cases = @(
     },
     @{
         Name = '为什么疑问句标题失败'
-        Text = '## 1 为什么本项目禁止形式化验证'
+        Text = '## 1. 为什么本项目禁止形式化验证'
         ExpectedRule = 'QUESTION_HEADING_SHOULD_BE_DECLARATIVE'
     },
     @{
         Name = '怎样疑问句标题失败'
-        Text = '## 1 历史证据怎样独立保存'
+        Text = '## 1. 历史证据怎样独立保存'
         ExpectedRule = 'QUESTION_HEADING_SHOULD_BE_DECLARATIVE'
     },
     @{
         Name = '问号标题失败'
-        Text = '## 1 本项目允许发布吗？'
+        Text = '## 1. 本项目允许发布吗？'
         ExpectedRule = 'QUESTION_HEADING_SHOULD_BE_DECLARATIVE'
     }
+)
+
+# 这一组新增案例只验证机械规则；主体、否定、完成状态和因果关系另由语义对抗评估处理
+$cases += @(
+    @{
+        Name = '和字并列标题通过'
+        Text = "# 安全和证据`n`n本节说明安全要求和证据范围"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '及字并列标题通过'
+        Text = "# 安装及验证`n`n本节说明安装步骤及验证结果"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '顿号并列标题通过'
+        Text = "# 输入、处理和输出`n`n本节说明数据处理顺序"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '斜线标题失败'
+        Text = "# 安全/证据`n`n本节主题不明确"
+        ExpectedRule = 'PARALLEL_OR_AMBIGUOUS_HEADING'
+    },
+    @{
+        Name = '全角斜线标题失败'
+        Text = "# 安全／证据`n`n本节主题不明确"
+        ExpectedRule = 'PARALLEL_OR_AMBIGUOUS_HEADING'
+    },
+    @{
+        Name = '英文连接符标题失败'
+        Text = "# 安全&证据`n`n本节主题不明确"
+        ExpectedRule = 'PARALLEL_OR_AMBIGUOUS_HEADING'
+    },
+    @{
+        Name = '全角连接符标题失败'
+        Text = "# 安全＆证据`n`n本节主题不明确"
+        ExpectedRule = 'PARALLEL_OR_AMBIGUOUS_HEADING'
+    },
+    @{
+        Name = '逐字引用保留中文句号通过'
+        Text = "> 原始记录显示任务已完成。`n`n正文只说明这条记录的来源"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '日志代码块保留中文句号通过'
+        Text = "以下是逐字日志：`n`n${fence}powershell`n# 原始日志显示任务已完成。`n${fence}"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '行内代码保留中文句号通过'
+        Text = '界面原文是 `保存失败。`；正文保留原始提示'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = 'HTML代码保留中文句号通过'
+        Text = '原始值为 <code>任务已完成。</code>；正文不改变证据'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '机器字段保留通过'
+        SourceText = '接口返回 `task_contract` 字段'
+        Text = '接口继续返回 `task_contract` 字段'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '机器字段丢失失败'
+        SourceText = '接口返回 `task_contract` 字段'
+        Text = '接口返回任务约束字段'
+        ExpectedRule = 'PROTECTED_TOKEN_MISSING'
+    },
+    @{
+        Name = '机器字段重复次数变化失败'
+        SourceText = '`task_contract` 出现在请求和响应中；`task_contract` 保持同名'
+        Text = '`task_contract` 只在请求中出现'
+        ExpectedRule = 'PROTECTED_TOKEN_OCCURRENCE_CHANGED'
+    },
+    @{
+        Name = '网址保留通过'
+        SourceText = '资料位于 https://example.com/spec'
+        Text = '完整资料仍位于 https://example.com/spec'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '网址丢失失败'
+        SourceText = '资料位于 https://example.com/spec'
+        Text = '资料位于项目网站'
+        ExpectedRule = 'PROTECTED_TOKEN_MISSING'
+    },
+    @{
+        Name = '版本保留通过'
+        SourceText = '当前版本是 v2.4.1'
+        Text = '当前版本继续使用 v2.4.1'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '版本丢失失败'
+        SourceText = '当前版本是 v2.4.1'
+        Text = '当前版本已经发布'
+        ExpectedRule = 'PROTECTED_TOKEN_MISSING'
+    },
+    @{
+        Name = '数值和单位保留通过'
+        SourceText = '20 项检查中有 17 项通过'
+        Text = '根据记录，20 项检查中有 17 项通过'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '数值和单位丢失失败'
+        SourceText = '20 项检查中有 17 项通过'
+        Text = '大部分检查已经通过'
+        ExpectedRule = 'PROTECTED_TOKEN_MISSING'
+    },
+    @{
+        Name = '重复数值次数变化失败'
+        SourceText = '第一组有 8 项；第二组也有 8 项'
+        Text = '两组各有 8 项'
+        ExpectedRule = 'PROTECTED_TOKEN_OCCURRENCE_CHANGED'
+    },
+    @{
+        Name = 'Windows路径保留通过'
+        SourceText = '文件位于 `C:\\Data\\report.json`'
+        Text = '报告文件仍位于 `C:\\Data\\report.json`'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = 'Windows路径丢失失败'
+        SourceText = '文件位于 `C:\\Data\\report.json`'
+        Text = '报告文件位于数据目录'
+        ExpectedRule = 'PROTECTED_TOKEN_MISSING'
+    },
+    @{
+        Name = '相对路径丢失失败'
+        SourceText = '配置位于 ../config/app.yaml'
+        Text = '配置位于上级配置目录'
+        ExpectedRule = 'PROTECTED_TOKEN_MISSING'
+    }
+)
+
+# 本轮 28 个案例固定用户确认的编号、题注、缩进、流程图、术语大小写和标点规则
+$cases += @(
+    @{
+        Name = '一级章节编号句点通过'
+        Text = "## 1. 环境`n`n环境已经核对`n`n## 2. 结果`n`n结果已经确认"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '三级章节编号句点通过'
+        Text = "## 1. 环境`n`n环境已经核对`n`n### 1.1. 版本`n`n版本已经核对`n`n#### 1.1.1. 范围`n`n范围已经确认`n`n## 2. 结果`n`n结果已经确认"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '一级章节编号缺少句点失败'
+        Text = "## 1 环境`n`n环境已经核对`n`n## 2. 结果`n`n结果已经确认"
+        ExpectedRule = 'SECTION_HEADING_NUMBER_REQUIRES_TRAILING_DOT'
+    },
+    @{
+        Name = '三级章节编号缺少句点失败'
+        Text = "## 1. 环境`n`n### 1.1 版本`n`n版本已经核对`n`n## 2. 结果`n`n结果已经确认"
+        ExpectedRule = 'SECTION_HEADING_NUMBER_REQUIRES_TRAILING_DOT'
+    },
+    @{
+        Name = '默认表题在下通过'
+        Text = "<div align=`"center`">`n`n| 项目 | 结果 |`n|---|---|`n| 检查 | 通过 |`n`n表 1 检查结果`n`n</div>"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '默认表题在上失败'
+        Text = "<div align=`"center`">`n`n表 1 检查结果`n`n| 项目 | 结果 |`n|---|---|`n| 检查 | 通过 |`n`n</div>"
+        ExpectedRule = 'TABLE_TITLE_POSITION_INVALID'
+    },
+    @{
+        Name = 'IEEE表题在上通过'
+        Text = "<div align=`"center`">`n`n表 1 检查结果`n`n| 项目 | 结果 |`n|---|---|`n| 检查 | 通过 |`n`n</div>"
+        CaptionStyle = 'IEEE'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = 'IEEE表题在下失败'
+        Text = "<div align=`"center`">`n`n| 项目 | 结果 |`n|---|---|`n| 检查 | 通过 |`n`n表 1 检查结果`n`n</div>"
+        CaptionStyle = 'IEEE'
+        ExpectedRule = 'TABLE_TITLE_POSITION_INVALID'
+    },
+    @{
+        Name = '默认图题在下通过'
+        Text = "<div align=`"center`">`n`n![检查结果](https://example.com/result.png)`n`n图 1 检查结果`n`n</div>"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '默认流程图题在下通过'
+        Text = "<div align=`"center`">`n`n${fence}mermaid`n%% 展示三个节点的执行顺序`nflowchart TD`n    A[读取输入] --> B[检查内容]`n    B --> C[返回结果]`n${fence}`n`n图 1 检查流程`n`n</div>"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '实质流程包含Mermaid通过'
+        Text = "<div align=`"center`">`n`n${fence}mermaid`n%% 展示检查失败后的返回关系`nflowchart TD`n    A[读取输入] --> B{检查内容}`n    B -- 通过 --> C[返回结果]`n    B -- 失败 --> A`n${fence}`n`n图 1 检查与返回流程`n`n</div>"
+        RequireMermaid = $true
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '实质流程缺少Mermaid失败'
+        Text = '系统读取输入，再检查内容；检查失败后返回输入阶段'
+        RequireMermaid = $true
+        ExpectedRule = 'SUBSTANTIVE_FLOW_REQUIRES_MERMAID'
+    },
+    @{
+        Name = '冒号后并列项目同行失败'
+        Text = '检查包括以下内容：输入、输出、错误状态'
+        ExpectedRule = 'INLINE_ENUMERATION_SHOULD_BREAK'
+    },
+    @{
+        Name = '例如后并列项目同行失败'
+        Text = '支持多种格式，例如 PNG、WebP、JPEG'
+        ExpectedRule = 'INLINE_ENUMERATION_SHOULD_BREAK'
+    },
+    @{
+        Name = '冒号后并列项目换行通过'
+        Text = "检查包括以下内容：`n`n- 输入文件`n- 输出目录`n- 错误状态"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '嵌套列表继续缩进通过'
+        Text = "- 输入包括：`n  - 配置文件`n  - 数据文件`n`n- 输出包括：`n  - 结果文件`n  - 错误记录"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '嵌套列表没有继续缩进失败'
+        Text = "- 输入包括：`n- 配置文件`n- 数据文件"
+        ExpectedRule = 'NESTED_LIST_REQUIRES_INDENTATION'
+    },
+    @{
+        Name = '括号内英文全称官方大小写通过'
+        Text = '持续集成（Continuous Integration，CI）会在每次提交后运行检查；检查失败时不会发布结果'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = '括号内英文全称小写失败'
+        Text = '持续集成（continuous integration，CI）会在每次提交后运行检查'
+        ExpectedRule = 'PARENTHETICAL_ENGLISH_NAME_CASE_INVALID'
+    },
+    @{
+        Name = '官方技术名称大小写通过'
+        Text = 'HTTP 超文本传输协议（Hypertext Transfer Protocol）负责在客户端和服务器之间传递请求；状态码决定客户端怎样处理结果；PNG 和 WebP 是图片格式；npm 是 Node.js 常用的软件包管理命令'
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = 'PNG错误大小写失败'
+        Text = 'png 是一种图片格式；当前文件使用这种格式保存无损图像'
+        ExpectedRule = 'CANONICAL_TECHNICAL_TERM_CASE_INVALID'
+    },
+    @{
+        Name = 'npm错误大写失败'
+        Text = 'NPM 是 Node.js 常用的软件包管理命令'
+        ExpectedRule = 'CANONICAL_TECHNICAL_TERM_CASE_INVALID'
+    },
+    @{
+        Name = '标题包含中文句号失败'
+        Text = "## 1. 环境。`n`n环境已经核对`n`n## 2. 结果`n`n结果已经确认"
+        ExpectedRule = 'FORBIDDEN_CHINESE_PERIOD'
+    },
+    @{
+        Name = '图题包含中文句号失败'
+        Text = "<div align=`"center`">`n`n![检查结果](https://example.com/result.png)`n`n图 1 检查结果。`n`n</div>"
+        ExpectedRule = 'FORBIDDEN_CHINESE_PERIOD'
+    },
+    @{
+        Name = '表格单元格包含中文句号失败'
+        Text = "<div align=`"center`">`n`n| 项目 | 结果 |`n|---|---|`n| 检查 | 已通过。 |`n`n表 1 检查结果`n`n</div>"
+        ExpectedRule = 'FORBIDDEN_CHINESE_PERIOD'
+    },
+    @{
+        Name = 'npm命令详细同行注释通过'
+        Text = "命令会安装项目声明的软件包；npm 是 Node.js 常用的软件包管理命令，执行成功后依赖文件会进入项目目录：`n`n${fence}powershell`nnpm install # 读取项目依赖清单并安装缺少的软件包，成功后生成可供后续命令使用的依赖目录`n${fence}"
+        ExpectedStatus = 'PASS'
+    },
+    @{
+        Name = 'npm命令缺少同行注释失败'
+        Text = "${fence}powershell`nnpm install`n${fence}"
+        ExpectedRule = 'LIST_CODE_LINE_REQUIRES_INLINE_COMMENT'
+    },
+    @{
+        Name = '代码内官方名称保持原样通过'
+        Text = '配置字段 `imageFormat: WebP` 保持机器需要的官方写法；正文说明该字段决定输出图片格式'
+        ExpectedStatus = 'PASS'
+    }
+)
+
+$diagnosticRuleNames = [Collections.Generic.HashSet[string]]::new(
+    [string[]]@(
+        'AMBIGUOUS_FROZEN_VERSION_OWNER', 'DOUBLE_NEGATIVE_SHOULD_BE_SIMPLIFIED',
+        'EDITORIAL_PROCESS_META_NARRATIVE_FORBIDDEN', 'EXPLANATION_TOO_LONG',
+        'FIELD_LABEL_EXPLANATION_SHOULD_BE_NATURAL_PROSE', 'INLINE_BRANCH_SHOULD_BREAK',
+        'INLINE_NOUN_ENUMERATION_SHOULD_BREAK',
+        'LOW_INFORMATION_LEAD_SHOULD_BE_REMOVED', 'NEGATIVE_FIRST_CONTRAST_SHOULD_BE_DIRECT',
+        'NUMERIC_CLAIM_REQUIRES_PROVENANCE', 'ORIGINAL_TERM_REQUIRES_EXPLANATION',
+        'OVERLONG_NESTED_SENTENCE_SHOULD_SPLIT', 'PARENTHESIS_OVERLOAD',
+        'PARALLEL_NUMERIC_FACTS_SHOULD_BREAK', 'POSSIBLY_AMBIGUOUS_PRONOUN_REFERENCE',
+        'POSSIBLY_DECORATIVE_QUOTATION', 'POSSIBLY_DELAYED_SUBJECT',
+        'POSSIBLY_MISSING_ACTION_SUBJECT', 'POSSIBLY_STACKED_DE_MODIFIERS',
+        'REPEATED_DEFENSIVE_BOUNDARY_SHOULD_CONSOLIDATE', 'SIMPLE_KEY_VALUE_SHOULD_STAY_INLINE',
+        'SINGLE_OUTCOME_BRANCH_SHOULD_STAY_INLINE', 'STOCK_META_WRITING_PHRASE',
+        'WEAK_NOMINALIZED_VERB_SHOULD_BE_PRECISE'
+    ),
+    [StringComparer]::Ordinal
 )
 
 $failures = [Collections.Generic.List[object]]::new()
 $caseResults = [Collections.Generic.List[object]]::new()
 foreach ($case in $cases) {
-    # 旧题注参数继续传入以验证兼容性，全部文档仍统一要求表题在上
+    # 默认题注位于对象下方，Publication 保留为 IEEE 兼容别名
     $captionStyle = if ($case.ContainsKey('CaptionStyle')) { $case.CaptionStyle } else { 'Personal' }
     $allowQuestionHeadings = $case.ContainsKey('AllowQuestionHeadings') -and $case.AllowQuestionHeadings
     $allowEditorialProcessNarrative = $case.ContainsKey('AllowEditorialProcessNarrative') -and $case.AllowEditorialProcessNarrative
+    $requireMermaid = $case.ContainsKey('RequireMermaid') -and $case.RequireMermaid
     $requiredTerms = if ($case.ContainsKey('RequiredTerms')) { @($case.RequiredTerms) } else { @() }
-    $run = Invoke-Lint -Value $case.Text -CaptionStyle $captionStyle -AllowQuestionHeadings $allowQuestionHeadings -AllowEditorialProcessNarrative $allowEditorialProcessNarrative -RequiredTerms $requiredTerms
+    $sourceText = if ($case.ContainsKey('SourceText')) { [string]$case.SourceText } else { '' }
+    $run = Invoke-Lint -Value $case.Text -SourceText $sourceText -CaptionStyle $captionStyle -AllowQuestionHeadings $allowQuestionHeadings -AllowEditorialProcessNarrative $allowEditorialProcessNarrative -RequireMermaid $requireMermaid -RequiredTerms $requiredTerms
     $actualWarnings = @($run.Result.warnings | ForEach-Object { $_.rule })
     if ($case.ContainsKey('ExpectedWarning')) {
         $expectedWarningCount = if ($case.ContainsKey('ExpectedWarningCount')) {
@@ -960,6 +1271,31 @@ foreach ($case in $cases) {
             $failures.Add([pscustomobject]@{
                 name = $case.Name
                 expected = $case.ExpectedWarning
+                expected_warning_count = $expectedWarningCount
+                actual_warning_count = $actualWarningCount
+                actual = $run.Result.status
+                warnings = $actualWarnings
+            })
+        }
+        continue
+    }
+    if ($case.ContainsKey('ExpectedRule') -and $diagnosticRuleNames.Contains([string]$case.ExpectedRule)) {
+        $expectedWarningCount = if ($case.ContainsKey('ExpectedRuleCount')) { [int]$case.ExpectedRuleCount } else { 1 }
+        $actualWarningCount = @($actualWarnings | Where-Object { $_ -eq $case.ExpectedRule }).Count
+        $passed = $run.Result.status -eq 'PASS' -and $actualWarningCount -ge $expectedWarningCount
+        $caseResults.Add([pscustomobject]@{
+            name = $case.Name
+            expected = "diagnostic:$($case.ExpectedRule)"
+            expected_warning_count = $expectedWarningCount
+            actual_warning_count = $actualWarningCount
+            actual = $run.Result.status
+            warnings = $actualWarnings
+            passed = $passed
+        })
+        if (-not $passed) {
+            $failures.Add([pscustomobject]@{
+                name = $case.Name
+                expected = "diagnostic:$($case.ExpectedRule)"
                 expected_warning_count = $expectedWarningCount
                 actual_warning_count = $actualWarningCount
                 actual = $run.Result.status
@@ -999,7 +1335,11 @@ foreach ($case in $cases) {
         continue
     }
 
-    $actualRules = @($run.Result.issues | ForEach-Object { $_.rule })
+    # 语境诊断已经从硬错误降为提醒；测试仍要求检测器定位到对应规则
+    $actualRules = @(
+        @($run.Result.issues | ForEach-Object { $_.rule }) +
+        @($run.Result.warnings | ForEach-Object { $_.rule })
+    )
     $expectedRuleCount = if ($case.ContainsKey('ExpectedRuleCount')) {
         [int]$case.ExpectedRuleCount
     }

@@ -6,14 +6,20 @@ param(
     [Parameter(Mandatory, ParameterSetName = 'Text')]
     [string]$Text,
 
-    [ValidateSet('Personal', 'Publication')]
+    [string]$SourceText = '',
+
+    [ValidateSet('Personal', 'IEEE', 'Publication')]
     [string]$CaptionStyle = 'Personal',
 
     [string[]]$RequiredTerm = @(),
 
     [switch]$AllowQuestionHeadings,
 
-    [switch]$AllowEditorialProcessNarrative
+    [switch]$AllowEditorialProcessNarrative,
+
+    [switch]$AllowMixedTableCaptionPositions,
+
+    [switch]$RequireMermaid
 )
 
 Set-StrictMode -Version Latest
@@ -69,6 +75,61 @@ function Hide-NonNarrativeZones([string]$Value) {
     return $masked
 }
 
+function Hide-VerbatimZones([string]$Value) {
+    # 逐字引文、日志和代码允许保留原始标点；使用等长空格保持问题位置和行号不变
+    $masked = $Value
+    $masked = [regex]::Replace($masked, '(?ms)^```.*?^```[ \t]*$', ${function:Hide-Match})
+    $masked = [regex]::Replace($masked, '(?m)^[ \t]*>.*$', ${function:Hide-Match})
+    $masked = [regex]::Replace($masked, '`[^`\r\n]*`', ${function:Hide-Match})
+    $masked = [regex]::Replace($masked, '(?is)<(?:pre|code)\b[^>]*>.*?</(?:pre|code)>', ${function:Hide-Match})
+    return $masked
+}
+
+function Get-ExactOccurrenceCount([string]$Value, [string]$Token) {
+    if ([string]::IsNullOrEmpty($Token)) {
+        return 0
+    }
+    return [regex]::Matches($Value, [regex]::Escape($Token)).Count
+}
+
+function Get-MechanicalProtectedTokens([string]$Value) {
+    # 这里只提取能够逐字比较的机器标识和数值；主体、否定和因果关系由独立语义评估处理
+    $tokens = [Collections.Generic.List[object]]::new()
+    $patterns = [ordered]@{
+        'inline_code' = '`(?<token>[^`\r\n]+)`'
+        'url' = '(?<token>https?://[^\s）)\]}>]+)'
+        'windows_path' = '(?<token>(?<![A-Za-z0-9_])[A-Za-z]:[\\/][^\s；，：]+)'
+        'relative_path' = '(?<token>(?<!\S)(?:\.{1,2}[\\/])[^\s；，：]+)'
+        'version' = '(?<token>(?<![A-Za-z0-9_])v?\d+\.\d+(?:\.\d+)?(?:[-+][A-Za-z0-9.-]+)?(?![A-Za-z0-9_]))'
+        'number' = '(?<token>(?<![A-Za-z0-9_])\d+(?:,\d{3})*(?:\.\d+)?(?:\s*(?:%|％|GB|MB|MiB|KiB|ms|秒|分钟|小时|天|项|次|个|笔|组))?(?![A-Za-z0-9_]))'
+    }
+    $seen = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    $coveredRanges = [Collections.Generic.List[object]]::new()
+    foreach ($entry in $patterns.GetEnumerator()) {
+        foreach ($match in [regex]::Matches($Value, $entry.Value)) {
+            $matchStart = $match.Groups['token'].Index
+            $matchEnd = $matchStart + $match.Groups['token'].Length
+            $overlapsProtectedRange = @(
+                $coveredRanges | Where-Object { $matchStart -lt $_.end -and $matchEnd -gt $_.start }
+            ).Count -gt 0
+            if ($overlapsProtectedRange) {
+                continue
+            }
+            $coveredRanges.Add([pscustomobject]@{ start = $matchStart; end = $matchEnd })
+            $token = $match.Groups['token'].Value
+            $key = "$($entry.Key)|$token"
+            if ($seen.Add($key)) {
+                $tokens.Add([pscustomobject]@{
+                    kind = $entry.Key
+                    value = $token
+                    source_count = Get-ExactOccurrenceCount $Value $token
+                })
+            }
+        }
+    }
+    return @($tokens)
+}
+
 function Test-HasNaturalEnglishExplanation([string]$Line, [int]$TermEndIndex) {
     # 原生名称后出现足够的中文和解释性动词时，正文已经提供首次阅读所需的信息
     $tailLength = [Math]::Min(220, $Line.Length - $TermEndIndex)
@@ -116,7 +177,7 @@ function Get-NumberedChapterAtIndex([string]$Value, [int]$Index) {
     $beforeObject = $Value.Substring(0, [Math]::Min($Index, $Value.Length))
     $chapterMatches = [regex]::Matches(
         $beforeObject,
-        '(?m)^##[ \t]+(?<chapter>[1-9]\d*)[ \t]+\S.*$'
+        '(?m)^##[ \t]+(?<chapter>[1-9]\d*)\.[ \t]+\S.*$'
     )
     if ($chapterMatches.Count -eq 0) {
         return $null
@@ -126,9 +187,10 @@ function Get-NumberedChapterAtIndex([string]$Value, [int]$Index) {
 
 $issues = [Collections.Generic.List[object]]::new()
 $warnings = [Collections.Generic.List[object]]::new()
+$punctuationText = Hide-VerbatimZones $Text
 $period = [char]0x3002
-for ($i = 0; $i -lt $Text.Length; $i++) {
-    if ($Text[$i] -eq $period) {
+for ($i = 0; $i -lt $punctuationText.Length; $i++) {
+    if ($punctuationText[$i] -eq $period) {
         $issues.Add([pscustomobject]@{
             rule = 'FORBIDDEN_CHINESE_PERIOD'
             line = Get-LineNumber $Text $i
@@ -140,7 +202,7 @@ for ($i = 0; $i -lt $Text.Length; $i++) {
 $headingMatches = [regex]::Matches($Text, '(?m)^(?<hash>#{1,6})\s+(?<title>.+?)\s*$')
 foreach ($match in $headingMatches) {
     $title = $match.Groups['title'].Value
-    if ($title -match '[/／&＆]' -or $title -match '(?:和|与|及|、)') {
+    if ($title -match '[/／&＆]') {
         $issues.Add([pscustomobject]@{
             rule = 'PARALLEL_OR_AMBIGUOUS_HEADING'
             line = Get-LineNumber $Text $match.Index
@@ -172,10 +234,11 @@ if ($requiresHierarchicalNumbering) {
     foreach ($match in $numberedHeadingCandidates) {
         $level = $match.Groups['hash'].Value.Length
         $title = $match.Groups['title'].Value
-        $numberMatch = [regex]::Match($title, '^(?<number>\d+(?:\.\d+)*)\s+\S')
+        $numberMatch = [regex]::Match($title, '^(?<number>\d+(?:\.\d+)*)\.\s+\S')
         if (-not $numberMatch.Success) {
+            $missingTrailingDot = $title -match '^\d+(?:\.\d+)*\s+\S'
             $issues.Add([pscustomobject]@{
-                rule = 'SECTION_HEADING_REQUIRES_HIERARCHICAL_NUMBER'
+                rule = if ($missingTrailingDot) { 'SECTION_HEADING_NUMBER_REQUIRES_TRAILING_DOT' } else { 'SECTION_HEADING_REQUIRES_HIERARCHICAL_NUMBER' }
                 line = Get-LineNumber $Text $match.Index
                 excerpt = $title
             })
@@ -250,6 +313,16 @@ $codeBlockMatches = [regex]::Matches(
     $Text,
     '(?ms)^```(?<language>[^\r\n`]*)\r?\n(?<body>.*?)^```[ \t]*\r?$'
 )
+$mermaidBlockCount = @(
+    $codeBlockMatches | Where-Object { $_.Groups['language'].Value.Trim() -ieq 'mermaid' }
+).Count
+if ($RequireMermaid -and $mermaidBlockCount -eq 0) {
+    $issues.Add([pscustomobject]@{
+        rule = 'SUBSTANTIVE_FLOW_REQUIRES_MERMAID'
+        line = 1
+        excerpt = '当前内容被声明为实质流程，但没有提供 Mermaid 流程图'
+    })
+}
 $listLikeLanguages = [Collections.Generic.HashSet[string]]::new(
     [string[]]@('powershell', 'ps1', 'bash', 'sh', 'shell', 'yaml', 'yml', 'toml', 'env', 'dotenv'),
     [StringComparer]::OrdinalIgnoreCase
@@ -392,7 +465,7 @@ $withoutCodeBlocks = [regex]::Replace($Text, '(?ms)```.*?```', '')
 if (-not $AllowQuestionHeadings) {
     $questionHeadingMatches = [regex]::Matches(
         $withoutCodeBlocks,
-        '(?m)^#{1,6}[ \t]+(?:[1-9]\d*(?:\.[1-9]\d*)*[ \t]+)?(?<title>[^\r\n]*(?:为什么|为何|如何|是否|什么|怎样|怎么|能否|可否|何时|哪里|哪些|谁)[^\r\n]*|[^\r\n]*[？?])[ \t]*$'
+        '(?m)^#{1,6}[ \t]+(?:[1-9]\d*(?:\.[1-9]\d*)*\.[ \t]+)?(?<title>[^\r\n]*(?:为什么|为何|如何|是否|什么|怎样|怎么|能否|可否|何时|哪里|哪些|谁)[^\r\n]*|[^\r\n]*[？?])[ \t]*$'
     )
     foreach ($match in $questionHeadingMatches) {
         $issues.Add([pscustomobject]@{
@@ -403,7 +476,7 @@ if (-not $AllowQuestionHeadings) {
     }
 }
 
-# 全部文档把表题放在表格上方，图题继续放在图形下方
+# 普通文档把表题放在表格下方；显式 IEEE 或兼容的 Publication 配置把表题放在表格上方
 $tableMatches = [regex]::Matches(
     $withoutCodeBlocks,
     '(?m)^(?<table>(?<header>\|[^\r\n]+\|)\r?\n(?<separator>\|\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?)(?:\r?\n\|[^\r\n]+\|)*)'
@@ -434,7 +507,7 @@ foreach ($tableMatch in $tableMatches) {
     $previousTitleMatch = [regex]::Match($previousTitle, '^表\s+(?<number>\d+(?:[.-]\d+)?)\s+\S')
 
     $afterTable = $withoutCodeBlocks.Substring($tableMatch.Index + $tableMatch.Length)
-    # 读取表格下方的题注，只用于识别题注位置错误
+    # 读取表格下方的题注，普通文档把这里作为默认位置
     $nextTitleCandidate = [regex]::Match(
         $afterTable,
         '(?is)^\s*(?:</div\s*>\s*)*(?<title>表\s+\d+(?:[.-]\d+)?\s+[^\r\n]+)'
@@ -446,18 +519,22 @@ foreach ($tableMatch in $tableMatches) {
     }
     $nextTitleMatch = [regex]::Match($nextTitle, '^表\s+(?<number>\d+(?:[.-]\d+)?)\s+\S')
 
-    # CaptionStyle 参数继续保留兼容旧调用，但所有格式都要求表题位于表格上方
-    $title = $previousTitle
-    $titleMatch = $previousTitleMatch
-    $oppositeTitleMatch = $nextTitleMatch
-    $titleIndex = if ($previousTitleCandidate.Success) {
-        $previousTitleCandidate.Groups['title'].Index
+    $usesIeeeCaptionPlacement = $CaptionStyle -in @('IEEE', 'Publication')
+    $usesFollowingCaption = -not $usesIeeeCaptionPlacement
+    if ($AllowMixedTableCaptionPositions) {
+        $usesFollowingCaption = $nextTitleMatch.Success
+    }
+    $title = if ($usesFollowingCaption) { $nextTitle } else { $previousTitle }
+    $titleMatch = if ($usesFollowingCaption) { $nextTitleMatch } else { $previousTitleMatch }
+    $oppositeTitleMatch = if ($usesFollowingCaption) { $previousTitleMatch } else { $nextTitleMatch }
+    $titleIndex = if (-not $usesFollowingCaption) {
+        if ($previousTitleCandidate.Success) { $previousTitleCandidate.Groups['title'].Index } else { -1 }
     } else {
-        -1
+        if ($nextTitleCandidate.Success) { $tableMatch.Index + $tableMatch.Length + $nextTitleCandidate.Groups['title'].Index } else { -1 }
     }
 
     if (-not $titleMatch.Success) {
-        $rule = if ($oppositeTitleMatch.Success) {
+        $rule = if ($oppositeTitleMatch.Success -and -not $AllowMixedTableCaptionPositions) {
             'TABLE_TITLE_POSITION_INVALID'
         }
         else {
@@ -1234,7 +1311,7 @@ foreach ($lineMatch in $lineMatches) {
 
     $inlineEnumerationMatches = [regex]::Matches(
         $structuralLine,
-        '(?<lead>以下|包括|分为|分别|三项|四类|五类|特别要确认|优先找出[^：:\r\n]{0,12})[：:]\s*\S+'
+        '(?<lead>[^：:\r\n]{0,24}(?:以下|包括(?:以下内容)?|分为(?:以下情况)?|分别|三项|四类|五类|特别要确认|优先找出[^：:\r\n]{0,12}))[：:]\s*\S+'
     )
     foreach ($match in $inlineEnumerationMatches) {
         $issues.Add([pscustomobject]@{
@@ -1292,6 +1369,44 @@ foreach ($lineMatch in $lineMatches) {
             rule = 'INTRODUCER_REQUIRES_COLON'
             line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
             excerpt = Get-Excerpt $withoutCodeBlocks ($lineMatch.Index + $match.Index) $match.Length
+        })
+    }
+
+    $inlineExampleMatches = [regex]::Matches(
+        $structuralLine,
+        '(?<lead>例如|比如)[：:]?\s*[^，；\r\n]{1,30}、[^，；\r\n]{1,30}'
+    )
+    foreach ($match in $inlineExampleMatches) {
+        $issues.Add([pscustomobject]@{
+            rule = 'INLINE_ENUMERATION_SHOULD_BREAK'
+            line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
+            excerpt = Get-Excerpt $withoutCodeBlocks ($lineMatch.Index + $match.Index) $match.Length
+        })
+    }
+
+    # 正式英文全称使用官方大小写；固定小写品牌和没有展开形式的名称保持官方原名
+    $lowercaseParentheticalNameMatches = [regex]::Matches(
+        $withoutInlineCode,
+        '（(?<term>[a-z][A-Za-z-]*(?:[ \t]+[A-Za-z][A-Za-z-]*)+)(?:[，,]|）)'
+    )
+    foreach ($match in $lowercaseParentheticalNameMatches) {
+        $issues.Add([pscustomobject]@{
+            rule = 'PARENTHETICAL_ENGLISH_NAME_CASE_INVALID'
+            line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
+            excerpt = Get-Excerpt $withoutCodeBlocks ($lineMatch.Index + $match.Index) $match.Length
+        })
+    }
+
+    $termCaseLine = [regex]::Replace($withoutInlineCode, 'https?://\S+', ${function:Hide-Match})
+    $wrongCanonicalTermMatches = [regex]::Matches(
+        $termCaseLine,
+        '(?<![A-Za-z0-9_])(?<term>png|Png|webp|Webp|http|Http|ci|Ci|NPM)(?![A-Za-z0-9_])'
+    )
+    foreach ($match in $wrongCanonicalTermMatches) {
+        $issues.Add([pscustomobject]@{
+            rule = 'CANONICAL_TECHNICAL_TERM_CASE_INVALID'
+            line = Get-LineNumber $withoutCodeBlocks ($lineMatch.Index + $match.Index)
+            excerpt = $match.Groups['term'].Value
         })
     }
 
@@ -1417,8 +1532,34 @@ foreach ($lineMatch in $lineMatches) {
     }
 }
 
-# 简短标签和值属于同一逻辑框架，拆成两行会增加无意义的视线跳转
+# 冒号后的子项目必须比父列表继续缩进一级，避免读者误以为两组内容属于同一层
 $plainLines = $withoutCodeBlocks -split '\r?\n'
+for ($plainLineIndex = 0; $plainLineIndex -lt $plainLines.Count; $plainLineIndex++) {
+    $parentMatch = [regex]::Match(
+        $plainLines[$plainLineIndex],
+        '^(?<indent>[ \t]*)[-*][ \t]+[^\r\n]+[：:]\s*$'
+    )
+    if (-not $parentMatch.Success) {
+        continue
+    }
+    $childIndex = $plainLineIndex + 1
+    while ($childIndex -lt $plainLines.Count -and [string]::IsNullOrWhiteSpace($plainLines[$childIndex])) {
+        $childIndex++
+    }
+    if ($childIndex -ge $plainLines.Count) {
+        continue
+    }
+    $childMatch = [regex]::Match($plainLines[$childIndex], '^(?<indent>[ \t]*)[-*][ \t]+\S')
+    if ($childMatch.Success -and $childMatch.Groups['indent'].Value.Length -le $parentMatch.Groups['indent'].Value.Length) {
+        $issues.Add([pscustomobject]@{
+            rule = 'NESTED_LIST_REQUIRES_INDENTATION'
+            line = $childIndex + 1
+            excerpt = $plainLines[$childIndex].Trim()
+        })
+    }
+}
+
+# 简短标签和值属于同一逻辑框架，拆成两行会增加无意义的视线跳转
 for ($plainLineIndex = 0; $plainLineIndex -lt ($plainLines.Count - 1); $plainLineIndex++) {
     $labelLine = $plainLines[$plainLineIndex]
     if ($labelLine -notmatch '^[ \t]*(?:[-*][ \t]+)?[^：\r\n]{1,40}(?:为|是)：[ \t]*$') {
@@ -1475,8 +1616,71 @@ foreach ($term in @($RequiredTerm)) {
     }
 }
 
+if (-not [string]::IsNullOrWhiteSpace($SourceText)) {
+    foreach ($protectedToken in @(Get-MechanicalProtectedTokens $SourceText)) {
+        $candidateCount = Get-ExactOccurrenceCount $Text $protectedToken.value
+        if ($candidateCount -eq 0) {
+            $issues.Add([pscustomobject]@{
+                rule = 'PROTECTED_TOKEN_MISSING'
+                line = 1
+                excerpt = "$($protectedToken.kind): $($protectedToken.value)"
+            })
+            continue
+        }
+        if ($candidateCount -ne $protectedToken.source_count) {
+            $issues.Add([pscustomobject]@{
+                rule = 'PROTECTED_TOKEN_OCCURRENCE_CHANGED'
+                line = 1
+                excerpt = "$($protectedToken.kind): $($protectedToken.value); source=$($protectedToken.source_count); candidate=$candidateCount"
+            })
+        }
+    }
+}
+
+# 这些规则依赖语境或自然度判断；保留定位信息，但不再由正则表达式宣布语义失败
+$diagnosticRuleNames = [Collections.Generic.HashSet[string]]::new(
+    [string[]]@(
+        'AMBIGUOUS_FROZEN_VERSION_OWNER',
+        'DOUBLE_NEGATIVE_SHOULD_BE_SIMPLIFIED',
+        'EDITORIAL_PROCESS_META_NARRATIVE_FORBIDDEN',
+        'EXPLANATION_TOO_LONG',
+        'FIELD_LABEL_EXPLANATION_SHOULD_BE_NATURAL_PROSE',
+        'INLINE_BRANCH_SHOULD_BREAK',
+        'INLINE_NOUN_ENUMERATION_SHOULD_BREAK',
+        'LOW_INFORMATION_LEAD_SHOULD_BE_REMOVED',
+        'NEGATIVE_FIRST_CONTRAST_SHOULD_BE_DIRECT',
+        'NUMERIC_CLAIM_REQUIRES_PROVENANCE',
+        'ORIGINAL_TERM_REQUIRES_EXPLANATION',
+        'OVERLONG_NESTED_SENTENCE_SHOULD_SPLIT',
+        'PARENTHESIS_OVERLOAD',
+        'PARALLEL_NUMERIC_FACTS_SHOULD_BREAK',
+        'POSSIBLY_AMBIGUOUS_PRONOUN_REFERENCE',
+        'POSSIBLY_DECORATIVE_QUOTATION',
+        'POSSIBLY_DELAYED_SUBJECT',
+        'POSSIBLY_MISSING_ACTION_SUBJECT',
+        'POSSIBLY_STACKED_DE_MODIFIERS',
+        'REPEATED_DEFENSIVE_BOUNDARY_SHOULD_CONSOLIDATE',
+        'SIMPLE_KEY_VALUE_SHOULD_STAY_INLINE',
+        'SINGLE_OUTCOME_BRANCH_SHOULD_STAY_INLINE',
+        'STOCK_META_WRITING_PHRASE',
+        'WEAK_NOMINALIZED_VERB_SHOULD_BE_PRECISE'
+    ),
+    [StringComparer]::Ordinal
+)
+$hardIssues = [Collections.Generic.List[object]]::new()
+foreach ($issue in $issues) {
+    if ($diagnosticRuleNames.Contains([string]$issue.rule)) {
+        $warnings.Add($issue)
+    }
+    else {
+        $hardIssues.Add($issue)
+    }
+}
+$issues = $hardIssues
+
 $result = [pscustomobject]@{
     status = if ($issues.Count -eq 0) { 'PASS' } else { 'FAIL' }
+    comparison_performed = -not [string]::IsNullOrWhiteSpace($SourceText)
     issue_count = $issues.Count
     issues = @($issues)
     warning_count = $warnings.Count

@@ -1,0 +1,48 @@
+{"id":"FRESH-CHAT-01","register":"chat","prompt":"订单导入返回错误代码 17；日志只写到导入失败，根因未知；给第一次接触系统的人解释结果和下一步","facts":["错误代码 17","导入失败","根因未知"]}
+{"id":"FRESH-CHAT-02","register":"chat","prompt":"用户说你给写作 Skill 加了检查器、质量门禁和发布流程，已经做成发布系统；承认具体偏差，并明确现在只解决 Skill 是否稳定触发、篇幅是否合适、Agent 是否遵守规则","facts":["写作 Skill","检查器","质量门禁","发布流程","发布系统","稳定触发","篇幅合适","Agent 遵守规则"]}
+{"id":"FRESH-CHAT-03","register":"chat","prompt":"只回答当前回答为什么变长；已知原因是每条短回复都执行完整仓库检查","facts":["每条短回复","完整仓库检查"]}
+{"id":"FRESH-CHAT-04","register":"chat","prompt":"给非技术同事解释 OutputEnvelope；它保存待发送正文、正文摘要和检查结果；摘要不一致时拒绝发送","facts":["OutputEnvelope","待发送正文","正文摘要","检查结果","摘要不一致时拒绝发送"]}
+{"id":"FRESH-CHAT-05","register":"chat","prompt":"日志已经确认部署配置指向的文件不存在；只给修正这个问题的一个下一步，不复述背景，也不展开完整排障","facts":["部署配置指向的文件不存在","一个下一步"]}
+{"id":"FRESH-CHAT-06","register":"chat","prompt":"解释 shell=false；它表示直接启动目标程序，不先让命令行外壳解析整段命令","facts":["shell=false","直接启动目标程序","不先让命令行外壳解析"]}
+{"id":"FRESH-STATUS-01","register":"status","prompt":"根据我本次给的数据写状态：20 项检查通过 17 项、失败 3 项；失败项都缺少输入文件","facts":["20 项","17 项","3 项","缺少输入文件"]}
+{"id":"FRESH-STATUS-02","register":"status","prompt":"备份任务已经完成；摘要显示原文件和副本一致；下一步由值班人员保存记录","facts":["备份任务已经完成","原文件和副本一致","值班人员保存记录"]}
+{"id":"FRESH-STATUS-03","register":"status","prompt":"发布任务已经取消；原因是用户主动撤销；没有产生线上变更","facts":["已经取消","用户主动撤销","没有产生线上变更"]}
+{"id":"FRESH-STATUS-04","register":"status","prompt":"软件流程验证已经完成；真实设备测试尚未完成；产品不能发布","facts":["软件流程验证已经完成","真实设备测试尚未完成","产品不能发布"]}
+{"id":"FRESH-STATUS-05","register":"status","prompt":"任务状态是 running；它只说明进程尚未结束，不代表结果正确","facts":["running","进程尚未结束","不代表结果正确"]}
+{"id":"FRESH-STATUS-06","register":"status","prompt":"数据迁移暂停；监控发现目标磁盘只剩 8 GB；继续写入可能耗尽空间","facts":["迁移暂停","8 GB","可能耗尽空间"]}
+{"id":"FRESH-README-01","register":"readme","prompt":"为一个命令行 Markdown 链接检查器写 README 开头；它给仓库维护者使用，入口是 check-links，发现失效链接时退出码为 2","facts":["Markdown 链接检查器","仓库维护者","check-links","退出码为 2"]}
+{"id":"FRESH-README-02","register":"readme","prompt":"为中文写作 Skill 写 README 开头；它改善触发、中文表达和事实保留，不负责验证业务数据是否真实","facts":["中文写作 Skill","触发","中文表达","事实保留","不负责验证业务数据"]}
+{"id":"FRESH-README-03","register":"readme","prompt":"为一个本地图片压缩工具写 README 开头；输入是 PNG，输出是 WebP，默认不上传文件","facts":["本地图片压缩工具","PNG","WebP","默认不上传文件"]}
+{"id":"FRESH-README-04","register":"readme","prompt":"为配置差异查看器写 README 开头；读者是运维人员；工具比较两份 YAML，只读，不修改原文件","facts":["配置差异查看器","运维人员","两份 YAML","只读","不修改原文件"]}
+{"id":"FRESH-README-05","register":"readme","prompt":"为日志脱敏工具写 README 开头；它遮盖令牌和个人路径；扫描结果仍需人工复核","facts":["日志脱敏工具","令牌","个人路径","人工复核"]}
+{"id":"FRESH-README-06","register":"readme","prompt":"为 API 冒烟测试工具写 README 开头；它发送合成请求，记录状态码和时长，不读取客户数据","facts":["API 冒烟测试工具","合成请求","状态码和时长","不读取客户数据"]}
+{"id":"FRESH-TUTORIAL-01","register":"tutorial","prompt":"教第一次使用者运行 link-check；第一步安装依赖，第二步运行检查；退出码 0 表示全部链接可访问，退出码 2 表示存在失效链接","facts":["link-check","第一步安装依赖","第二步运行检查","退出码 0","退出码 2"]}
+{"id":"FRESH-TUTORIAL-02","register":"tutorial","prompt":"解释 command argv 数组；它是字符串数组，第 1 项是程序，其余项是独立参数；示例是 [\"git\", \"status\"]；独立参数边界可以保留参数中的空格，并减少 shell 解析和注入风险","facts":["command argv 数组","字符串数组","第 1 项是程序","其余项是独立参数","[\"git\", \"status\"]","保留参数中的空格","减少 shell 解析和注入风险"]}
+{"id":"FRESH-TUTORIAL-03","register":"tutorial","prompt":"教用户恢复配置；先复制 backup.yaml 覆盖 app.yaml，再运行 validate-config；验证失败时恢复原文件","facts":["backup.yaml","app.yaml","validate-config","验证失败时恢复原文件"]}
+{"id":"FRESH-TUTORIAL-04","register":"tutorial","prompt":"解释如何读取 JSONL；每一行都是一个完整 JSON 对象；空行忽略；解析失败时报告行号","facts":["JSONL","完整 JSON 对象","空行忽略","报告行号"]}
+{"id":"FRESH-TUTORIAL-05","register":"tutorial","prompt":"教用户查看服务状态；运行 status-app；看到 running 只表示进程仍在执行；还要查看 health 字段是否为 healthy","facts":["status-app","running","进程仍在执行","health","healthy"]}
+{"id":"FRESH-TUTORIAL-06","register":"tutorial","prompt":"解释如何提交一个审核样本；只保留脱敏后的问题、拒绝版本、接受版本和原因；禁止上传完整对话","facts":["脱敏后的问题","拒绝版本","接受版本","原因","禁止上传完整对话"]}
+{"id":"FRESH-ARCH-01","register":"architecture","prompt":"解释一个统一 API 入口；所有请求先进入 API 层，再按类型分发给本地执行器；失败结果返回调用方","facts":["API 层","按类型分发","本地执行器","失败结果返回调用方"]}
+{"id":"FRESH-ARCH-02","register":"architecture","prompt":"解释只追加证据台账；每条记录包含时间、主体、动作和摘要；旧记录不能覆盖","facts":["只追加","时间","主体","动作","摘要","旧记录不能覆盖"]}
+{"id":"FRESH-ARCH-03","register":"architecture","prompt":"解释质量门禁；CI 中任一必需检查失败都会阻止发布；普通聊天不运行这组检查","facts":["质量门禁","CI","任一必需检查失败","阻止发布","普通聊天不运行"]}
+{"id":"FRESH-ARCH-04","register":"architecture","prompt":"解释请求重试；客户端最多重试 3 次；每次等待时间递增；全部失败后返回最终错误；写入请求必须带幂等键，重试时复用同一个键，避免同一操作重复写入","facts":["最多重试 3 次","等待时间递增","全部失败后返回最终错误","写入请求","重试复用同一个幂等键","避免同一操作重复写入"]}
+{"id":"FRESH-ARCH-05","register":"architecture","prompt":"解释缓存失效流程；配置变更后服务删除旧缓存；下一次读取重新加载；删除失败时保留旧值并报告错误","facts":["配置变更","删除旧缓存","下一次读取重新加载","删除失败时保留旧值","报告错误"]}
+{"id":"FRESH-ARCH-06","register":"architecture","prompt":"解释任务取消；控制器发出取消信号；执行器停止未开始步骤；已经完成的外部写入需要单独撤销","facts":["取消信号","停止未开始步骤","已经完成的外部写入","单独撤销"]}
+{"id":"FRESH-UI-01","register":"ui","prompt":"只输出可直接使用的管理台导航名称和页面说明，不创建或修改文件；内部名称是 DeletionReceipt；页面展示任务正文和元数据按保留策略删除的时间记录","facts":["任务正文和元数据","保留策略","删除时间记录"]}
+{"id":"FRESH-UI-02","register":"ui","prompt":"写任务进入队列后的状态；请求已经接收，但处理尚未开始","facts":["请求已经接收","处理尚未开始"]}
+{"id":"FRESH-UI-03","register":"ui","prompt":"写保存失败提示；原因是文件只读；用户可以另存为新文件","facts":["保存失败","文件只读","另存为新文件"]}
+{"id":"FRESH-UI-04","register":"ui","prompt":"写删除确认；删除后无法恢复；用户需要输入项目名称确认","facts":["删除后无法恢复","输入项目名称确认"]}
+{"id":"FRESH-UI-05","register":"ui","prompt":"写上传进度状态；文件已经上传 68%；关闭页面会中断上传","facts":["68%","关闭页面会中断上传"]}
+{"id":"FRESH-UI-06","register":"ui","prompt":"写权限不足提示；当前账户只能查看，不能修改；管理员可以授予编辑权限","facts":["只能查看","不能修改","管理员","编辑权限"]}
+{"id":"FRESH-API-01","register":"api","prompt":"解释 HTTP 202 Accepted；请求已经接收，处理尚未完成；客户端通过 GET /jobs/{id} 查询结果","facts":["HTTP 202 Accepted","处理尚未完成","GET /jobs/{id}"]}
+{"id":"FRESH-API-02","register":"api","prompt":"解释字段 task_contract；它保存任务约束；缺失时返回 HTTP 400","facts":["task_contract","任务约束","HTTP 400"]}
+{"id":"FRESH-API-03","register":"api","prompt":"解释 HTTP 409 Conflict；相同幂等键已经用于不同请求；客户端必须生成新键","facts":["HTTP 409 Conflict","相同幂等键","不同请求","生成新键"]}
+{"id":"FRESH-API-04","register":"api","prompt":"解释分页字段 next_cursor；为空表示没有下一页；客户端不得猜测游标值","facts":["next_cursor","为空表示没有下一页","不得猜测游标值"]}
+{"id":"FRESH-API-05","register":"api","prompt":"解释速率限制；响应头 X-RateLimit-Remaining 表示剩余请求数；HTTP 429 后按 Retry-After 等待","facts":["X-RateLimit-Remaining","剩余请求数","HTTP 429","Retry-After"]}
+{"id":"FRESH-API-06","register":"api","prompt":"解释删除接口 DELETE /items/{id}；成功返回 HTTP 204；重复删除仍返回 HTTP 204","facts":["DELETE /items/{id}","HTTP 204","重复删除"]}
+{"id":"FRESH-AUDIT-01","register":"audit_incident","prompt":"写事故摘要；10:14 服务开始返回 HTTP 503；10:22 回滚完成；影响 8 分钟；根因尚未确认","facts":["10:14","HTTP 503","10:22","影响 8 分钟","根因尚未确认"]}
+{"id":"FRESH-AUDIT-02","register":"audit_incident","prompt":"写审计说明；审计日志记录登录、密钥变更和任务取消；当前记录只覆盖最近 30 天","facts":["审计日志","登录","密钥变更","任务取消","最近 30 天"]}
+{"id":"FRESH-AUDIT-03","register":"audit_incident","prompt":"写数据删除证明说明；记录显示任务正文在 7 月 2 日删除；附件删除时间没有记录","facts":["任务正文","7 月 2 日","附件删除时间没有记录"]}
+{"id":"FRESH-AUDIT-04","register":"audit_incident","prompt":"写事故状态；服务已经恢复；缓存可能是原因；日志不足以确认根因；下一步核对缓存失效记录","facts":["服务已经恢复","缓存可能是原因","日志不足以确认根因","缓存失效记录"]}
+{"id":"FRESH-AUDIT-05","register":"audit_incident","prompt":"写权限审计结论；12 个账户中有 2 个保留多余编辑权限；来源是本次权限导出；负责人将在周五前撤销","facts":["12 个账户","2 个","本次权限导出","周五前撤销"]}
+{"id":"FRESH-AUDIT-06","register":"audit_incident","prompt":"写恢复演练结果；备份恢复耗时 14 分钟；目标是 20 分钟以内；本次只验证测试环境，不能代表生产环境也能在 20 分钟内完成恢复","facts":["14 分钟","20 分钟以内","测试环境","不能代表生产环境也能在 20 分钟内完成恢复"]}

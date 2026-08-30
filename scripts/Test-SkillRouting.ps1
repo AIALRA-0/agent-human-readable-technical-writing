@@ -23,6 +23,11 @@ else {
             $failures.Add("触发描述缺少关键词：$keyword")
         }
     }
+    foreach ($boundary in @('非中文单词', '纯数字', '纯 JSON', '不得触发')) {
+        if ($description -notmatch [regex]::Escape($boundary)) {
+            $failures.Add("触发描述缺少边界：$boundary")
+        }
+    }
 }
 
 # 允许隐式调用后，用户不写技能名称的中文写作请求才能依据描述自动加载本技能
@@ -37,7 +42,7 @@ if ($skillText -match '每一条用户可见中文内容都属于检查对象' -
 
 [pscustomobject][ordered]@{
     status = if ($failures.Count -eq 0) { 'PASS' } else { 'FAIL' }
-    check_count = 12
+    check_count = 16
     failure_count = $failures.Count
     failures = @($failures)
 } | ConvertTo-Json -Depth 6
