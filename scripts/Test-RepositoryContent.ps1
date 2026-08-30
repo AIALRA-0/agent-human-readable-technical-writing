@@ -18,6 +18,18 @@ $ruleTests = Join-Path $PSScriptRoot 'Test-HumanReadableChinese.Tests.ps1'
 $documentResults = [Collections.Generic.List[object]]::new()
 $markdownFiles = @(Get-ChildItem -LiteralPath $skillRoot -Recurse -File -Filter '*.md')
 foreach ($file in $markdownFiles) {
+    # 英文版文档继续参加链接和文件完整性检查，不进入只面向中文正文的写作检查器
+    if ($file.Name -match '\.en\.md$') {
+        $documentResults.Add([pscustomobject]@{
+            path = [IO.Path]::GetRelativePath($skillRoot, $file.FullName)
+            status = 'PASS'
+            issue_count = 0
+            rules = @()
+            warning_count = 0
+            warnings = @()
+        })
+        continue
+    }
     # 完整案例文档属于问答页面，正式评估仍会逐个限制普通案例中的疑问句标题
     $lintArguments = @{
         Path = $file.FullName

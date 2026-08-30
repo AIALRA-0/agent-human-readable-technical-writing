@@ -353,7 +353,10 @@ pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # Run 172 
 pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # Run 51 complete-answer evaluations
 pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # Regenerate case documentation from passing results
 pwsh -NoProfile -File ".\scripts\Test-RepositoryContent.ps1" # Check public documents case synchronization and relative links
+pwsh -NoProfile -File ".\scripts\Measure-SkillBehavior.ps1" -SkillRoot "." -OutputPath "<private-path-outside-repository>" -AuthPath "<Codex-auth-file>" -CodexExecutable "<current-Codex-executable>" # Compare the no-Skill baseline with the current Skill in isolated fresh tasks
 ```
+
+The live behavior evaluation uses synthetic prompts only; keep its report outside the repository and replace the authentication and executable placeholders with local values
 
 Automated validation finds mechanically identifiable writing problems but cannot prove that source facts are correct
 
@@ -376,6 +379,7 @@ Important reports still require human comparison with primary evidence and a che
 | `references/quality-development.md` | Quality process loaded only when the Skill changes |
 | `scripts/Test-HumanReadableChinese.ps1` | Checker for mechanically detectable writing problems |
 | `scripts/Test-HumanReadableChinese.Tests.ps1` | Positive and negative checker tests |
+| `scripts/Measure-SkillBehavior.ps1` | Isolated Sol evaluation for output quality activation false positives and response length |
 | `scripts/Export-QualityCases.ps1` | Generator for the complete-case document |
 | `scripts/Test-RepositoryContent.ps1` | Public-document, case-sync, and relative-link validation |
 | `evals/Invoke-QualityEvaluation.20260729.ps1` | Multi-domain complete answers and sample-difference requirements |

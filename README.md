@@ -21,7 +21,7 @@
   <a href="#quality-validation">质量检查</a>
 </p>
 
-<p><a href="README.md">简体中文</a> · <a href="README.en.md">English</a></p>
+<p><a href="README.md">简体中文</a> · <a href="README.en.md">英文版</a></p>
 
 </div>
 
@@ -497,7 +497,10 @@ pwsh -NoProfile -File ".\scripts\Test-HumanReadableChinese.Tests.ps1" # 执行 1
 pwsh -NoProfile -File ".\evals\Invoke-QualityEvaluation.20260729.ps1" # 执行 51组完整问答质量测试
 pwsh -NoProfile -File ".\scripts\Export-QualityCases.ps1" # 使用已经通过检查的结果重新生成案例文档
 pwsh -NoProfile -File ".\scripts\Test-RepositoryContent.ps1" # 检查全部公开文档、案例同步状态和相对链接
+pwsh -NoProfile -File ".\scripts\Measure-SkillBehavior.ps1" -SkillRoot "." -OutputPath "<仓库外私有报告路径>" -AuthPath "<Codex 登录文件路径>" -CodexExecutable "<当前 Codex 执行程序>" # 使用隔离的新任务比较无技能基线与当前技能
 ```
+
+真实行为评测只使用合成问题；报告必须保存在仓库外，命令中的登录文件路径和执行程序路径必须使用本机实际值
 
 自动检查只能发现能够明确识别的写作问题，不能证明报告中的事实一定正确
 
@@ -520,6 +523,7 @@ pwsh -NoProfile -File ".\scripts\Test-RepositoryContent.ps1" # 检查全部公�
 | `references/quality-development.md` | 修改技能时才读取的质量测试流程 |
 | `scripts/Test-HumanReadableChinese.ps1` | 检查能够明确识别的写作问题 |
 | `scripts/Test-HumanReadableChinese.Tests.ps1` | 验证检查器能接受正确写法并拒绝错误写法 |
+| `scripts/Measure-SkillBehavior.ps1` | 使用隔离的 Sol 任务测量真实回答、触发、误触发和篇幅变化 |
 | `scripts/Export-QualityCases.ps1` | 使用正式测试结果生成完整案例文档 |
 | `scripts/Test-RepositoryContent.ps1` | 使用技能自身检查全部公开文档、案例同步状态和相对链接 |
 | `evals/Invoke-QualityEvaluation.20260729.ps1` | 保存多行业完整问答和样本差异要求 |

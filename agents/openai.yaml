@@ -1,7 +1,7 @@
 interface:
   display_name: "中文人类可读技术写作"
-  short_description: "把中文解释、状态、计划和技术结论写得直接、清楚、可核对"
-  default_prompt: "使用 $human-readable-technical-writing 直接回答当前问题，只补充相关依据、后果和下一步"
+  short_description: "硬性约束中文解释、数字、错误、取舍与技术结论"
+  default_prompt: "使用 $human-readable-technical-writing 直接回答当前问题，并遵守标点、因果、术语、列表和范围硬规则"
 
 policy:
   allow_implicit_invocation: true
