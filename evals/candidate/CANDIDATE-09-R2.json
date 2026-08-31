@@ -1,0 +1,189 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-09-R2",
+    "origin_case_id": "CANDIDATE-09",
+    "status": "candidate",
+    "revision": 2,
+    "approved_by_user": false,
+    "category": "image_explanation",
+    "reviewed_at": null
+  },
+  "task": {
+    "base_operation": "EXPLAIN",
+    "augmentation": "TEACHING",
+    "genre": "tutorial",
+    "audience": "zero_prior_knowledge",
+    "media": [
+      "markdown",
+      "image"
+    ],
+    "components": [
+      "IMAGE",
+      "TEXT"
+    ],
+    "request": "把图中每个影响理解的元素讲清楚，并区分可见事实、背景知识和图中没有证明的内容"
+  },
+  "source": {
+    "material_type": "image",
+    "content": {
+      "path": "evals/candidate/assets/CANDIDATE-09-clock-crossing.svg",
+      "effective_elements": [
+        "蓝色 clk_a 时钟域",
+        "绿色 clk_b 时钟域",
+        "control 圆形信号源",
+        "从左向右的箭头",
+        "跨时钟域标签",
+        "FF1 方框",
+        "FF2 方框",
+        "两级触发器同步器标签",
+        "图中没有展示多比特总线提示"
+      ]
+    },
+    "references": [
+      {
+        "id": "REF-001",
+        "kind": "fixture_background",
+        "content": "时钟域表示由同一时钟控制的一组电路；触发器在时钟边沿采样输入；两级触发器同步器常用于降低单比特控制信号的亚稳态传播风险，但不能自动保证多比特数据一致"
+      }
+    ]
+  },
+  "semantics": {
+    "source_atoms": [
+      {
+        "id": "ATOM-001",
+        "source_locator": "左侧蓝色区域",
+        "claim": "control 信号起点位于 clk_a 时钟域",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-002",
+        "source_locator": "中间箭头",
+        "claim": "control 信号从左向右跨越时钟域",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-003",
+        "source_locator": "FF1 和 FF2",
+        "claim": "信号依次经过两个触发器",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-004",
+        "source_locator": "右侧绿色区域",
+        "claim": "FF2 输出位于 clk_b 时钟域",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-005",
+        "source_locator": "底部橙色提示",
+        "claim": "图中没有展示多比特总线",
+        "provenance_type": "SOURCE"
+      }
+    ],
+    "background_atoms": [
+      {
+        "id": "BG-001",
+        "source_reference": "REF-001",
+        "purpose": "解释时钟域和触发器",
+        "claim": "时钟域由同一时钟控制，触发器在时钟边沿采样输入",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-002",
+        "source_reference": "REF-001",
+        "purpose": "解释两级同步器的用途和边界",
+        "claim": "两级同步器降低单比特控制信号的亚稳态传播风险，但不能自动保证多比特数据一致",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      }
+    ],
+    "must_preserve": [
+      "信号方向从 clk_a 到 clk_b",
+      "先经过 FF1 再经过 FF2",
+      "图中没有展示多比特总线",
+      "颜色只用于区分区域"
+    ],
+    "must_not_invent": [
+      "电路已经通过仿真",
+      "电路已经在板卡上验证",
+      "两级同步器消除全部风险",
+      "多比特总线也适用"
+    ],
+    "inference_atoms": []
+  },
+  "artifact": {
+    "answer": "![时钟域跨越原图](assets/CANDIDATE-09-clock-crossing.svg)\n\n图 1. 单比特控制信号从 `clk_a` 进入 `clk_b` 的两级同步路径\n\n这张图展示一个名为 `control` 的单比特控制信号怎样从蓝色的 `clk_a` 时钟域进入绿色的 `clk_b` 时钟域，并依次经过 `FF1` 和 `FF2` 两个触发器\n\n理解图片需要知道：\n\n- 时钟域是由同一时钟控制的一组电路；蓝色与绿色区域用于区分两个时钟域，不表示电压、风险等级或测试结果\n- 触发器是在时钟边沿采样输入并保存一位状态的电路元件；`FF1` 和 `FF2` 的方框表示两个先后连接的触发器\n\n图中的有效元素分别承担以下作用：\n\n- `control` 圆形信号源位于左侧蓝色区域，表示信号从 `clk_a` 时钟域产生\n- 从左向右的箭头表示信号传播方向；信号先跨越时钟域边界进入 `FF1`，再由 `FF1` 进入 `FF2`\n- `FF1` 是接收端的第一级触发器；它先承受异步到达信号可能带来的亚稳态风险，并给信号一个时钟周期恢复\n- `FF2` 是第二级触发器；它采样第一级经过恢复时间后的输出，从而降低不稳定状态继续传播到后续逻辑的概率\n- 底部提示写明图中没有展示多比特总线；这限制了图片能够支持的结论范围\n\n从连接关系可以直接看出，`control` 先经过 `FF1`，再经过 `FF2`；结合背景知识可以解释这是一条常见的单比特同步路径，但图片本身没有显示波形、时序约束、仿真结果或真实板卡测量数据\n\n因此，这张图没有证明电路已经通过仿真、板卡验证或所有跨时钟检查；缺少这些证据会影响对实际可靠性的判断，下一步应检查时序与 CDC 报告，并通过仿真或板卡测试核对实际行为",
+    "support_map": [
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-001"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-002"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-003"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-004"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-005"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-001"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-002"
+        ],
+        "role": "explanatory_background"
+      }
+    ],
+    "self_claims": [],
+    "original_case_sha256": "23b2813cdc4f91e72e5206efb0291b9b76848424003e5f396c58e142c68e52fd"
+  },
+  "review": {
+    "decision_source": "explicit_user_review",
+    "decision": "pending",
+    "reasons": [
+      "R2 已按首轮审核意见修订，等待第二轮用户审核"
+    ],
+    "correct_parts": [
+      "FF1 到 FF2 的直接连接关系识别正确"
+    ],
+    "regression_requirements": [
+      "原图先于解释",
+      "解释有效元素的外观、功能、连接和实际作用",
+      "区分可见事实、背景和推断",
+      "边界包含缺失证据、重要性和验证方法"
+    ],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
+    }
+  }
+}

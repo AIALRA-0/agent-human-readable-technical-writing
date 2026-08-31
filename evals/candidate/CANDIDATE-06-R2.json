@@ -1,0 +1,148 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-06-R2",
+    "origin_case_id": "CANDIDATE-06",
+    "status": "candidate",
+    "revision": 2,
+    "approved_by_user": false,
+    "category": "explanatory_translation",
+    "reviewed_at": null
+  },
+  "task": {
+    "base_operation": "TRANSLATE",
+    "augmentation": "EXPLANATORY",
+    "genre": "legal_notice",
+    "audience": "general_reader",
+    "media": [
+      "markdown"
+    ],
+    "components": [
+      "TEXT"
+    ],
+    "request": "完整翻译条款，并解释普通读者容易混淆的暂停、终止和费用关系"
+  },
+  "source": {
+    "material_type": "text",
+    "content": "The Supplier may suspend access if an invoice remains unpaid for more than 15 days after its due date. Suspension does not terminate this Agreement or waive accrued fees. The Supplier must restore access within two business days after receiving full payment.",
+    "references": [
+      {
+        "id": "REF-001",
+        "kind": "fixture_glossary",
+        "content": "在本合成条款中，suspend access 表示暂时停止服务访问；terminate the Agreement 表示结束协议；accrued fees 表示已经产生的费用；business day 表示合同采用的工作日口径，具体节假日范围需要由合同其他条款确定"
+      }
+    ]
+  },
+  "semantics": {
+    "source_atoms": [
+      {
+        "id": "ATOM-001",
+        "source_locator": "第 1 句",
+        "claim": "发票到期超过 15 天仍未付款时，供应商可以暂停访问",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-002",
+        "source_locator": "第 2 句",
+        "claim": "暂停访问不终止协议，也不免除已经产生的费用",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-003",
+        "source_locator": "第 3 句",
+        "claim": "供应商收到全部付款后必须在两个工作日内恢复访问",
+        "provenance_type": "SOURCE"
+      }
+    ],
+    "background_atoms": [
+      {
+        "id": "BG-001",
+        "source_reference": "REF-001",
+        "purpose": "区分暂停和终止",
+        "claim": "暂停访问是暂时停止服务，终止协议是结束协议关系",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-002",
+        "source_reference": "REF-001",
+        "purpose": "解释已产生费用和工作日边界",
+        "claim": "已产生费用不会因暂停而消失，工作日范围需要由合同其他条款确定",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      }
+    ],
+    "must_preserve": [
+      "超过 15 天",
+      "供应商可以而非必须暂停",
+      "暂停不终止协议",
+      "费用不免除",
+      "收到全部付款后两个工作日内恢复"
+    ],
+    "must_not_invent": [
+      "供应商必须暂停",
+      "暂停自动终止协议",
+      "工作日包含哪些节假日",
+      "部分付款足以恢复访问"
+    ],
+    "inference_atoms": []
+  },
+  "artifact": {
+    "answer": "如果发票在到期日后超过 15 天仍未付款，供应商可以暂停客户访问服务；这里的“可以”表示供应商有权选择暂停，不表示到期后必须自动暂停\n\n暂停访问不会终止本协议，也不会免除原协议已经产生的费用；暂停访问只是暂时停止使用服务，协议关系仍然有效，终止协议才表示结束协议关系，因此两者的法律效果不同\n\n供应商收到全部付款后，必须在两个工作日内恢复访问；两个工作日从收到全部付款后开始计算，但哪些日期属于工作日仍需按照合同中对工作日的定义核对，当前条款本身不能确定周末和节假日是否计入",
+    "support_map": [
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-001"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-002"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-003"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-001"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-002"
+        ],
+        "role": "explanatory_background"
+      }
+    ],
+    "self_claims": [],
+    "original_case_sha256": "cd5deb7618e0be9acd98c9b22dd15ae3debbc7077828802b5759036308959da4"
+  },
+  "review": {
+    "decision_source": "explicit_user_review",
+    "decision": "pending",
+    "reasons": [
+      "R2 已按首轮审核意见修订，等待第二轮用户审核"
+    ],
+    "correct_parts": [
+      "暂停访问、协议效力和恢复条件的顺序清楚"
+    ],
+    "regression_requirements": [
+      "写明原协议已经产生的费用仍需支付",
+      "说明两个工作日从收到全部付款后计算",
+      "工作日定义不明时指出核对位置"
+    ],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
+    }
+  }
+}

@@ -1,0 +1,195 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-04-R2",
+    "origin_case_id": "CANDIDATE-04",
+    "status": "candidate",
+    "revision": 2,
+    "approved_by_user": false,
+    "category": "glossed_transform",
+    "reviewed_at": null
+  },
+  "task": {
+    "base_operation": "TRANSFORM",
+    "augmentation": "GLOSS",
+    "genre": "api",
+    "audience": "zero_prior_knowledge",
+    "media": [
+      "markdown"
+    ],
+    "components": [
+      "TEXT",
+      "CODE"
+    ],
+    "request": "保留接口含义，解释普通读者判断结果需要知道的术语"
+  },
+  "source": {
+    "material_type": "text",
+    "content": "`POST /tasks` 返回 HTTP `202` 和 `task_id`。客户端随后使用 `task_id` 查询处理状态。返回 `202` 不表示任务已经处理成功。",
+    "references": [
+      {
+        "id": "REF-001",
+        "kind": "fixture_glossary",
+        "content": "HTTP 是客户端与服务交换请求和响应的协议；202 表示请求已被接收处理，但处理尚未完成；task_id 是服务为本次任务分配的唯一查询标识"
+      },
+      {
+        "id": "REF-ROUND-1",
+        "kind": "explicit_user_review",
+        "content": "POST /tasks 需要解释请求目标和用途；HTTP 定义应自然嵌入通信过程；202 不证明处理已经开始"
+      }
+    ]
+  },
+  "semantics": {
+    "source_atoms": [
+      {
+        "id": "ATOM-001",
+        "source_locator": "第 1 句",
+        "claim": "POST /tasks 返回 HTTP 202 和 task_id",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-002",
+        "source_locator": "第 2 句",
+        "claim": "客户端使用 task_id 查询状态",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-003",
+        "source_locator": "第 3 句",
+        "claim": "HTTP 202 不表示任务最终成功",
+        "provenance_type": "SOURCE"
+      }
+    ],
+    "background_atoms": [
+      {
+        "id": "BG-001",
+        "source_reference": "REF-001",
+        "purpose": "解释 HTTP",
+        "claim": "HTTP 是客户端与服务交换请求和响应的协议",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-002",
+        "source_reference": "REF-001",
+        "purpose": "解释状态码 202",
+        "claim": "202 表示请求已经被接收，但处理尚未完成",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-003",
+        "source_reference": "REF-001",
+        "purpose": "解释 task_id",
+        "claim": "task_id 是本次任务的查询标识",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-004",
+        "source_reference": "REF-ROUND-1",
+        "purpose": "解释 POST /tasks",
+        "claim": "POST /tasks 向服务器的 /tasks 地址发送 POST 请求，用于创建并提交新任务",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-005",
+        "source_reference": "REF-ROUND-1",
+        "purpose": "限制 202 的含义",
+        "claim": "HTTP 202 表示请求已经接收但处理尚未完成，处理也可能尚未开始",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      }
+    ],
+    "must_preserve": [
+      "POST /tasks",
+      "HTTP 202",
+      "task_id",
+      "后续查询",
+      "202 不等于最终成功"
+    ],
+    "must_not_invent": [
+      "任务已经成功",
+      "task_id 是用户账户 ID",
+      "客户端不需要查询状态"
+    ],
+    "inference_atoms": []
+  },
+  "artifact": {
+    "answer": "`POST /tasks` 表示向服务器的 `/tasks` 地址发送 POST 请求，用来创建并提交一个新任务\n\n服务会借助 HTTP 超文本传输协议（Hypertext Transfer Protocol）返回状态码 `202` 和 `task_id`；HTTP 是客户端与服务器交换接口请求和响应时使用的通信协议，`task_id` 是服务为本次任务分配的查询标识\n\n状态码 `202` 表示服务器已经接收请求，但处理尚未完成，甚至可能尚未开始；客户端需要继续使用 `task_id` 查询任务状态，因为 `202` 不能证明任务最终成功",
+    "support_map": [
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-001"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-002"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-003"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-001"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-002"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-003"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-004"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-005"
+        ],
+        "role": "explanatory_background"
+      }
+    ],
+    "self_claims": [],
+    "original_case_sha256": "55f0b050a76940c0904323db160d8eefcc8aabf1469dc3c2a4c50f378f219979"
+  },
+  "review": {
+    "decision_source": "explicit_user_review",
+    "decision": "pending",
+    "reasons": [
+      "R2 已按首轮审核意见修订，等待第二轮用户审核"
+    ],
+    "correct_parts": [
+      "HTTP 202 的未完成边界方向正确"
+    ],
+    "regression_requirements": [
+      "解释 POST /tasks 用于向 /tasks 地址提交新任务",
+      "HTTP 首次出现时保留正式全称并用后文说明通信用途",
+      "202 不得扩写成任务已经开始"
+    ],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
+    }
+  }
+}

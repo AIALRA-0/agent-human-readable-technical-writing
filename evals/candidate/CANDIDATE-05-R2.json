@@ -1,0 +1,195 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-05-R2",
+    "origin_case_id": "CANDIDATE-05",
+    "status": "candidate",
+    "revision": 2,
+    "approved_by_user": false,
+    "category": "explanatory_translation",
+    "reviewed_at": null
+  },
+  "task": {
+    "base_operation": "TRANSLATE",
+    "augmentation": "EXPLANATORY",
+    "genre": "academic_paper",
+    "audience": "zero_prior_knowledge",
+    "media": [
+      "markdown"
+    ],
+    "components": [
+      "TEXT"
+    ],
+    "request": "完整翻译，并补充零基础读者理解实验范围所需的背景"
+  },
+  "source": {
+    "material_type": "text",
+    "content": "A two-flop synchronizer was inserted on each single-bit control signal crossing from clk_a to clk_b. The experiment did not evaluate multi-bit buses or asynchronous reset deassertion.",
+    "references": [
+      {
+        "id": "REF-001",
+        "kind": "fixture_background",
+        "content": "时钟域跨越发生在信号从一个时钟控制区域进入另一个时钟控制区域时；两级触发器同步器常用于降低单比特控制信号在接收时钟域中传播亚稳态的风险，但它不能自动保证多比特数据同时保持一致，也不能代替复位释放检查"
+      },
+      {
+        "id": "REF-ROUND-1",
+        "kind": "explicit_user_review",
+        "content": "用户要求解释建立时间、保持时间、亚稳态、两级触发器的分别作用、多比特一致性和异步复位释放边界"
+      }
+    ]
+  },
+  "semantics": {
+    "source_atoms": [
+      {
+        "id": "ATOM-001",
+        "source_locator": "第 1 句",
+        "claim": "每个从 clk_a 到 clk_b 的单比特控制信号都插入了两级触发器同步器",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-002",
+        "source_locator": "第 2 句前半",
+        "claim": "实验没有评估多比特总线",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-003",
+        "source_locator": "第 2 句后半",
+        "claim": "实验没有评估异步复位释放",
+        "provenance_type": "SOURCE"
+      }
+    ],
+    "background_atoms": [
+      {
+        "id": "BG-001",
+        "source_reference": "REF-001",
+        "purpose": "解释时钟域跨越",
+        "claim": "时钟域跨越表示信号进入另一个时钟控制区域",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-002",
+        "source_reference": "REF-001",
+        "purpose": "解释两级同步器的用途和边界",
+        "claim": "两级同步器用于降低单比特控制信号的亚稳态传播风险，但不能自动解决多比特一致性或复位释放问题",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-003",
+        "source_reference": "REF-ROUND-1",
+        "purpose": "解释采样风险",
+        "claim": "跨时钟信号可能在接收触发器采样边沿附近变化，违反建立时间或保持时间并进入亚稳态",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-004",
+        "source_reference": "REF-ROUND-1",
+        "purpose": "解释两级触发器分工",
+        "claim": "第一级承担较高亚稳态风险并获得恢复时间，第二级采样恢复后的输出以降低风险传播概率",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-005",
+        "source_reference": "REF-ROUND-1",
+        "purpose": "解释多比特和复位边界",
+        "claim": "多比特跨域需要保证数据一致性，异步复位解除需要单独检查释放时序",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      }
+    ],
+    "must_preserve": [
+      "two-flop 对应两级触发器",
+      "单比特控制信号",
+      "clk_a 到 clk_b 的方向",
+      "未评估多比特总线",
+      "未评估异步复位释放"
+    ],
+    "must_not_invent": [
+      "实验证明所有时钟域跨越安全",
+      "多比特总线已经验证",
+      "异步复位已经验证"
+    ],
+    "inference_atoms": []
+  },
+  "artifact": {
+    "answer": "从 `clk_a` 进入 `clk_b` 的每一个单比特控制信号都加入了两级触发器同步器；本次实验没有评估多比特总线，也没有评估异步复位解除\n\n理解这一结论需要知道：\n\n- 时钟域表示由同一时钟控制的一组电路\n- 信号从一个时钟域进入另一个时钟域时，两个时钟通常没有固定的相位关系；信号变化可能恰好落在接收端触发器的采样边沿附近，违反建立时间（Setup Time）或保持时间（Hold Time）要求，使触发器短暂进入亚稳态（Metastability），此时输出无法立即稳定为明确的 `0` 或 `1`\n- 两级触发器同步器用于降低这种不稳定状态继续传播的风险\n  - 第一级触发器先接收跨时钟域信号；它最可能遇到建立时间或保持时间被破坏的问题，因此即使进入亚稳态，也先把不确定性限制在第一级，并利用后续一个时钟周期争取恢复为稳定的 `0` 或 `1`\n  - 第二级触发器只采样第一级经过一段恢复时间后的输出；这样可以大幅降低后续逻辑采到亚稳态的概率，从而减少误触发、错误判断或状态机异常\n\n这项结果只适用于原文实际处理的单比特控制信号，不能直接推广到其他跨时钟域场景\n\n对于多比特数据，除了保证每个比特能够稳定采样，还需要保证多个比特属于同一次数据变化，避免接收端组合出来自不同时刻的值；本次实验没有检查这种一致性\n\n对于异步复位信号，即使复位可以异步进入，解除复位时仍需检查释放时序，避免不同触发器在不一致的时刻退出复位；本次实验没有完成这项检查\n\n这些背景用于解释原文为什么排除多比特总线和异步复位解除；它们不表示作者已经针对这两类情况完成设计或验证，后续仍需分别执行多比特跨域检查和复位解除检查",
+    "support_map": [
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-001"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-002"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-003"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-001"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-002"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-003"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-004"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-005"
+        ],
+        "role": "explanatory_background"
+      }
+    ],
+    "self_claims": [],
+    "original_case_sha256": "4e9cdc795885683996efde22c60f272fe68d123935772bf227d9a537cf69d60b"
+  },
+  "review": {
+    "decision_source": "explicit_user_review",
+    "decision": "pending",
+    "reasons": [
+      "R2 已按首轮审核意见修订，等待第二轮用户审核"
+    ],
+    "correct_parts": [
+      "结论范围没有扩展到多比特数据和异步复位"
+    ],
+    "regression_requirements": [
+      "删除空洞引导句",
+      "冒号后两个以上项目换行",
+      "解释两级触发器同步器的两级作用",
+      "多比特数据、异步复位和证据边界分别成段"
+    ],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
+    }
+  }
+}

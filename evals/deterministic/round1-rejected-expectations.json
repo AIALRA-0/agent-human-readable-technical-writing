@@ -1,0 +1,47 @@
+{
+  "contract_version": "1.1",
+  "profile_revision": "round-1-review",
+  "description": "首轮用户拒绝原因对应的案例级回归锁；这些规则只用于已审核案例，不构成通用自然度正则",
+  "cases": {
+    "03": {
+      "required_all": ["npm 包管理器", "CI 持续集成（Continuous Integration）", "JavaScript", "自动执行构建、测试和检查"],
+      "forbidden_all": []
+    },
+    "04": {
+      "required_all": ["`POST /tasks` 表示向服务器的 `/tasks` 地址发送 POST 请求", "HTTP 超文本传输协议（Hypertext Transfer Protocol）", "甚至可能尚未开始", "`task_id` 是服务为本次任务分配的查询标识"],
+      "forbidden_all": ["开始安排处理"]
+    },
+    "05": {
+      "required_all": ["建立时间（Setup Time）", "保持时间（Hold Time）", "亚稳态（Metastability）", "  - 第一级触发器", "  - 第二级触发器", "对于多比特数据", "对于异步复位信号", "后续仍需分别执行"],
+      "forbidden_all": ["原文完整翻译如下"]
+    },
+    "06": {
+      "required_all": ["原协议已经产生的费用", "从收到全部付款后开始计算", "合同中对工作日的定义核对"],
+      "forbidden_all": ["完整翻译如下"]
+    },
+    "07": {
+      "required_all": ["FPGA 现场可编程门阵列（Field-Programmable Gate Array）", "综合（Synthesis）", "时序分析（Timing Analysis）", "位流（Bitstream）", "flowchart TD", "图中的前三个节点", "上电启动、外设通信、物理接口和实际运行行为测试"],
+      "forbidden_all": ["flowchart LR"]
+    },
+    "08": {
+      "required_all": ["幂等键（Idempotency Key）", "`order_id`，也就是第一次创建订单时生成的订单标识", "flowchart TD", "图中的判断节点", "不能保证再次提交仍会返回原始 `order_id`"],
+      "forbidden_all": []
+    },
+    "09": {
+      "required_all": ["![时钟域跨越原图]", "图中的有效元素分别承担以下作用", "第一级触发器", "第二级触发器", "缺少这些证据会影响", "下一步应检查"],
+      "forbidden_all": []
+    },
+    "10": {
+      "required_all": ["各列含义如下", "可见值包括", "真正改变结论的是板卡测试", "缺少性能、可靠性或安全认证数据", "下一步仍需核对"],
+      "forbidden_all": ["3 个结果格分别表示"]
+    },
+    "11": {
+      "required_all": ["下面先保留原始 PowerShell 代码", "`string` 是按顺序保存字符的字符串类型", "SHA-256 安全散列算法（Secure Hash Algorithm 256-bit）", "运行方法", "可以通过运行前后比较", "确认来源还需要"],
+      "forbidden_all": ["string 表示这个输入按文字保存"]
+    },
+    "12": {
+      "required_all": ["原始状态材料", "状态码 31 表示队列已经接收任务", "任务标识是 `JOB-204`", "现有材料没有提供查询命令", "把这个标识交给服务支持人员查询"],
+      "forbidden_all": ["您现在不需要执行其他操作"]
+    }
+  }
+}

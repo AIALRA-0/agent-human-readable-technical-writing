@@ -207,6 +207,102 @@ class DeterministicCommitterTests(unittest.TestCase):
         apply_transaction(self.text, [patch], self.nodes)
         self.assertEqual(patch, original_patch)
 
+    def test_exact_deletion_is_allowed_inside_authorized_node(self) -> None:
+        patch = make_patch(
+            self.text,
+            patch_id="PATCH-013",
+            node_id="SEG-01",
+            old_text="旧术语",
+            new_text="",
+        )
+        result = apply_transaction(self.text, [patch], self.nodes)
+        self.assertNotIn("旧术语", result)
+        self.assertIn("第二段不应改变", result)
+
+    def test_unknown_node_rejects_patch(self) -> None:
+        patch = make_patch(
+            self.text,
+            patch_id="PATCH-014",
+            node_id="SEG-99",
+            old_text="旧术语",
+            new_text="登记术语",
+        )
+        with self.assertRaisesRegex(PatchError, "unknown node_id"):
+            apply_transaction(self.text, [patch], self.nodes)
+
+    def test_invalid_node_range_rejects_patch(self) -> None:
+        patch = make_patch(
+            self.text,
+            patch_id="PATCH-015",
+            node_id="SEG-01",
+            old_text="旧术语",
+            new_text="登记术语",
+        )
+        invalid_nodes = dict(self.nodes)
+        invalid_nodes["SEG-01"] = (-1, self.second_start)
+        with self.assertRaisesRegex(PatchError, "invalid node range"):
+            apply_transaction(self.text, [patch], invalid_nodes)
+
+    def test_unsupported_operation_rejects_patch(self) -> None:
+        patch = make_patch(
+            self.text,
+            patch_id="PATCH-016",
+            node_id="SEG-01",
+            old_text="旧术语",
+            new_text="登记术语",
+        )
+        patch["identity"]["operation"] = "replace_regex"
+        with self.assertRaisesRegex(PatchError, "unsupported operation"):
+            apply_transaction(self.text, [patch], self.nodes)
+
+    def test_empty_old_text_rejects_patch(self) -> None:
+        patch = make_patch(
+            self.text,
+            patch_id="PATCH-017",
+            node_id="SEG-01",
+            old_text="旧术语",
+            new_text="登记术语",
+        )
+        patch["replacement"]["old_text"] = ""
+        with self.assertRaisesRegex(PatchError, "old_text must be non-empty"):
+            apply_transaction(self.text, [patch], self.nodes)
+
+    def test_non_text_new_value_rejects_patch(self) -> None:
+        patch = make_patch(
+            self.text,
+            patch_id="PATCH-018",
+            node_id="SEG-01",
+            old_text="旧术语",
+            new_text="登记术语",
+        )
+        patch["replacement"]["new_text"] = 42
+        with self.assertRaisesRegex(PatchError, "new_text must be text"):
+            apply_transaction(self.text, [patch], self.nodes)
+
+    def test_boolean_occurrence_count_rejects_patch(self) -> None:
+        patch = make_patch(
+            self.text,
+            patch_id="PATCH-019",
+            node_id="SEG-01",
+            old_text="旧术语",
+            new_text="登记术语",
+        )
+        patch["replacement"]["expected_occurrences"] = True
+        with self.assertRaisesRegex(PatchError, "positive integer"):
+            apply_transaction(self.text, [patch], self.nodes)
+
+    def test_empty_validator_list_rejects_patch(self) -> None:
+        patch = make_patch(
+            self.text,
+            patch_id="PATCH-020",
+            node_id="SEG-01",
+            old_text="旧术语",
+            new_text="登记术语",
+        )
+        patch["verification"]["rerun_validators"] = []
+        with self.assertRaisesRegex(PatchError, "non-empty list"):
+            apply_transaction(self.text, [patch], self.nodes)
+
 
 if __name__ == "__main__":
     unittest.main()

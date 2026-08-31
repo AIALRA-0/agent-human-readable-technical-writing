@@ -1,0 +1,198 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-08-R2",
+    "origin_case_id": "CANDIDATE-08",
+    "status": "candidate",
+    "revision": 2,
+    "approved_by_user": false,
+    "category": "teaching_transform",
+    "reviewed_at": null
+  },
+  "task": {
+    "base_operation": "TRANSFORM",
+    "augmentation": "TEACHING",
+    "genre": "api_tutorial",
+    "audience": "zero_prior_knowledge",
+    "media": [
+      "markdown"
+    ],
+    "components": [
+      "TEXT",
+      "CODE",
+      "FLOWCHART"
+    ],
+    "request": "完整保留接口规则，并从零解释幂等键怎样防止重复创建订单"
+  },
+  "source": {
+    "material_type": "text",
+    "content": "创建订单时必须发送 `Idempotency-Key`。24 小时内，使用同一键重复发送相同请求时，服务返回原始 `order_id`，不会创建第二个订单。使用同一键发送不同请求体时，服务返回 HTTP `409`。键在 24 小时后失效。",
+    "references": [
+      {
+        "id": "REF-001",
+        "kind": "fixture_background",
+        "content": "幂等键是客户端为一次业务操作生成的唯一标识；服务保存键与首次请求结果的对应关系；HTTP 409 表示当前请求与服务器已经保存的状态发生冲突"
+      },
+      {
+        "id": "REF-ROUND-1",
+        "kind": "explicit_user_review",
+        "content": "用户要求解释幂等键的名称、重复业务操作识别方式、order_id 和 24 小时失效边界"
+      }
+    ]
+  },
+  "semantics": {
+    "source_atoms": [
+      {
+        "id": "ATOM-001",
+        "source_locator": "第 1 句",
+        "claim": "创建订单必须发送 Idempotency-Key",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-002",
+        "source_locator": "第 2 句",
+        "claim": "24 小时内同键同请求返回原 order_id 且不创建第二个订单",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-003",
+        "source_locator": "第 3 句",
+        "claim": "同键不同请求体返回 HTTP 409",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-004",
+        "source_locator": "第 4 句",
+        "claim": "键在 24 小时后失效",
+        "provenance_type": "SOURCE"
+      }
+    ],
+    "background_atoms": [
+      {
+        "id": "BG-001",
+        "source_reference": "REF-001",
+        "purpose": "解释幂等键",
+        "claim": "幂等键标识一次业务操作，服务保存它与首次结果的对应关系",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-002",
+        "source_reference": "REF-001",
+        "purpose": "解释 HTTP 409",
+        "claim": "HTTP 409 表示请求与服务器已有状态冲突",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-003",
+        "source_reference": "REF-ROUND-1",
+        "purpose": "解释 order_id",
+        "claim": "order_id 是服务为订单分配的订单标识",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-004",
+        "source_reference": "REF-ROUND-1",
+        "purpose": "解释键失效后的证据边界",
+        "claim": "原文没有规定 24 小时后再次提交是否返回原始订单",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      }
+    ],
+    "must_preserve": [
+      "必须发送 Idempotency-Key",
+      "24 小时窗口",
+      "同键同请求返回原 order_id",
+      "不创建第二个订单",
+      "同键不同请求体返回 409",
+      "24 小时后失效"
+    ],
+    "must_not_invent": [
+      "服务永久保存键",
+      "409 表示服务器故障",
+      "同键可以用于多个不同订单",
+      "24 小时后仍保证返回原订单"
+    ],
+    "inference_atoms": []
+  },
+  "artifact": {
+    "answer": "创建订单时，客户端必须发送 `Idempotency-Key` 请求字段；它承载幂等键（Idempotency Key），也就是客户端为同一次业务操作生成并在重试时重复使用的标识，使服务器能够把网络重试识别为原操作，而不是新订单\n\n同一次业务操作的重试需要同时保持：\n\n- 使用同一个 `Idempotency-Key`\n- 使用与第一次完全相同的请求体\n\n在第一次请求后的 24 小时内，服务会保存该键与首次结果的对应关系；同键同请求体的重试会返回原始 `order_id`，也就是第一次创建订单时生成的订单标识，不会创建第二个订单\n\n```mermaid\nflowchart TD\n    A[\"客户端提交订单；携带幂等键和请求体\"] --> B{\"服务是否见过该键\"}\n    B -->|\"没有\"| C[\"创建订单；保存键、请求体和 order_id\"]\n    B -->|\"见过且请求体相同\"| D[\"返回原始 order_id；不创建第二个订单\"]\n    B -->|\"见过但请求体不同\"| E[\"返回 HTTP 409；拒绝冲突请求\"]\n    C --> F[\"24 小时后键失效\"]\n    D --> F\n    E --> F\n```\n\n图 1. 幂等键在 24 小时窗口内处理首次请求与重试的方式\n\n图中的判断节点先比较键是否已经出现，再比较请求体是否一致；同键同请求体返回原订单，同键不同请求体返回 HTTP 状态码 `409`，因为服务无法把内容不同的请求安全地视为同一次操作\n\n键在 24 小时后失效；原文没有说明失效后的保留策略，因此不能保证再次提交仍会返回原始 `order_id`，需要查询接口的失效后行为说明，或在客户端避免超过有效期后盲目重试",
+    "support_map": [
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-001"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-002"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-003"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-004"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-001"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-002"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-003"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-004"
+        ],
+        "role": "explanatory_background"
+      }
+    ],
+    "self_claims": [],
+    "original_case_sha256": "3d5b9de5be14b7346900aac8b4f108f0d6640f10c26cf540fd16fb57777d2ad0"
+  },
+  "review": {
+    "decision_source": "explicit_user_review",
+    "decision": "pending",
+    "reasons": [
+      "R2 已按首轮审核意见修订，等待第二轮用户审核"
+    ],
+    "correct_parts": [
+      "同一次业务操作复用同一键和同一请求体的方向正确"
+    ],
+    "regression_requirements": [
+      "解释幂等键如何让服务器识别重复业务操作",
+      "解释 order_id 是订单标识",
+      "图后说明重试关系和失效边界",
+      "不同规则分段"
+    ],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
+    }
+  }
+}

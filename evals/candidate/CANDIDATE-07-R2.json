@@ -1,0 +1,198 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-07-R2",
+    "origin_case_id": "CANDIDATE-07",
+    "status": "candidate",
+    "revision": 2,
+    "approved_by_user": false,
+    "category": "teaching_transform",
+    "reviewed_at": null
+  },
+  "task": {
+    "base_operation": "TRANSFORM",
+    "augmentation": "TEACHING",
+    "genre": "engineering_status",
+    "audience": "zero_prior_knowledge",
+    "media": [
+      "markdown"
+    ],
+    "components": [
+      "TEXT",
+      "FLOWCHART"
+    ],
+    "request": "保留全部工程状态，把它改写成没有 FPGA 经验的人也能判断是否可以发布的说明"
+  },
+  "source": {
+    "material_type": "text",
+    "content": "软件综合和时序分析已通过；位流已经生成；开发板尚未上电，外设和物理接口未测试；当前结果不能批准产品发布。",
+    "references": [
+      {
+        "id": "REF-001",
+        "kind": "fixture_background",
+        "content": "综合把硬件设计转换成器件可以实现的逻辑结构；时序分析检查设计在设定时钟约束下是否满足时间要求；位流是写入 FPGA 的配置文件；开发板测试会引入真实供电、时钟、外设和物理接口条件"
+      },
+      {
+        "id": "REF-ROUND-1",
+        "kind": "explicit_user_review",
+        "content": "用户要求解释 FPGA、综合、时序分析和位流，并说明真实板卡测试与发布条件之间的关系"
+      }
+    ]
+  },
+  "semantics": {
+    "source_atoms": [
+      {
+        "id": "ATOM-001",
+        "source_locator": "分号第 1 项",
+        "claim": "软件综合和时序分析已经通过",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-002",
+        "source_locator": "分号第 2 项",
+        "claim": "位流已经生成",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-003",
+        "source_locator": "分号第 3 项",
+        "claim": "开发板尚未上电，外设和物理接口未测试",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-004",
+        "source_locator": "分号第 4 项",
+        "claim": "当前结果不能批准产品发布",
+        "provenance_type": "SOURCE"
+      }
+    ],
+    "background_atoms": [
+      {
+        "id": "BG-001",
+        "source_reference": "REF-001",
+        "purpose": "解释软件验证步骤",
+        "claim": "综合和时序分析检查设计能否形成逻辑结构并满足时间约束",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-002",
+        "source_reference": "REF-001",
+        "purpose": "解释位流",
+        "claim": "位流是写入 FPGA 的配置文件",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-003",
+        "source_reference": "REF-001",
+        "purpose": "解释板级测试新增条件",
+        "claim": "开发板测试会引入真实供电、时钟、外设和物理接口",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-004",
+        "source_reference": "REF-ROUND-1",
+        "purpose": "解释 FPGA",
+        "claim": "FPGA 是可以通过配置文件改变内部逻辑和连线的现场可编程门阵列",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      }
+    ],
+    "must_preserve": [
+      "综合通过",
+      "时序分析通过",
+      "位流生成",
+      "开发板未上电",
+      "外设未测试",
+      "物理接口未测试",
+      "不能批准发布"
+    ],
+    "must_not_invent": [
+      "真实硬件已经工作",
+      "产品可以发布",
+      "所有时序路径都没有风险",
+      "开发板测试一定会通过"
+    ],
+    "inference_atoms": []
+  },
+  "artifact": {
+    "answer": "FPGA 现场可编程门阵列（Field-Programmable Gate Array）是一种可以通过配置文件改变内部逻辑和连线的芯片；当前设计已经完成软件侧处理，但还没有在真实开发板上验证\n\n软件侧已经完成：\n\n- 综合（Synthesis）已经通过；综合负责把 Verilog、VHDL 等硬件描述转换成 FPGA 内部可以实现的逻辑结构，例如查找表、触发器和存储资源\n- 时序分析（Timing Analysis）已经通过；时序分析检查逻辑之间的信号传播能否满足设定的时钟频率和时序约束，确保数据在规定时间内到达并被采样\n- 位流（Bitstream）已经生成；位流是写入 FPGA 后配置其内部逻辑和连线，使芯片按照当前设计运行的配置文件\n\n```mermaid\nflowchart TD\n    A[\"综合通过；设计已经转换为器件逻辑\"] --> B[\"时序分析通过；软件约束下满足时间要求\"]\n    B --> C[\"位流已经生成；具备写入 FPGA 的配置文件\"]\n    C --> D[\"开发板尚未上电；真实硬件没有开始验证\"]\n    D --> E[\"外设和物理接口尚未测试\"]\n    E --> F[\"当前不能批准产品发布\"]\n```\n\n图 1. 软件验证与硬件验证的先后关系\n\n图中的前三个节点表示软件工具已经完成综合、时序分析和位流生成；后两个节点说明真实开发板尚未上电，外设和物理接口也没有测试，因此现有证据只覆盖软件流程，不能证明设计在真实供电、时钟和接口条件下正常工作\n\n当前可以保存软件流程验证结果和已经生成的位流文件；这些材料证明设计在当前工具与约束条件下完成了软件侧流程，但不能批准产品正式发布\n\n下一步需要把位流写入开发板，并完成上电启动、外设通信、物理接口和实际运行行为测试；取得这些硬件测试证据后，才能根据结果判断是否满足正式发布条件",
+    "support_map": [
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-001"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-002"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-003"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-004"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-001"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-002"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-003"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-004"
+        ],
+        "role": "explanatory_background"
+      }
+    ],
+    "self_claims": [],
+    "original_case_sha256": "b37dea06897fff697aa951a58c294aa914fb88aa3e145261755e63dda884dcff"
+  },
+  "review": {
+    "decision_source": "explicit_user_review",
+    "decision": "pending",
+    "reasons": [
+      "R2 已按首轮审核意见修订，等待第二轮用户审核"
+    ],
+    "correct_parts": [
+      "软件流程与真实板卡验证的范围区分正确"
+    ],
+    "regression_requirements": [
+      "Mermaid 默认使用 TD",
+      "解释 FPGA 及软件侧各阶段",
+      "图后说明节点关系、流程结果和边界",
+      "写明板卡测试项目和满足发布条件的证据"
+    ],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
+    }
+  }
+}

@@ -1,0 +1,151 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-10-R2",
+    "origin_case_id": "CANDIDATE-10",
+    "status": "candidate",
+    "revision": 2,
+    "approved_by_user": false,
+    "category": "table_explanation",
+    "reviewed_at": null
+  },
+  "task": {
+    "base_operation": "EXPLAIN",
+    "augmentation": "TEACHING",
+    "genre": "engineering_report",
+    "audience": "zero_prior_knowledge",
+    "media": [
+      "markdown"
+    ],
+    "components": [
+      "TABLE",
+      "TEXT"
+    ],
+    "request": "逐列、逐行和逐格解释表格，并说明它支持和不支持什么结论"
+  },
+  "source": {
+    "material_type": "table",
+    "content": "| 版本 | 软件检查 | 板卡测试 | 发布条件 |\n| --- | --- | --- | --- |\n| A | 通过 | 未运行 | 不满足 |\n| B | 通过 | 通过 | 满足 |",
+    "references": [
+      {
+        "id": "REF-001",
+        "kind": "fixture_rule",
+        "content": "本案例把发布条件定义为软件检查和板卡测试都通过；表格没有提供性能、可靠性或安全认证数据"
+      }
+    ]
+  },
+  "semantics": {
+    "source_atoms": [
+      {
+        "id": "ATOM-001",
+        "source_locator": "表头",
+        "claim": "表格包含版本、软件检查、板卡测试和发布条件四列",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-002",
+        "source_locator": "A 行",
+        "claim": "版本 A 的软件检查通过、板卡测试未运行、发布条件不满足",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-003",
+        "source_locator": "B 行",
+        "claim": "版本 B 的软件检查通过、板卡测试通过、发布条件满足",
+        "provenance_type": "SOURCE"
+      }
+    ],
+    "background_atoms": [
+      {
+        "id": "BG-001",
+        "source_reference": "REF-001",
+        "purpose": "解释发布条件判定",
+        "claim": "本案例要求软件检查和板卡测试都通过",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-002",
+        "source_reference": "REF-001",
+        "purpose": "限制表格结论",
+        "claim": "表格不提供性能、可靠性或安全认证数据",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      }
+    ],
+    "must_preserve": [
+      "A 软件通过",
+      "A 板卡未运行",
+      "A 不满足发布条件",
+      "B 软件通过",
+      "B 板卡通过",
+      "B 满足发布条件"
+    ],
+    "must_not_invent": [
+      "A 板卡测试失败",
+      "B 已经正式发布",
+      "B 性能达标",
+      "B 已通过安全认证"
+    ],
+    "inference_atoms": []
+  },
+  "artifact": {
+    "answer": "| 版本 | 软件检查 | 板卡测试 | 发布条件 |\n| --- | --- | --- | --- |\n| A | 通过 | 未运行 | 不满足 |\n| B | 通过 | 通过 | 满足 |\n\n表 1. 版本 A 与版本 B 的发布条件比较\n\n这张表回答版本 A 和版本 B 是否满足本案例定义的发布条件；本案例要求软件检查和板卡测试都通过，缺少其中任何一项都不能判定为满足\n\n各列含义如下：\n\n- “版本”列标识被比较的设计版本，本表包含 A 和 B\n- “软件检查”列记录软件侧检查结果，可见值为“通过”\n- “板卡测试”列记录真实硬件是否完成测试，可见值包括“未运行”和“通过”；“未运行”表示尚无测试结果，不等于测试失败\n- “发布条件”列根据前两项检查给出“满足”或“不满足”\n\n每一行代表一个完整版本；A 与 B 的软件检查都通过，真正改变结论的是板卡测试，A 尚未运行，所以发布条件不满足，B 已通过，所以按照本表规则满足发布条件\n\n表格只支持判断两个版本是否满足本案例列出的软件检查和板卡测试条件；表格缺少性能、可靠性或安全认证数据，也没有证明版本 B 已经正式发布，下一步仍需核对项目是否还有表外发布要求，并保留对应测试证据",
+    "support_map": [
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-001"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-002"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-003"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-001"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-002"
+        ],
+        "role": "explanatory_background"
+      }
+    ],
+    "self_claims": [],
+    "original_case_sha256": "08d545498f76f835e44d3fb4a047d857552f5deee719207cc098d8cb413ef6c9"
+  },
+  "review": {
+    "decision_source": "explicit_user_review",
+    "decision": "pending",
+    "reasons": [
+      "R2 已按首轮审核意见修订，等待第二轮用户审核"
+    ],
+    "correct_parts": [
+      "表格原文、列定义和未运行不等于失败的解释正确"
+    ],
+    "regression_requirements": [
+      "一次定义每列、每行和允许值",
+      "只单独解释异常值、歧义值和关键格",
+      "内部账本仍覆盖全部数据格",
+      "结论包含比较依据、影响、缺失证据和下一步"
+    ],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
+    }
+  }
+}

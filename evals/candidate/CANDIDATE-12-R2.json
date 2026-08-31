@@ -1,0 +1,169 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-12-R2",
+    "origin_case_id": "CANDIDATE-12",
+    "status": "candidate",
+    "revision": 2,
+    "approved_by_user": false,
+    "category": "multi_turn",
+    "reviewed_at": null
+  },
+  "task": {
+    "base_operation": "TRANSFORM",
+    "augmentation": "GLOSS",
+    "genre": "customer_status",
+    "audience": "zero_prior_knowledge",
+    "media": [
+      "chat"
+    ],
+    "components": [
+      "TEXT"
+    ],
+    "request": "结合两轮要求生成客户状态说明，保留状态码和任务标识，不承诺完成时间"
+  },
+  "source": {
+    "material_type": "multi_turn",
+    "content": {
+      "turn_1_material": "状态码 31 表示队列已经接收任务，处理尚未开始；任务标识 JOB-204 用于查询；自动重试上限为 3 次。",
+      "turn_1_request": "把状态说明写给客户",
+      "turn_2_request": "客户完全不懂技术；保留状态码 31 和 JOB-204；不要承诺完成时间；增加客户下一步"
+    },
+    "references": [
+      {
+        "id": "REF-001",
+        "kind": "fixture_glossary",
+        "content": "队列用于按顺序等待处理任务；任务标识用于查询同一任务；自动重试表示系统在一次处理失败后再次尝试，但重试上限不等于一定会成功"
+      }
+    ]
+  },
+  "semantics": {
+    "source_atoms": [
+      {
+        "id": "ATOM-001",
+        "source_locator": "turn_1_material 第 1 项",
+        "claim": "状态码 31 表示队列已接收任务，但处理尚未开始",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-002",
+        "source_locator": "turn_1_material 第 2 项",
+        "claim": "JOB-204 用于查询任务",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-003",
+        "source_locator": "turn_1_material 第 3 项",
+        "claim": "自动重试上限为 3 次",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-004",
+        "source_locator": "turn_2_request",
+        "claim": "保留状态码和任务标识，不承诺完成时间并增加客户下一步",
+        "provenance_type": "USER_SUPPLIED"
+      }
+    ],
+    "background_atoms": [
+      {
+        "id": "BG-001",
+        "source_reference": "REF-001",
+        "purpose": "解释队列",
+        "claim": "队列让任务按照系统安排等待处理",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-002",
+        "source_reference": "REF-001",
+        "purpose": "解释自动重试边界",
+        "claim": "失败后系统可以再次尝试，但重试上限不保证成功",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      }
+    ],
+    "must_preserve": [
+      "状态码 31",
+      "已接收但尚未开始",
+      "JOB-204",
+      "查询用途",
+      "最多自动重试 3 次",
+      "不承诺完成时间",
+      "客户下一步"
+    ],
+    "must_not_invent": [
+      "任务正在处理",
+      "任务最终会成功",
+      "具体完成时间",
+      "客户必须重新提交"
+    ],
+    "inference_atoms": []
+  },
+  "artifact": {
+    "answer": "原始状态材料：\n\n> 状态码 31 表示队列已经接收任务，处理尚未开始；任务标识 JOB-204 用于查询；自动重试上限为 3 次。\n\n当前状态码为 `31`，表示系统队列已经接收任务，但处理尚未开始；队列用于按照系统安排保存等待处理的任务，因此“已经接收”不能理解为“正在处理”或“已经完成”\n\n任务标识是 `JOB-204`；它用于区分并查询这一次任务，后续联系服务方或使用项目提供的状态查询入口时都应保留这个标识\n\n如果处理失败，系统最多可以自动重试 `3` 次；重试表示系统再次尝试处理，但次数上限不能保证任务最终成功\n\n现有材料没有提供查询命令、接口地址或预计完成时间；下一步应携带 `JOB-204` 到该服务的状态查询入口核对，若项目没有提供入口，则把这个标识交给服务支持人员查询，当前不能承诺具体完成时间",
+    "support_map": [
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-001"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-002"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-003"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-004"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-001"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-002"
+        ],
+        "role": "explanatory_background"
+      }
+    ],
+    "self_claims": [],
+    "original_case_sha256": "a39cb3e55046a99c53b13afdba7a35516cb77b7549bac6387f19248dedadf8f5"
+  },
+  "review": {
+    "decision_source": "explicit_user_review",
+    "decision": "pending",
+    "reasons": [
+      "R2 已按首轮审核意见修订，等待第二轮用户审核"
+    ],
+    "correct_parts": [
+      "多轮约束合并正确",
+      "没有承诺完成时间",
+      "整体质量接近可接受"
+    ],
+    "regression_requirements": [
+      "保留原始参考材料",
+      "在来源支持时说明查询入口或方法",
+      "来源没有查询方式时明确证据缺口"
+    ],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
+    }
+  }
+}

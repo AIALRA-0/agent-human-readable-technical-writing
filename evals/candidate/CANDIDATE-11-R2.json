@@ -1,0 +1,184 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-11-R2",
+    "origin_case_id": "CANDIDATE-11",
+    "status": "candidate",
+    "revision": 2,
+    "approved_by_user": false,
+    "category": "code_explanation",
+    "reviewed_at": null
+  },
+  "task": {
+    "base_operation": "EXPLAIN",
+    "augmentation": "TEACHING",
+    "genre": "tutorial",
+    "audience": "zero_prior_knowledge",
+    "media": [
+      "markdown"
+    ],
+    "components": [
+      "CODE",
+      "TEXT"
+    ],
+    "request": "逐块解释代码，让第一次使用 PowerShell 的人知道输入、原因、结果、失败表现和副作用"
+  },
+  "source": {
+    "material_type": "code",
+    "content": "param([string]$Path)\nif (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { exit 2 }\nGet-FileHash -Algorithm SHA256 -LiteralPath $Path",
+    "references": [
+      {
+        "id": "REF-001",
+        "kind": "fixture_glossary",
+        "content": "PowerShell 是 Windows、Linux 和 macOS 可用的命令行与自动化环境；Test-Path 检查路径是否存在；LiteralPath 按原样解释路径；Get-FileHash 计算文件摘要；SHA-256 生成固定长度摘要用于比较内容；exit 2 让调用方识别失败"
+      },
+      {
+        "id": "REF-ROUND-1",
+        "kind": "explicit_user_review",
+        "content": "用户要求保留原始代码，并准确解释 PowerShell、string、SHA-256、执行方法和否定边界"
+      }
+    ]
+  },
+  "semantics": {
+    "source_atoms": [
+      {
+        "id": "ATOM-001",
+        "source_locator": "第 1 行",
+        "claim": "脚本接收字符串类型的 Path 参数",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-002",
+        "source_locator": "第 2 行",
+        "claim": "路径不存在或不是文件时脚本以退出码 2 结束",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-003",
+        "source_locator": "第 3 行",
+        "claim": "脚本使用 SHA256 计算指定文件摘要",
+        "provenance_type": "SOURCE"
+      }
+    ],
+    "background_atoms": [
+      {
+        "id": "BG-001",
+        "source_reference": "REF-001",
+        "purpose": "解释 PowerShell 和关键命令",
+        "claim": "PowerShell 用于命令行与自动化，Test-Path 检查路径，Get-FileHash 计算摘要",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-002",
+        "source_reference": "REF-001",
+        "purpose": "解释 LiteralPath、SHA-256 和退出码",
+        "claim": "LiteralPath 按原样处理路径，SHA-256 用于内容比较，退出码 2 让调用方识别失败",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-003",
+        "source_reference": "REF-ROUND-1",
+        "purpose": "解释 string",
+        "claim": "string 是按顺序保存字符的字符串类型",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-004",
+        "source_reference": "REF-ROUND-1",
+        "purpose": "解释 SHA-256",
+        "claim": "SHA-256 将任意长度内容映射为固定长度摘要，可用于比较内容但不能证明来源可信",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      }
+    ],
+    "must_preserve": [
+      "Path 为输入",
+      "必须是现有文件",
+      "失败退出码 2",
+      "算法 SHA256",
+      "LiteralPath"
+    ],
+    "must_not_invent": [
+      "脚本修改文件",
+      "摘要可以恢复文件内容",
+      "退出码 2 代表系统定义的唯一错误",
+      "目录也可以通过"
+    ],
+    "inference_atoms": []
+  },
+  "artifact": {
+    "answer": "下面先保留原始 PowerShell 代码；PowerShell 是可用于 Windows、Linux 和 macOS 的命令行与自动化环境，本段脚本接收一个文件路径，确认目标确实是文件，再计算文件摘要\n\n```powershell\nparam([string]$Path)\nif (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { exit 2 }\nGet-FileHash -Algorithm SHA256 -LiteralPath $Path\n```\n\n下面的等价版本加入中文注释，帮助第一次使用 PowerShell 的读者理解每一步：\n\n```powershell\nparam([string]$Path) # 接收 Path 参数；string 是按顺序保存字符的字符串类型，因此这里用它接收文件路径\nif (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { exit 2 } # 按原样检查路径且要求目标是文件；不满足时返回退出码 2，让调用方识别失败\nGet-FileHash -Algorithm SHA256 -LiteralPath $Path # 读取文件内容并计算 SHA-256 摘要；成功后显示算法、摘要值和文件路径\n```\n\n运行方法：\n\n```powershell\n.\\Get-CheckedFileHash.ps1 -Path .\\example.bin # 把 example.bin 的相对路径传给脚本；文件存在时输出摘要，不存在时以退出码 2 结束\n```\n\n关键语法和命令分别承担以下作用：\n\n- `param([string]$Path)` 声明输入参数；`string` 是按顺序保存字符的字符串类型，`$Path` 使用这种类型保存调用者提供的路径\n- `Test-Path` 检查路径是否存在；`-LiteralPath` 让 PowerShell 按原样解释路径，避免把方括号等字符当成通配符；`-PathType Leaf` 要求目标是文件而不是目录\n- `-not` 把检查结果取反；路径不存在或目标不是文件时，`exit 2` 立即结束脚本，并把数字状态 `2` 返回给调用方\n- `Get-FileHash` 读取文件并计算摘要；SHA-256 安全散列算法（Secure Hash Algorithm 256-bit）会把任意长度的内容映射成固定长度摘要，适合比较两个文件的内容是否一致\n\n脚本只读取指定文件，不会修改文件；原因是代码中没有写入或删除命令，可以通过运行前后比较文件摘要与修改时间进一步核对\n\n相同 SHA-256 摘要可以为内容一致提供很强的校验证据，但不能证明文件来源可信或业务内容正确；确认来源还需要数字签名、可信下载渠道或发布方提供的正式摘要",
+    "support_map": [
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-001"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-002"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-003"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-001"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-002"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-003"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-004"
+        ],
+        "role": "explanatory_background"
+      }
+    ],
+    "self_claims": [],
+    "original_case_sha256": "ae95bbfb4fb3908d9960c9846f6c5c0fbcdcf48af63d5f0be33024874ac44853"
+  },
+  "review": {
+    "decision_source": "explicit_user_review",
+    "decision": "pending",
+    "reasons": [
+      "R2 已按首轮审核意见修订，等待第二轮用户审核"
+    ],
+    "correct_parts": [
+      "代码注释覆盖动作、原因和可观察结果",
+      "原始代码得到保留"
+    ],
+    "regression_requirements": [
+      "解释 PowerShell、string 和 SHA-256",
+      "保留原始代码",
+      "说明查询或执行方法",
+      "每个否定边界继续说明原因、缺失证据和核对方法"
+    ],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
+    }
+  }
+}
