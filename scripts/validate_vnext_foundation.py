@@ -16,7 +16,7 @@ import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_PLAN_SHA256 = "451335f8e7ffce081b434b8e307e02bb802da2b209b0b38953e42d146a069751"
+EXPECTED_PLAN_SHA256 = "9b6f47ba8702c8c1c2c0bc4e7a75c0739f6b6f8bdce893968e409de3978cbc15"
 EXPECTED_CATEGORIES = {
     "faithful_transform": 2,
     "glossed_transform": 2,
