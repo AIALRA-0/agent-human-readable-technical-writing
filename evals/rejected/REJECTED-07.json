@@ -1,10 +1,12 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-07",
-    "status": "candidate",
+    "case_id": "REJECTED-07",
+    "origin_case_id": "CANDIDATE-07",
+    "status": "rejected",
     "revision": 1,
     "approved_by_user": false,
-    "category": "teaching_transform"
+    "category": "teaching_transform",
+    "reviewed_at": "2026-08-30"
   },
   "task": {
     "base_operation": "TRANSFORM",
@@ -98,7 +100,7 @@
     ],
     "inference_atoms": []
   },
-  "candidate": {
+  "artifact": {
     "answer": "## 1. 当前已经完成什么\n\n软件综合和时序分析已经通过；综合把硬件设计转换成 FPGA 可以实现的逻辑结构，时序分析检查这些逻辑在设定时钟约束下能否按时工作；位流也已经生成，位流是准备写入 FPGA 的配置文件\n\n## 2. 当前还没有完成什么\n\n开发板尚未上电；真实供电、时钟、外设和物理接口都没有经过运行测试；软件检查通过只能说明设计已经完成规定的软件处理，不能证明真实硬件环境已经正常工作\n\n```mermaid\nflowchart LR\n    A[综合和时序分析通过] --> B[位流已经生成]\n    B --> C[开发板上电和外设测试尚未开始]\n    C --> D[完成真实硬件测试后才能重新判断是否发布]\n```\n\n图 1. 软件结果与产品发布之间仍缺少的验证步骤\n\n## 3. 现在能够得出什么结论\n\n当前可以保存软件流程和位流生成结果；当前不能批准产品发布；下一步需要在真实开发板上完成上电、外设和物理接口测试，再根据测试证据决定是否发布",
     "support_map": [
       {
@@ -148,18 +150,30 @@
         "role": "conclusion_and_next_step"
       }
     ],
-    "self_claims": []
+    "self_claims": [],
+    "original_case_sha256": "b37dea06897fff697aa951a58c294aa914fb88aa3e145261755e63dda884dcff"
   },
   "review": {
-    "questions": [
-      "零基础读者是否能区分软件流程、位流和真实板卡测试",
-      "流程图是否帮助理解，而非重复正文",
-      "完成范围、未完成范围和发布结论是否保持原文强度",
-      "解释长度是否达到可读与充分之间的平衡"
+    "decision_source": "explicit_user_review",
+    "decision": "rejected",
+    "reasons": [
+      "FPGA、综合、时序分析和位流解释不足",
+      "Mermaid 使用横向布局",
+      "图后缺少详细讲解",
+      "发布边界缺少形成原因、实际影响和验证动作"
+    ],
+    "correct_parts": [
+      "软件流程与真实板卡验证的范围区分正确"
+    ],
+    "regression_requirements": [
+      "Mermaid 默认使用 TD",
+      "解释 FPGA 及软件侧各阶段",
+      "图后说明节点关系、流程结果和边界",
+      "写明板卡测试项目和满足发布条件的证据"
     ],
     "privacy": {
       "status": "public_safe",
-      "basis": "工程状态和背景均为合成 FPGA 教学材料"
+      "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
     }
   }
 }

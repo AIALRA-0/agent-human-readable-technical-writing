@@ -1,10 +1,12 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-06",
-    "status": "candidate",
+    "case_id": "REJECTED-06",
+    "origin_case_id": "CANDIDATE-06",
+    "status": "rejected",
     "revision": 1,
     "approved_by_user": false,
-    "category": "explanatory_translation"
+    "category": "explanatory_translation",
+    "reviewed_at": "2026-08-30"
   },
   "task": {
     "base_operation": "TRANSLATE",
@@ -82,7 +84,7 @@
     ],
     "inference_atoms": []
   },
-  "candidate": {
+  "artifact": {
     "answer": "完整翻译如下\n\n如果发票在到期日后超过 15 天仍未付款，供应商可以暂停客户访问服务；暂停访问不会终止本协议，也不会免除已经产生的费用；供应商收到全部付款后，必须在两个工作日内恢复访问\n\n这里的暂停访问表示暂时停止使用服务，协议本身仍然有效；终止协议则表示结束协议关系，两者的法律效果不同；已经产生的费用仍需支付；两个工作日从供应商收到全部付款后开始计算，但哪些日期属于工作日需要按照合同其他条款确认",
     "support_map": [
       {
@@ -104,17 +106,27 @@
         "role": "explanatory_background"
       }
     ],
-    "self_claims": []
+    "self_claims": [],
+    "original_case_sha256": "cd5deb7618e0be9acd98c9b22dd15ae3debbc7077828802b5759036308959da4"
   },
   "review": {
-    "questions": [
-      "可以、必须、超过 15 天和两个工作日的强度是否保持",
-      "暂停、终止和已产生费用之间的关系是否更清楚",
-      "工作日边界是否诚实保留为需要查合同其他条款"
+    "decision_source": "explicit_user_review",
+    "decision": "rejected",
+    "reasons": [
+      "已经产生的费用缺少明确所属主体",
+      "工作日计算边界需要连接合同其他条款"
+    ],
+    "correct_parts": [
+      "暂停访问、协议效力和恢复条件的顺序清楚"
+    ],
+    "regression_requirements": [
+      "写明原协议已经产生的费用仍需支付",
+      "说明两个工作日从收到全部付款后计算",
+      "工作日定义不明时指出核对位置"
     ],
     "privacy": {
       "status": "public_safe",
-      "basis": "条款和词汇说明均为合成材料，不构成真实法律意见"
+      "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
     }
   }
 }

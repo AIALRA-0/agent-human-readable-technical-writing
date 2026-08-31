@@ -1,10 +1,12 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-08",
-    "status": "candidate",
+    "case_id": "REJECTED-08",
+    "origin_case_id": "CANDIDATE-08",
+    "status": "rejected",
     "revision": 1,
     "approved_by_user": false,
-    "category": "teaching_transform"
+    "category": "teaching_transform",
+    "reviewed_at": "2026-08-30"
   },
   "task": {
     "base_operation": "TRANSFORM",
@@ -91,7 +93,7 @@
     ],
     "inference_atoms": []
   },
-  "candidate": {
+  "artifact": {
     "answer": "## 1. 幂等键是什么\n\n`Idempotency-Key` 幂等键是客户端为一次创建订单操作生成的唯一标识；它的用途是让服务认出重复提交仍然属于同一次业务操作，避免网络重试创建两个订单\n\n## 2. 服务怎样处理请求\n\n```mermaid\nflowchart TD\n    A[客户端发送订单内容和 Idempotency-Key] --> B{服务是否见过这个键}\n    B -->|没有| C[创建订单并保存 order_id]\n    B -->|见过且请求体相同| D[返回原始 order_id 不创建第二个订单]\n    B -->|见过但请求体不同| E[返回 HTTP 409 冲突]\n    C --> F[键和结果保留 24 小时]\n    D --> F\n    E --> F\n```\n\n图 1. 幂等键在 24 小时窗口内的处理流程\n\n第一次请求使用新键时，服务创建订单并返回 `order_id`；24 小时内，如果网络重试使用同一键和相同请求体，服务返回第一次创建的 `order_id`，不会创建第二个订单；如果同一键对应的请求体发生变化，服务返回 HTTP 超文本传输协议（Hypertext Transfer Protocol）状态码 `409`，表示新请求与该键已经保存的内容冲突\n\n## 3. 使用边界\n\n创建订单时必须发送幂等键；同一次业务操作的重试必须复用同一个键和同一份请求体；键在 24 小时后失效，原文没有保证失效后再次提交仍会返回原订单",
     "support_map": [
       {
@@ -133,18 +135,30 @@
         "role": "scope_explanation"
       }
     ],
-    "self_claims": []
+    "self_claims": [],
+    "original_case_sha256": "3d5b9de5be14b7346900aac8b4f108f0d6640f10c26cf540fd16fb57777d2ad0"
   },
   "review": {
-    "questions": [
-      "零基础读者是否能理解键、请求体、order_id 和 409 的关系",
-      "流程图是否准确覆盖首次请求、相同重试和冲突分支",
-      "24 小时边界是否清楚且没有扩大承诺",
-      "说明是否过长或仍缺少实际使用细节"
+    "decision_source": "explicit_user_review",
+    "decision": "rejected",
+    "reasons": [
+      "幂等键缺少正式形式、名称由来和业务作用",
+      "流程图没有追加解释",
+      "重试、请求体、24 小时失效和原订单边界挤在同一段",
+      "order_id 没有解释"
+    ],
+    "correct_parts": [
+      "同一次业务操作复用同一键和同一请求体的方向正确"
+    ],
+    "regression_requirements": [
+      "解释幂等键如何让服务器识别重复业务操作",
+      "解释 order_id 是订单标识",
+      "图后说明重试关系和失效边界",
+      "不同规则分段"
     ],
     "privacy": {
       "status": "public_safe",
-      "basis": "订单接口为合成教学材料，不对应真实业务"
+      "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
     }
   }
 }

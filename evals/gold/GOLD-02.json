@@ -1,10 +1,12 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-02",
-    "status": "candidate",
+    "case_id": "GOLD-02",
+    "origin_case_id": "CANDIDATE-02",
+    "status": "gold",
     "revision": 1,
-    "approved_by_user": false,
-    "category": "faithful_transform"
+    "approved_by_user": true,
+    "category": "faithful_transform",
+    "reviewed_at": "2026-08-30"
   },
   "task": {
     "base_operation": "TRANSFORM",
@@ -59,7 +61,7 @@
     ],
     "inference_atoms": []
   },
-  "candidate": {
+  "artifact": {
     "answer": "客户付清全部到期费用后，许可证才会生效；如果到期后 30 天仍未付款，授权会自动终止；授权终止不会免除已经产生的付款义务",
     "support_map": [
       {
@@ -84,17 +86,22 @@
         "role": "source_restatement"
       }
     ],
-    "self_claims": []
+    "self_claims": [],
+    "original_case_sha256": "44c275bf884afec095cafc99719c727af8db170da42a7f081b64bcc84d00e42b"
   },
   "review": {
-    "questions": [
-      "是否保持了条件、期限、终止结果和付款义务之间的法律关系",
-      "拆句以后是否比原文更容易顺着理解",
-      "是否出现了原文没有授权的法律解释"
+    "decision_source": "explicit_user_review",
+    "decision": "accepted",
+    "reasons": [
+      "完整保留原始事实并按照自然顺序表达"
     ],
+    "correct_parts": [
+      "压缩程度与解释深度合适"
+    ],
+    "regression_requirements": [],
     "privacy": {
       "status": "public_safe",
-      "basis": "案例为合成条款，不对应真实合同或客户"
+      "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
     }
   }
 }

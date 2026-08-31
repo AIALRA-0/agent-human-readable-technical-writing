@@ -1,10 +1,12 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-10",
-    "status": "candidate",
+    "case_id": "REJECTED-10",
+    "origin_case_id": "CANDIDATE-10",
+    "status": "rejected",
     "revision": 1,
     "approved_by_user": false,
-    "category": "table_explanation"
+    "category": "table_explanation",
+    "reviewed_at": "2026-08-30"
   },
   "task": {
     "base_operation": "EXPLAIN",
@@ -84,7 +86,7 @@
     ],
     "inference_atoms": []
   },
-  "candidate": {
+  "artifact": {
     "answer": "| 版本 | 软件检查 | 板卡测试 | 发布条件 |\n| --- | --- | --- | --- |\n| A | 通过 | 未运行 | 不满足 |\n| B | 通过 | 通过 | 满足 |\n\n表 1. 版本 A 与版本 B 的验证状态和发布条件\n\n这张表回答两个版本是否完成本案例规定的发布前检查；发布条件要求软件检查和板卡测试同时通过\n\n四列分别表示：\n\n- 版本：当前比较的结果对象\n- 软件检查：设计是否通过规定的软件验证\n- 板卡测试：真实硬件是否已经运行测试\n- 发布条件：前两项是否同时通过\n\n版本 A 的 3 个结果格分别表示：\n\n- 软件检查为“通过”：规定的软件验证已经完成\n- 板卡测试为“未运行”：这项测试尚未开始，不能解释成测试失败\n- 发布条件为“不满足”：缺少板卡通过证据，因此当前不能按本案例规则进入发布\n\n版本 B 的 3 个结果格分别表示：\n\n- 软件检查为“通过”：规定的软件验证已经完成\n- 板卡测试为“通过”：真实硬件测试已经完成并通过\n- 发布条件为“满足”：两项前置检查同时通过\n\n两行比较显示，A 与 B 的差异来自板卡测试状态；表格支持“B 满足本案例发布条件，A 不满足”的判断；它没有提供性能、可靠性或安全认证数据，也没有说明 B 已经实际发布",
     "support_map": [
       {
@@ -129,18 +131,28 @@
         "role": "comparison_and_limit"
       }
     ],
-    "self_claims": []
+    "self_claims": [],
+    "original_case_sha256": "08d545498f76f835e44d3fb4a047d857552f5deee719207cc098d8cb413ef6c9"
   },
   "review": {
-    "questions": [
-      "四列、两行和 6 个结果格是否全部解释",
-      "未运行是否清楚区分于失败",
-      "比较结论是否有数据支持且没有扩大成正式发布或性能结论",
-      "小表逐格解释是否显得过重"
+    "decision_source": "explicit_user_review",
+    "decision": "rejected",
+    "reasons": [
+      "小表格逐格复述过重",
+      "结论和证据边界不够清楚"
+    ],
+    "correct_parts": [
+      "表格原文、列定义和未运行不等于失败的解释正确"
+    ],
+    "regression_requirements": [
+      "一次定义每列、每行和允许值",
+      "只单独解释异常值、歧义值和关键格",
+      "内部账本仍覆盖全部数据格",
+      "结论包含比较依据、影响、缺失证据和下一步"
     ],
     "privacy": {
       "status": "public_safe",
-      "basis": "表格和发布规则均为合成测试材料"
+      "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
     }
   }
 }

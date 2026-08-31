@@ -1,10 +1,12 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-11",
-    "status": "candidate",
+    "case_id": "REJECTED-11",
+    "origin_case_id": "CANDIDATE-11",
+    "status": "rejected",
     "revision": 1,
     "approved_by_user": false,
-    "category": "code_explanation"
+    "category": "code_explanation",
+    "reviewed_at": "2026-08-30"
   },
   "task": {
     "base_operation": "EXPLAIN",
@@ -83,7 +85,7 @@
     ],
     "inference_atoms": []
   },
-  "candidate": {
+  "artifact": {
     "answer": "这段代码使用 PowerShell 命令行与自动化环境；它接收一个文件路径，先确认路径指向真实文件，再计算该文件的 SHA-256 内容摘要；摘要可以用于比较两份文件内容是否一致，脚本不会修改原文件\n\n```powershell\nparam([string]$Path) # 接收调用者提供的文件路径；string 表示这个输入按文字保存\n\n# 先确认路径存在并且指向文件；-LiteralPath 按原样读取路径，避免把方括号等字符当成匹配符\nif (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {\n    exit 2 # 路径不存在或不是文件时立即结束；退出码 2 让外部脚本或 CI 识别本次检查失败\n}\n\n# 读取文件内容并计算 SHA-256 摘要；成功时屏幕会显示算法、摘要值和文件路径\nGet-FileHash -Algorithm SHA256 -LiteralPath $Path\n```\n\n运行时需要把 `$Path` 换成要检查的文件路径；如果路径有效，PowerShell 输出固定长度的摘要值；如果路径不存在或指向目录，脚本不会继续读取内容，并以退出码 `2` 结束\n\n这种写法的副作用是读取目标文件，运行时间会随文件大小增加；它不会写入或删除目标文件；摘要相同可以作为内容一致的强证据，但这段代码没有校验文件来源，也不能说明文件本身安全",
     "support_map": [
       {
@@ -126,18 +128,31 @@
         "role": "side_effect_and_limit"
       }
     ],
-    "self_claims": []
+    "self_claims": [],
+    "original_case_sha256": "ae95bbfb4fb3908d9960c9846f6c5c0fbcdcf48af63d5f0be33024874ac44853"
   },
   "review": {
-    "questions": [
-      "第一次使用 PowerShell 的读者是否知道 Path、LiteralPath、Leaf、exit 2 和 SHA-256 的作用",
-      "代码注释是否说明原因和可观察结果，而非逐字翻译",
-      "副作用和证据边界是否清楚",
-      "解释是否存在无必要细节"
+    "decision_source": "explicit_user_review",
+    "decision": "rejected",
+    "reasons": [
+      "PowerShell 没有解释为命令行与自动化环境",
+      "string 被不准确地解释为文字",
+      "SHA-256 缺少正式名称和用途说明",
+      "不会修改与不能证明的边界缺少原因、证据缺口和核对方法"
+    ],
+    "correct_parts": [
+      "代码注释覆盖动作、原因和可观察结果",
+      "原始代码得到保留"
+    ],
+    "regression_requirements": [
+      "解释 PowerShell、string 和 SHA-256",
+      "保留原始代码",
+      "说明查询或执行方法",
+      "每个否定边界继续说明原因、缺失证据和核对方法"
     ],
     "privacy": {
       "status": "public_safe",
-      "basis": "代码为合成示例，不包含真实路径或文件摘要"
+      "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
     }
   }
 }

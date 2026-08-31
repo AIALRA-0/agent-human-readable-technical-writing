@@ -1,10 +1,12 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-01",
-    "status": "candidate",
+    "case_id": "GOLD-01",
+    "origin_case_id": "CANDIDATE-01",
+    "status": "gold",
     "revision": 1,
-    "approved_by_user": false,
-    "category": "faithful_transform"
+    "approved_by_user": true,
+    "category": "faithful_transform",
+    "reviewed_at": "2026-08-30"
   },
   "task": {
     "base_operation": "TRANSFORM",
@@ -60,7 +62,7 @@
     ],
     "inference_atoms": []
   },
-  "candidate": {
+  "artifact": {
     "answer": "本次已经导出 18 个文件；网络中断导致上传尚未开始；请先保留本地压缩包，网络恢复后再重新上传",
     "support_map": [
       {
@@ -73,17 +75,22 @@
         "role": "source_restatement"
       }
     ],
-    "self_claims": []
+    "self_claims": [],
+    "original_case_sha256": "ea7d271bff2250fe1a228e9151a52c80a0c58e15c6dc9f1022bd45b4e2befd6e"
   },
   "review": {
-    "questions": [
-      "是否完整保留了 18 个文件、网络中断、尚未上传和后续动作",
-      "状态、原因和下一步是否按照自然顺序展开",
-      "是否存在你不愿意阅读的压缩或断句"
+    "decision_source": "explicit_user_review",
+    "decision": "accepted",
+    "reasons": [
+      "完整保留原始状态、原因和下一步"
     ],
+    "correct_parts": [
+      "信息没有新增或丢失"
+    ],
+    "regression_requirements": [],
     "privacy": {
       "status": "public_safe",
-      "basis": "案例为合成材料，不含账户、真实路径或会话原文"
+      "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
     }
   }
 }

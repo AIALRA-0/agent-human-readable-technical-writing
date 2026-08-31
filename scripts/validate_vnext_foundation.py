@@ -6,7 +6,6 @@ import hashlib
 import json
 import re
 import sys
-from collections import Counter
 from pathlib import Path
 from urllib.parse import unquote
 from xml.etree import ElementTree
@@ -17,18 +16,6 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_PLAN_SHA256 = "9b6f47ba8702c8c1c2c0bc4e7a75c0739f6b6f8bdce893968e409de3978cbc15"
-EXPECTED_CATEGORIES = {
-    "faithful_transform": 2,
-    "glossed_transform": 2,
-    "explanatory_translation": 2,
-    "teaching_transform": 2,
-    "image_explanation": 1,
-    "table_explanation": 1,
-    "code_explanation": 1,
-    "multi_turn": 1,
-}
-
-
 class ValidationFailure(RuntimeError):
     """Collect one deterministic foundation failure."""
 
@@ -44,7 +31,7 @@ def validate_contract_schemas() -> int:
     """Check every JSON Schema and return the number of valid contracts."""
 
     schema_paths = sorted((ROOT / "contracts").glob("*.schema.json"))
-    require(len(schema_paths) == 11, f"expected 11 contract schemas, found {len(schema_paths)}")
+    require(len(schema_paths) == 12, f"expected 12 contract schemas, found {len(schema_paths)}")
     for path in schema_paths:
         schema = json.loads(path.read_text(encoding="utf-8"))
         jsonschema.Draft202012Validator.check_schema(schema)
@@ -80,42 +67,44 @@ def validate_yaml_grouping() -> int:
     return len(yaml_paths)
 
 
-def validate_candidate_cases() -> int:
-    """Validate schema, status, coverage mapping, punctuation, and category balance."""
+def validate_reviewed_cases() -> int:
+    """Validate the 2 accepted and 10 rejected lifecycle records."""
 
-    schema = json.loads((ROOT / "contracts" / "candidate-case.schema.json").read_text(encoding="utf-8"))
-    validator = jsonschema.Draft202012Validator(schema)
-    paths = sorted((ROOT / "evals" / "candidate").glob("CANDIDATE-??.json"))
-    require(len(paths) == 12, f"expected 12 candidate cases, found {len(paths)}")
-    categories: Counter[str] = Counter()
+    schema = json.loads((ROOT / "contracts" / "evaluation-case.schema.json").read_text(encoding="utf-8"))
+    candidate_schema = json.loads((ROOT / "contracts" / "candidate-case.schema.json").read_text(encoding="utf-8"))
+    resolver = jsonschema.RefResolver.from_schema(schema, store={candidate_schema["$id"]: candidate_schema})
+    validator = jsonschema.Draft202012Validator(schema, resolver=resolver, format_checker=jsonschema.FormatChecker())
+    gold_paths = sorted((ROOT / "evals" / "gold").glob("GOLD-??.json"))
+    rejected_paths = sorted((ROOT / "evals" / "rejected").glob("REJECTED-??.json"))
+    paths = gold_paths + rejected_paths
+    require(len(gold_paths) == 2, f"expected 2 gold cases, found {len(gold_paths)}")
+    require(len(rejected_paths) == 10, f"expected 10 rejected cases, found {len(rejected_paths)}")
+    require(not list((ROOT / "evals" / "candidate").glob("CANDIDATE-??.json")), "reviewed round-1 files must not remain candidate")
 
-    for expected_number, path in enumerate(paths, start=1):
+    for path in paths:
         case = json.loads(path.read_text(encoding="utf-8"))
         errors = sorted(validator.iter_errors(case), key=lambda error: list(error.path))
         require(not errors, f"{path.name}: {errors[0].message if errors else ''}")
-        require(case["identity"]["case_id"] == f"CANDIDATE-{expected_number:02d}", f"{path.name}: non-sequential id")
-        categories[case["identity"]["category"]] += 1
 
         source_ids = {atom["id"] for atom in case["semantics"]["source_atoms"]}
         background_ids = {atom["id"] for atom in case["semantics"]["background_atoms"]}
         inference_ids = {atom["id"] for atom in case["semantics"]["inference_atoms"]}
         supported_ids = {
             atom_id
-            for mapping in case["candidate"]["support_map"]
+            for mapping in case["artifact"]["support_map"]
             for atom_id in mapping["supports"]
         }
         require(source_ids <= supported_ids, f"{path.name}: unmapped source atoms {sorted(source_ids - supported_ids)}")
         require(background_ids <= supported_ids, f"{path.name}: unmapped background atoms {sorted(background_ids - supported_ids)}")
         require(inference_ids <= supported_ids, f"{path.name}: unmapped inference atoms {sorted(inference_ids - supported_ids)}")
-        require("。" not in case["candidate"]["answer"], f"{path.name}: candidate answer contains Chinese full stop")
+        require("。" not in case["artifact"]["answer"], f"{path.name}: reviewed answer contains Chinese full stop")
 
         if case["source"]["material_type"] == "image":
             image_path = ROOT / case["source"]["content"]["path"]
             require(image_path.is_file(), f"{path.name}: image asset missing")
 
-    require(dict(categories) == EXPECTED_CATEGORIES, f"candidate category balance mismatch: {dict(categories)}")
-    gold_cases = list((ROOT / "evals" / "gold").glob("*.json"))
-    require(not gold_cases, "gold directory must remain empty before user review")
+    review = json.loads((ROOT / "evals" / "reviews" / "vnext-1.1-round-1.json").read_text(encoding="utf-8"))["review_round"]
+    require(len(review["decisions"]) == 12, "round-1 review must preserve 12 explicit decisions")
     return len(paths)
 
 
@@ -225,7 +214,7 @@ def main() -> int:
         ("authoritative_plan", validate_authoritative_plan),
         ("contract_schemas", validate_contract_schemas),
         ("yaml_grouping", validate_yaml_grouping),
-        ("candidate_cases", validate_candidate_cases),
+        ("reviewed_cases", validate_reviewed_cases),
         ("structured_examples", validate_examples),
         ("skill_resources", validate_skill_entrypoint),
         ("local_links", validate_relative_links),
@@ -240,7 +229,7 @@ def main() -> int:
         print(json.dumps({"status": "FAIL", "completed": results, "reason": str(error), "impact": "candidate branch must not be published", "next": "repair the reported deterministic defect and rerun"}, ensure_ascii=False, indent=2))
         return 1
 
-    print(json.dumps({"status": "PASS", "results": results, "reason": "all vNext foundation checks completed without deterministic defects", "impact": "candidate artifacts may proceed to user review after repository and publish checks", "next": "do not promote cases to gold until the user explicitly reviews them"}, ensure_ascii=False, indent=2))
+    print(json.dumps({"status": "PASS", "results": results, "reason": "all vNext round-1 lifecycle checks completed without deterministic defects", "impact": "2 accepted answers are fixed as gold and 10 rejected answers remain available for regression development", "next": "build the R2 candidates without changing approved_by_user"}, ensure_ascii=False, indent=2))
     return 0
 
 

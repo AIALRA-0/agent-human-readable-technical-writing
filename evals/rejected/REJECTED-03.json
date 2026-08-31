@@ -1,10 +1,12 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-03",
-    "status": "candidate",
+    "case_id": "REJECTED-03",
+    "origin_case_id": "CANDIDATE-03",
+    "status": "rejected",
     "revision": 1,
     "approved_by_user": false,
-    "category": "glossed_transform"
+    "category": "glossed_transform",
+    "reviewed_at": "2026-08-30"
   },
   "task": {
     "base_operation": "TRANSFORM",
@@ -88,7 +90,7 @@
     ],
     "inference_atoms": []
   },
-  "candidate": {
+  "artifact": {
     "answer": "运行下面的命令检查项目链接\n\n```powershell\nnpm run check # npm 会调用项目中已经登记的 check 检查脚本；命令结束后会返回检查结果\n```\n\n`npm` 是项目调用已登记脚本的命令行工具；如果检查发现失效链接，命令会以退出码 `2` 结束；退出码是命令返回给操作系统的数字状态，`2` 让本地脚本和 CI 持续集成流程识别本次检查失败；CI 会在代码提交后自动运行同一类检查，但这段说明没有证明当前项目已经启用 CI",
     "support_map": [
       {
@@ -112,17 +114,30 @@
         "role": "source_restatement_and_gloss"
       }
     ],
-    "self_claims": []
+    "self_claims": [],
+    "original_case_sha256": "42c29960e24e5d90d76590c46f6e21ee19d41ba2e5a70dad7c25220c2d73f237"
   },
   "review": {
-    "questions": [
-      "新手是否能理解 npm、退出码 2 和 CI 分别是什么",
-      "解释是否保持了原文的失败关系，没有声称自动修复",
-      "代码注释是否说明了命令、原因和可观察结果"
+    "decision_source": "explicit_user_review",
+    "decision": "rejected",
+    "reasons": [
+      "npm 与 CI 的首次解释深度不足",
+      "术语没有使用正式形式和自然用途说明",
+      "多个独立主题挤在同一段"
+    ],
+    "correct_parts": [
+      "退出码 2 与失效链接的关系正确",
+      "没有声称当前项目已经启用 CI"
+    ],
+    "regression_requirements": [
+      "独立案例中的 known_terms 必须为空",
+      "npm 保持官方小写并说明包管理用途",
+      "CI 首次出现时解释提交、构建、测试和集成问题",
+      "独立主题换行"
     ],
     "privacy": {
       "status": "public_safe",
-      "basis": "命令和术语均为公开通用示例，不含真实仓库信息"
+      "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
     }
   }
 }

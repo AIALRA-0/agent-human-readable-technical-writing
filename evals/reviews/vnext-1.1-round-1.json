@@ -1,0 +1,22 @@
+{
+  "review_round": {
+    "review_id": "vnext-1.1-round-1",
+    "reviewed_at": "2026-08-30",
+    "decision_source": "explicit_user_review",
+    "privacy": "deidentified_technical_feedback_only",
+    "decisions": [
+      {"origin_case_id": "CANDIDATE-01", "decision": "accepted", "reasons": ["完整保留原始状态、原因和下一步"], "correct_parts": ["信息没有新增或丢失"], "regression_requirements": []},
+      {"origin_case_id": "CANDIDATE-02", "decision": "accepted", "reasons": ["完整保留原始事实并按照自然顺序表达"], "correct_parts": ["压缩程度与解释深度合适"], "regression_requirements": []},
+      {"origin_case_id": "CANDIDATE-03", "decision": "rejected", "reasons": ["npm 与 CI 的首次解释深度不足", "术语没有使用正式形式和自然用途说明", "多个独立主题挤在同一段"], "correct_parts": ["退出码 2 与失效链接的关系正确", "没有声称当前项目已经启用 CI"], "regression_requirements": ["独立案例中的 known_terms 必须为空", "npm 保持官方小写并说明包管理用途", "CI 首次出现时解释提交、构建、测试和集成问题", "独立主题换行"]},
+      {"origin_case_id": "CANDIDATE-04", "decision": "rejected", "reasons": ["POST /tasks 没有解释请求方法与地址的实际作用", "HTTP 的解释没有自然嵌入后续行为"], "correct_parts": ["HTTP 202 的未完成边界方向正确"], "regression_requirements": ["解释 POST /tasks 用于向 /tasks 地址提交新任务", "HTTP 首次出现时保留正式全称并用后文说明通信用途", "202 不得扩写成任务已经开始"]},
+      {"origin_case_id": "CANDIDATE-05", "decision": "rejected", "reasons": ["包含空洞引导句", "冒号后的多个先验概念没有换行缩进", "时钟域跨越、建立时间、保持时间和亚稳态解释过浅", "不同主题没有分段"], "correct_parts": ["结论范围没有扩展到多比特数据和异步复位"], "regression_requirements": ["删除空洞引导句", "冒号后两个以上项目换行", "解释两级触发器同步器的两级作用", "多比特数据、异步复位和证据边界分别成段"]},
+      {"origin_case_id": "CANDIDATE-06", "decision": "rejected", "reasons": ["已经产生的费用缺少明确所属主体", "工作日计算边界需要连接合同其他条款"], "correct_parts": ["暂停访问、协议效力和恢复条件的顺序清楚"], "regression_requirements": ["写明原协议已经产生的费用仍需支付", "说明两个工作日从收到全部付款后计算", "工作日定义不明时指出核对位置"]},
+      {"origin_case_id": "CANDIDATE-07", "decision": "rejected", "reasons": ["FPGA、综合、时序分析和位流解释不足", "Mermaid 使用横向布局", "图后缺少详细讲解", "发布边界缺少形成原因、实际影响和验证动作"], "correct_parts": ["软件流程与真实板卡验证的范围区分正确"], "regression_requirements": ["Mermaid 默认使用 TD", "解释 FPGA 及软件侧各阶段", "图后说明节点关系、流程结果和边界", "写明板卡测试项目和满足发布条件的证据"]},
+      {"origin_case_id": "CANDIDATE-08", "decision": "rejected", "reasons": ["幂等键缺少正式形式、名称由来和业务作用", "流程图没有追加解释", "重试、请求体、24 小时失效和原订单边界挤在同一段", "order_id 没有解释"], "correct_parts": ["同一次业务操作复用同一键和同一请求体的方向正确"], "regression_requirements": ["解释幂等键如何让服务器识别重复业务操作", "解释 order_id 是订单标识", "图后说明重试关系和失效边界", "不同规则分段"]},
+      {"origin_case_id": "CANDIDATE-09", "decision": "rejected", "reasons": ["原图必须保留在解释前", "先验知识列表没有换行和加深", "图中元素只解释外观而未解释功能", "单项说明不应使用冒号", "边界缺少证据缺口和下一步"], "correct_parts": ["FF1 到 FF2 的直接连接关系识别正确"], "regression_requirements": ["原图先于解释", "解释有效元素的外观、功能、连接和实际作用", "区分可见事实、背景和推断", "边界包含缺失证据、重要性和验证方法"]},
+      {"origin_case_id": "CANDIDATE-10", "decision": "rejected", "reasons": ["小表格逐格复述过重", "结论和证据边界不够清楚"], "correct_parts": ["表格原文、列定义和未运行不等于失败的解释正确"], "regression_requirements": ["一次定义每列、每行和允许值", "只单独解释异常值、歧义值和关键格", "内部账本仍覆盖全部数据格", "结论包含比较依据、影响、缺失证据和下一步"]},
+      {"origin_case_id": "CANDIDATE-11", "decision": "rejected", "reasons": ["PowerShell 没有解释为命令行与自动化环境", "string 被不准确地解释为文字", "SHA-256 缺少正式名称和用途说明", "不会修改与不能证明的边界缺少原因、证据缺口和核对方法"], "correct_parts": ["代码注释覆盖动作、原因和可观察结果", "原始代码得到保留"], "regression_requirements": ["解释 PowerShell、string 和 SHA-256", "保留原始代码", "说明查询或执行方法", "每个否定边界继续说明原因、缺失证据和核对方法"]},
+      {"origin_case_id": "CANDIDATE-12", "decision": "rejected", "reasons": ["原始材料属于代码或结构化技术证据时必须保留在答案中", "缺少如何使用任务标识查询的说明"], "correct_parts": ["多轮约束合并正确", "没有承诺完成时间", "整体质量接近可接受"], "regression_requirements": ["保留原始参考材料", "在来源支持时说明查询入口或方法", "来源没有查询方式时明确证据缺口"]}
+    ]
+  }
+}

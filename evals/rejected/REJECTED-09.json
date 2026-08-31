@@ -1,10 +1,12 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-09",
-    "status": "candidate",
+    "case_id": "REJECTED-09",
+    "origin_case_id": "CANDIDATE-09",
+    "status": "rejected",
     "revision": 1,
     "approved_by_user": false,
-    "category": "image_explanation"
+    "category": "image_explanation",
+    "reviewed_at": "2026-08-30"
   },
   "task": {
     "base_operation": "EXPLAIN",
@@ -108,7 +110,7 @@
     ],
     "inference_atoms": []
   },
-  "candidate": {
+  "artifact": {
     "answer": "这张图展示一个名为 `control` 的单比特控制信号怎样从 `clk_a` 时钟域进入 `clk_b` 时钟域；阅读顺序从左向右\n\n理解图片以前需要知道：时钟域是由同一时钟控制的一组电路；触发器会在时钟边沿采样输入；信号进入另一个时钟域时，接收端可能在不稳定时刻采样\n\n图中的有效元素分别表示：\n\n- 蓝色区域：`clk_a` 时钟域；它是 `control` 信号的起点\n- 白色圆形 `control`：需要跨越时钟域的单比特控制信号\n- 中间黑色箭头：信号从左向右传递，箭头上的“跨时钟域”说明它离开 `clk_a` 并进入 `clk_b`\n- 灰色 `FF1`：`clk_b` 一侧的第一级触发器；它先接收跨域信号\n- 灰色 `FF2`：第二级触发器；它接收 `FF1` 的输出\n- 绿色区域：`clk_b` 时钟域；`FF2` 的输出在这个时钟域中继续使用\n- 蓝色和绿色：只用于区分两个时钟域，图中没有赋予颜色额外的成功或风险等级\n- 橙色提示：图中没有展示多比特总线，因此不能把这张图直接解释成多比特数据跨域方案\n\n从连接关系可以直接得到：`control` 先经过 `FF1`，再经过 `FF2`；背景资料说明，这种两级触发器结构常用于降低单比特控制信号把亚稳态继续传播到后续逻辑的风险\n\n这张图只说明结构和信号方向；它没有提供时钟频率、复位方式、仿真结果、板卡测试或故障率数据，因此不能证明电路已经验证，也不能证明风险已经完全消除",
     "support_map": [
       {
@@ -157,18 +159,31 @@
         "role": "evidence_limit"
       }
     ],
-    "self_claims": []
+    "self_claims": [],
+    "original_case_sha256": "23b2813cdc4f91e72e5206efb0291b9b76848424003e5f396c58e142c68e52fd"
   },
   "review": {
-    "questions": [
-      "图中每个有效元素是否都有解释落点",
-      "可见事实、背景知识和证据边界是否分得清",
-      "解释是否足够让零基础读者知道从哪里开始看",
-      "逐项覆盖是否过长或仍有遗漏"
+    "decision_source": "explicit_user_review",
+    "decision": "rejected",
+    "reasons": [
+      "原图必须保留在解释前",
+      "先验知识列表没有换行和加深",
+      "图中元素只解释外观而未解释功能",
+      "单项说明不应使用冒号",
+      "边界缺少证据缺口和下一步"
+    ],
+    "correct_parts": [
+      "FF1 到 FF2 的直接连接关系识别正确"
+    ],
+    "regression_requirements": [
+      "原图先于解释",
+      "解释有效元素的外观、功能、连接和实际作用",
+      "区分可见事实、背景和推断",
+      "边界包含缺失证据、重要性和验证方法"
     ],
     "privacy": {
       "status": "public_safe",
-      "basis": "图片和内容均为本仓库合成测试资产"
+      "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
     }
   }
 }

@@ -1,10 +1,12 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-05",
-    "status": "candidate",
+    "case_id": "REJECTED-05",
+    "origin_case_id": "CANDIDATE-05",
+    "status": "rejected",
     "revision": 1,
     "approved_by_user": false,
-    "category": "explanatory_translation"
+    "category": "explanatory_translation",
+    "reviewed_at": "2026-08-30"
   },
   "task": {
     "base_operation": "TRANSLATE",
@@ -81,7 +83,7 @@
     ],
     "inference_atoms": []
   },
-  "candidate": {
+  "artifact": {
     "answer": "原文完整翻译如下\n\n研究人员在每个从 `clk_a` 时钟域进入 `clk_b` 时钟域的单比特控制信号上加入了两级触发器同步器；这项实验没有评估多比特总线，也没有评估异步复位解除过程\n\n理解这一结论需要知道：时钟域表示由同一时钟控制的一组电路；信号从一个时钟域进入另一个时钟域时，接收端可能在不稳定时刻采样信号；两级触发器同步器常用于降低单比特控制信号把这种不稳定状态继续传播的风险\n\n这项结果的适用范围只包括原文处理的单比特控制信号；多比特数据需要考虑各位是否同时保持一致，异步复位解除还需要单独检查释放时序；这些背景用于说明原文为什么明确排除了两类对象，不表示作者已经完成相应验证",
     "support_map": [
       {
@@ -112,17 +114,30 @@
         "role": "scope_explanation"
       }
     ],
-    "self_claims": []
+    "self_claims": [],
+    "original_case_sha256": "4e9cdc795885683996efde22c60f272fe68d123935772bf227d9a537cf69d60b"
   },
   "review": {
-    "questions": [
-      "原文的方向、对象和两个未评估范围是否全部保留",
-      "补充背景是否帮助理解，同时没有伪装成作者结论",
-      "零基础读者是否仍需要解释时钟、触发器或复位"
+    "decision_source": "explicit_user_review",
+    "decision": "rejected",
+    "reasons": [
+      "包含空洞引导句",
+      "冒号后的多个先验概念没有换行缩进",
+      "时钟域跨越、建立时间、保持时间和亚稳态解释过浅",
+      "不同主题没有分段"
+    ],
+    "correct_parts": [
+      "结论范围没有扩展到多比特数据和异步复位"
+    ],
+    "regression_requirements": [
+      "删除空洞引导句",
+      "冒号后两个以上项目换行",
+      "解释两级触发器同步器的两级作用",
+      "多比特数据、异步复位和证据边界分别成段"
     ],
     "privacy": {
       "status": "public_safe",
-      "basis": "论文片段和背景均为合成测试材料"
+      "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
     }
   }
 }
