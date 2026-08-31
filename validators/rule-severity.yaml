@@ -31,6 +31,21 @@ registry:
     LUCAS_PUNCTUATION:
       severity: PROFILE_REQUIRED
       description: 启用 Lucas 配置时执行个人标点规则
+    STANDALONE_TERM_RESET:
+      severity: MACHINE_FINAL
+      description: 独立阅读单元的 known_terms 必须为空，防止测试借用其他内容的解释
+    SOURCE_COMPONENT_ORDER:
+      severity: PROFILE_REQUIRED
+      description: 原图、原表和原始代码按照组件合同保留在解释前或与解释同时出现
+    MERMAID_VERTICAL_DEFAULT:
+      severity: PROFILE_REQUIRED
+      description: 横向 Mermaid 必须具有任务合同登记的不可替代理由
+    BOUNDARY_EVIDENCE:
+      severity: PROFILE_REQUIRED
+      description: 边界必须登记缺失证据、重要性和下一项验证
+    TABLE_CELL_COVERAGE:
+      severity: PROFILE_REQUIRED
+      description: 所有数据格通过列定义、值词典、行映射或单格说明完成覆盖
     ORDINARY_SENTENCE_RHYTHM:
       severity: ADVISORY
       description: 句子节奏用于优化，不作为单独失败原因

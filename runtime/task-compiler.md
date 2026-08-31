@@ -7,7 +7,7 @@
 ## 2. 编译顺序
 
 ```mermaid
-flowchart LR
+flowchart TD
     A[读取用户请求和原始材料] --> B[选择基础操作]
     B --> C[选择解释增量]
     C --> D[登记读者、文体和媒介]
@@ -18,6 +18,8 @@ flowchart LR
 ```
 
 图 2.1 任务编译顺序
+
+这张图从基础操作开始收窄任务范围，再决定解释增量、读者、组件和用户配置；最后一步只检查会改变事实、范围、来源要求或输出规模的歧义；没有阻塞性歧义时，编译器直接生成结构化任务合同
 
 ## 3. 基础操作判断
 
@@ -41,3 +43,9 @@ flowchart LR
 ## 5. 输出条件
 
 任务契约必须通过 `contracts/task-contract.schema.json`；`TRANSFORM` 和 `TRANSLATE` 默认把源信息覆盖目标设为 `1.0`；存在会改变结果的歧义时，`clarification.status` 必须为 `BLOCKED`
+
+独立阅读单元使用 `reading_context: standalone`，并把 `known_terms` 设为空数组；连续文档只有在前文实际完成术语解释后，才能把对应术语加入 `known_terms`
+
+任务包含图片、表格或代码时，`component_order` 登记原始组件是否先于解释出现；正文存在证据边界时，`boundary_requirements` 分别登记缺失证据、缺失证据的重要性和下一项验证方法
+
+Mermaid 默认使用纵向布局；只有横向排列表达并列比较且纵向布局会明显破坏理解时，才在 `layout_exceptions` 登记组件、原因和纵向布局不可用的依据

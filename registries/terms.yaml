@@ -1,51 +1,117 @@
 registry:
   identity:
     registry_id: canonical-terms
-    description: 术语登记表按照概念和用户配置规定首次出现与后续使用形式
+    revision: round-1-review
+    description: 只登记真实审核中出现的术语，正式形式和解释要求按照独立阅读范围执行
+  defaults:
+    reading_scope:
+      standalone:
+        known_terms: []
+        description: 独立阅读单元重新执行首次解释
+      continuous_document:
+        known_terms_source: task_contract
+        description: 连续文档只复用任务合同已经登记并实际解释过的术语
+    natural_embedding:
+      parenthesis_content: official_english_or_abbreviation_only
+      prose_content:
+        - definition
+        - current_use
+        - observable_behavior
+        - actual_impact
+      description: 括号不承担整段定义，解释通过相邻正文自然完成
   terms:
-    AMD:
-      aliases:
-        values:
-          - AMD
-          - Advanced Micro Devices
-          - 超微半导体
-        description: 这些形式指向同一公司实体
-      first_use:
-        lucas: AMD 超微半导体（Advanced Micro Devices）
-        description: Lucas 配置使用缩写、中文名称和英文全称的顺序
-      later_use:
-        lucas: AMD
-        description: 后续使用官方缩写
-      protected_meaning:
-        entity_type: company
-        description: 改写不能改变实体类型
-    HTTP:
-      aliases:
-        values:
-          - HTTP
-          - Hypertext Transfer Protocol
-          - 超文本传输协议
-        description: 这些形式指向网页和接口通信使用的协议
-      first_use:
-        lucas: HTTP 超文本传输协议（Hypertext Transfer Protocol）
-        description: 首次出现时保留官方缩写并解释正式名称
-      later_use:
-        lucas: HTTP
-        description: 后续使用官方缩写
-      protected_meaning:
-        entity_type: protocol
-        description: 状态码必须与协议响应语义保持关联
     npm:
-      aliases:
-        values:
-          - npm
-        description: 官方名称保持小写，不自行展开成未经确认的全称
-      first_use:
-        lucas: npm
-        description: 正文另用自然短句解释用途
-      later_use:
-        lucas: npm
-        description: 后续继续保持官方小写形式
-      protected_meaning:
-        entity_type: tool
-        description: 不能把工具名称改写成普通名词
+      official_form: npm
+      first_use: npm 包管理器
+      definition: Node.js 生态中安装、更新、管理和发布 JavaScript 或 TypeScript 软件包与依赖的工具和软件仓库
+      required_meanings: [definition, current_use, observable_behavior, actual_impact]
+      source: https://docs.npmjs.com/policies/logos-and-usage/
+      constraint: 官方名称保持小写，npm 官方说明该名称不是 Node Package Manager 的缩写
+    CI:
+      official_form: CI 持续集成（Continuous Integration）
+      definition: 开发者提交代码后自动执行构建、测试和检查，并尽早发现代码集成问题的开发流程
+      required_meanings: [definition, current_use, observable_behavior, actual_impact]
+      source: https://docs.github.com/en/actions/get-started/continuous-integration
+    HTTP:
+      official_form: HTTP 超文本传输协议（Hypertext Transfer Protocol）
+      definition: 浏览器、客户端与服务器传输网页、接口请求和数据时常用的通信协议
+      required_meanings: [definition, current_use, observable_behavior, actual_impact]
+      source: https://www.rfc-editor.org/rfc/rfc9110.html
+    POST_TASKS:
+      official_form: POST /tasks
+      definition: 向服务器的 /tasks 地址发送 POST 请求，用来创建并提交一个新任务
+      required_meanings: [definition, current_use, observable_behavior, actual_impact]
+      source: https://www.rfc-editor.org/rfc/rfc9110.html
+    HTTP_202:
+      official_form: HTTP 状态码 202
+      definition: 服务器已经接收请求，但处理尚未完成并且可能尚未开始
+      required_meanings: [definition, current_use, observable_behavior, actual_impact]
+      source: https://www.rfc-editor.org/rfc/rfc9110.html
+      constraint: 禁止扩写成任务已经开始或最终会成功
+    FPGA:
+      official_form: FPGA 现场可编程门阵列（Field-Programmable Gate Array）
+      definition: 可以通过位流配置内部逻辑和连线，使芯片按照当前硬件设计运行的可编程器件
+      required_meanings: [definition, current_use, observable_behavior, actual_impact]
+    SYNTHESIS:
+      official_form: 综合（Synthesis）
+      definition: 把 Verilog 或 VHDL 等硬件描述转换成 FPGA 内部能够实现的查找表、触发器和存储资源等逻辑结构
+      required_meanings: [definition, current_use, observable_behavior, actual_impact]
+    TIMING_ANALYSIS:
+      official_form: 时序分析（Timing Analysis）
+      definition: 检查逻辑之间的信号传播是否满足时钟频率和时序约束，确保数据按时稳定到达并被采样
+      required_meanings: [definition, current_use, observable_behavior, actual_impact]
+      source: https://docs.amd.com/r/2024.1-English/ug901-vivado-synthesis/Running-Timing-Analysis
+    BITSTREAM:
+      official_form: 位流（Bitstream）
+      definition: 写入 FPGA 后配置内部逻辑和连线，使芯片按照当前设计运行的配置文件
+      required_meanings: [definition, current_use, observable_behavior, actual_impact]
+    SETUP_TIME:
+      official_form: 建立时间（Setup Time）
+      definition: 触发器采样边沿到来以前，输入信号需要保持稳定的最短时间
+      required_meanings: [definition, current_use, observable_behavior, actual_impact]
+    HOLD_TIME:
+      official_form: 保持时间（Hold Time）
+      definition: 触发器采样边沿到来以后，输入信号仍需继续保持稳定的最短时间
+      required_meanings: [definition, current_use, observable_behavior, actual_impact]
+    METASTABILITY:
+      official_form: 亚稳态（Metastability）
+      definition: 触发器暂时无法稳定为明确 0 或 1 的不确定状态
+      required_meanings: [definition, current_use, observable_behavior, actual_impact]
+    IDEMPOTENCY_KEY:
+      official_form: 幂等键（Idempotency Key）
+      definition: 客户端为一次业务操作提供的唯一值，服务器用它识别重试是否属于同一次操作并避免重复创建结果
+      required_meanings: [definition, current_use, observable_behavior, actual_impact, name_origin]
+      constraint: 幂等表示同一次操作重复执行后仍保持同一业务结果，不代表请求一定成功
+    ORDER_ID:
+      official_form: order_id
+      definition: 服务器分配给订单的订单标识，调用方使用它查询或关联同一订单
+      required_meanings: [definition, current_use, observable_behavior, actual_impact]
+    TASK_ID:
+      official_form: task_id
+      definition: 服务器分配给任务的任务标识，调用方使用它查询或关联同一任务
+      required_meanings: [definition, current_use, observable_behavior, actual_impact]
+    POWERSHELL:
+      official_form: PowerShell
+      definition: 用于运行命令、管理系统和编写自动化脚本的命令行与脚本环境
+      required_meanings: [definition, current_use, observable_behavior, actual_impact]
+      source: https://learn.microsoft.com/en-us/powershell/scripting/overview
+    STRING:
+      official_form: string 字符串类型
+      definition: 按顺序保存字符的数据类型
+      required_meanings: [definition, current_use, observable_behavior, actual_impact]
+      source: https://learn.microsoft.com/en-us/powershell/scripting/lang-spec/chapter-04
+    SHA256:
+      official_form: SHA-256 安全散列算法（Secure Hash Algorithm 256-bit）
+      definition: 把任意长度内容计算成固定 256 位摘要，用于比较内容是否发生变化
+      required_meanings: [definition, current_use, observable_behavior, actual_impact]
+      source: https://csrc.nist.gov/glossary/term/sha_256
+    TEST_PATH:
+      official_form: Test-Path
+      definition: PowerShell 中检查指定路径是否存在并符合要求的命令
+      required_meanings: [definition, current_use, observable_behavior, actual_impact]
+      source: https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/test-path
+    GET_FILE_HASH:
+      official_form: Get-FileHash
+      definition: PowerShell 中读取文件并计算内容摘要的命令
+      required_meanings: [definition, current_use, observable_behavior, actual_impact]
+      source: https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/get-filehash

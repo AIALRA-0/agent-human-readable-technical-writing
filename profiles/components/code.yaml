@@ -1,7 +1,13 @@
 profile:
   identity:
     profile_id: code-explanation
-    description: 代码按照零先验读者处理，并解释功能、原因、输入、结果和边界
+    revision: round-1-review
+    description: 代码按照零先验读者处理，并保留原始代码后解释功能、原因、输入、结果和边界
+  source_order:
+    original_code:
+      policy: before_or_with_explanation
+      severity: PROFILE_REQUIRED
+      description: 原始代码必须出现在候选答案中，解释不得用摘要替代代码证据
   comment_granularity:
     single_command:
       description: 独立生效的单行命令使用同行注释
@@ -14,21 +20,25 @@ profile:
     closing_syntax:
       description: 纯括号和闭合符继承所在块说明，不添加机械废注释
     non_commentable_format:
-      description: JSON 等格式同时提供原始版本和可注释等价版本
+      description: JSON 等格式保留原始版本，再提供可注释等价版本
   required_coverage:
     tool:
-      description: 说明语言或工具是什么
+      description: 说明语言或工具是什么以及读者如何运行或查询
     action:
       description: 说明这一行或功能块做什么
     reason:
       description: 说明为什么需要以及为什么采用当前写法
     syntax:
-      description: 说明影响理解的关键语法
+      description: 说明影响理解的关键语法和数据类型
     input:
-      description: 说明输入从哪里来
+      description: 说明输入从哪里来以及允许什么形式
     result:
       description: 说明执行后的可观察结果
     failure:
-      description: 说明失败时可能发生什么
-    boundary:
-      description: 说明副作用和兼容性边界
+      description: 说明失败表现、退出状态和调用方如何识别失败
+    side_effect:
+      description: 说明会读取、写入、删除、联网或改变哪些对象
+    compatibility:
+      description: 说明运行环境、版本或格式边界
+    evidence_boundary:
+      description: 说明代码结果不能证明什么、缺少什么证据和怎样继续核对

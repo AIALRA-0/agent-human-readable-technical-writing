@@ -1,24 +1,39 @@
 profile:
   identity:
     profile_id: table-explanation
-    description: 表格解释覆盖阅读方法、数据含义、比较关系和证据边界
+    revision: round-1-review
+    description: 表格解释通过列定义、值词典和行映射覆盖全部数据，同时避免机械逐格复述
+  source_order:
+    original_table:
+      policy: before_explanation
+      severity: PROFILE_REQUIRED
+      description: 原表保留在解释前面，读者可以直接核对数据
   required_coverage:
     overview:
       description: 说明表格整体回答什么
     columns:
-      description: 说明每一列的名称、单位和作用
+      description: 说明每一列的名称、单位、允许值和实际作用
     rows:
       description: 说明每一行代表的对象
-    cells:
-      description: 说明每个数据格的值及其状态
+    value_dictionary:
+      description: 相同值统一解释一次，后续数据格引用同一含义
+    row_mapping:
+      description: 把每行数据映射到列定义和值词典，不机械复述已经定义的相同含义
+    exceptional_cells:
+      description: 单独解释异常值、缺失值、歧义值和决定结论的关键数据格
     comparisons:
-      description: 说明行与行、列与列的比较关系
+      description: 说明行与行、列与列的比较依据和实际差异
     findings:
       description: 说明趋势、异常和数据支持的结论
     limits:
-      description: 说明缺失数据、零值、空白格、不适用值和无法证明的内容
-  large_table_output:
+      description: 说明缺少的证据、实际影响和下一项验证方法
+  internal_coverage:
+    cell_ledger:
+      policy: all_cells_mapped
+      severity: PROFILE_REQUIRED
+      description: 每个数据格必须由列定义、值词典、行映射或单格解释至少覆盖一次
+  output_strategy:
     main_text:
-      description: 解释阅读方法、主要关系、趋势和异常
+      description: 解释阅读方法、主要关系、趋势、异常和结论
     appendix:
-      description: 按照单元格编号逐格覆盖
+      description: 只有大型表格需要逐格审计时才生成单元格附录

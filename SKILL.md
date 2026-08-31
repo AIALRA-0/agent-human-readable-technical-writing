@@ -25,7 +25,7 @@ description: 所有面向用户的中文回答、中文技术写作、改写、�
 - 只要求同语种忠实改写：`TRANSFORM + NONE`
 - 只要求调整版式：`FORMAT_ONLY + NONE`
 
-同时登记读者、文体、媒介、内容组件和用户配置；任务契约的结构以 `contracts/task-contract.schema.json` 为准
+同时登记读者、文体、媒介、内容组件和用户配置；任务契约还要登记独立或连续阅读范围、已解释术语、原始组件顺序、证据边界和横向布局例外；结构以 `contracts/task-contract.schema.json` 为准
 
 只有不同解释会改变事实、范围、结论、来源要求或输出规模时才提问；一次说明问题、选项、推荐默认和各选项的实际影响
 
@@ -58,9 +58,9 @@ description: 所有面向用户的中文回答、中文技术写作、改写、�
 
 ## 5. 按组件加载
 
-- 图片：读取 `profiles/components/images.yaml`；解释有效元素、关系、背景、推断和证据边界
-- 表格：读取 `profiles/components/tables.yaml`；解释列、行、数据格、比较、趋势、异常和不能证明的内容
-- 代码：读取 `profiles/components/code.yaml`；解释工具、动作、原因、语法、输入、结果、失败表现、副作用和边界
+- 图片：读取 `profiles/components/images.yaml`；先保留原图，再解释有效元素的外观、功能、连接、实际作用和证据边界
+- 表格：读取 `profiles/components/tables.yaml`；先保留原表，再用列定义、值词典、行映射和关键格说明覆盖全部数据
+- 代码：读取 `profiles/components/code.yaml`；保留原始代码，并解释工具、动作、原因、语法、输入、结果、失败表现、副作用、查询方法和证据边界
 - 术语：读取 `registries/terms.yaml`；使用登记形式，未登记术语根据官方名称和当前读者自然解释
 - 单位与机器标识：读取 `registries/units.yaml` 和 `registries/protected-patterns.yaml`
 

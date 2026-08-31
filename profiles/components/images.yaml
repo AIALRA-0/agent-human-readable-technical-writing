@@ -1,7 +1,13 @@
 profile:
   identity:
     profile_id: image-explanation
+    revision: round-1-review
     description: 图片按照零先验读者处理，并区分可见事实、背景与推断
+  source_order:
+    original_image:
+      policy: before_explanation
+      severity: PROFILE_REQUIRED
+      description: 原图始终出现在解释前面，读者可以同步核对讲解和图中证据
   required_coverage:
     overview:
       description: 说明图片整体展示什么以及读者应从哪里开始看
@@ -9,12 +15,14 @@ profile:
       description: 补充理解图片所需的最小先验知识
     effective_elements:
       description: 覆盖影响理解的对象、文字、图例、箭头、区域、数值、颜色、形状和空间关系
+    element_functions:
+      description: 说明每个有效元素的功能和它对整体结果的作用，不能只描述外观
     relationships:
       description: 说明元素之间的连接、方向、趋势、异常和重点
     impact:
       description: 说明图片支持的实际判断和影响
     limits:
-      description: 说明图片没有证明什么以及哪些内容无法确认
+      description: 说明缺少的证据、缺少这些证据为什么重要以及下一项验证方法
   provenance_layers:
     visible_fact:
       description: 图片直接显示的内容
@@ -25,4 +33,4 @@ profile:
     inference:
       description: 结合上下文推导并保留强度的含义
     unresolved:
-      description: 分辨率或证据不足时明确无法确认
+      description: 分辨率或证据不足时明确无法确认，并登记继续核对的方法
