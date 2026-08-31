@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AIALRA-0/agent-human-readable-technical-writing/contracts/forward-request.schema.json",
+  "title": "ForwardTestRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["case_id", "round", "base_operation", "augmentation", "genre", "audience", "components", "request", "source", "references"],
+  "properties": {
+    "case_id": {"type": "string", "pattern": "^FWD-R1-[0-9]{3}$"},
+    "round": {"const": 1},
+    "base_operation": {"enum": ["TRANSFORM", "TRANSLATE", "COMPRESS", "EXPLAIN", "GENERATE", "FORMAT_ONLY"]},
+    "augmentation": {"enum": ["NONE", "GLOSS", "EXPLANATORY", "TEACHING"]},
+    "genre": {"type": "string", "minLength": 1},
+    "audience": {"const": "zero_prior_knowledge"},
+    "components": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["TEXT", "IMAGE", "TABLE", "CODE"]}},
+    "request": {"type": "string", "minLength": 1},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["material_type", "content", "sha256"],
+      "properties": {
+        "material_type": {"enum": ["none", "text", "image", "table", "code", "multi_turn"]},
+        "content": {},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "content"],
+        "properties": {"id": {"type": "string", "minLength": 1}, "content": {"type": "string", "minLength": 1}}
+      }
+    }
+  }
+}

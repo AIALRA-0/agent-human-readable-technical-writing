@@ -1,7 +1,7 @@
 registry:
   identity:
     registry_id: canonical-terms
-    revision: round-1-review
+    revision: round-2-feedback
     description: 只登记真实审核中出现的术语，正式形式和解释要求按照独立阅读范围执行
   defaults:
     reading_scope:
@@ -23,10 +23,11 @@ registry:
     npm:
       official_form: npm
       first_use: npm 包管理器
-      definition: Node.js 生态中安装、更新、管理和发布 JavaScript 或 TypeScript 软件包与依赖的工具和软件仓库
+      generic_english_category: package manager
+      definition: Node.js 生态中安装、更新、管理和发布 JavaScript 或 TypeScript 软件包与依赖的包管理器、命令行工具和软件仓库
       required_meanings: [definition, current_use, observable_behavior, actual_impact]
       source: https://docs.npmjs.com/policies/logos-and-usage/
-      constraint: 官方名称保持小写，npm 官方说明该名称不是 Node Package Manager 的缩写
+      constraint: 官方名称保持小写，package manager 只能作为通用用途类别，禁止把 npm 解释成 Node Package Manager 或其他首字母缩写
     CI:
       official_form: CI 持续集成（Continuous Integration）
       definition: 开发者提交代码后自动执行构建、测试和检查，并尽早发现代码集成问题的开发流程

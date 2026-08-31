@@ -4,7 +4,7 @@
   "title": "TaskContract",
   "type": "object",
   "additionalProperties": false,
-  "required": ["identity", "operation", "context", "terminology", "components", "boundaries", "quality", "clarification"],
+  "required": ["identity", "operation", "context", "terminology", "components", "presentation", "boundaries", "quality", "clarification"],
   "properties": {
     "identity": {
       "type": "object", "additionalProperties": false,
@@ -12,7 +12,7 @@
       "properties": {
         "task_id": {"type": "string", "pattern": "^TASK-[A-Z0-9-]+$"},
         "contract_version": {"const": "1.1"},
-        "profile_revision": {"const": "round-1-review"}
+        "profile_revision": {"const": "round-2-feedback"}
       }
     },
     "operation": {
@@ -85,6 +85,39 @@
         }
       }
     },
+    "presentation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["renderer", "source_material", "component_alignment"],
+      "properties": {
+        "renderer": {
+          "type": "object", "additionalProperties": false,
+          "required": ["name", "exact_object_alignment", "exact_caption_alignment"],
+          "properties": {
+            "name": {"enum": ["chat", "github_markdown", "html", "word", "pdf", "other"]},
+            "exact_object_alignment": {"type": "boolean"},
+            "exact_caption_alignment": {"type": "boolean"}
+          }
+        },
+        "source_material": {
+          "type": "object", "additionalProperties": false,
+          "required": ["required", "format", "reason"],
+          "properties": {
+            "required": {"type": "boolean"},
+            "format": {"enum": ["none", "blockquote", "code_fence", "image", "table", "section"]},
+            "reason": {"type": "string"}
+          }
+        },
+        "component_alignment": {
+          "type": "object", "additionalProperties": false,
+          "required": ["object", "caption", "fallback"],
+          "properties": {
+            "object": {"enum": ["center", "renderer_default", "not_applicable"]},
+            "caption": {"enum": ["center", "renderer_default", "not_applicable"]},
+            "fallback": {"type": "string"}
+          }
+        }
+      }
+    },
     "boundaries": {
       "type": "object", "additionalProperties": false,
       "required": ["boundary_requirements"],
@@ -106,11 +139,12 @@
     },
     "quality": {
       "type": "object", "additionalProperties": false,
-      "required": ["provenance_required", "protected_categories", "rule_levels"],
+      "required": ["provenance_required", "protected_categories", "rule_levels", "inline_code_tokens"],
       "properties": {
         "provenance_required": {"type": "boolean"},
         "protected_categories": {"type": "array", "uniqueItems": true, "items": {"enum": ["NUMBER", "DATE", "VERSION", "PATH", "CODE_IDENTIFIER", "NEGATION", "CONDITION", "SCOPE", "MODALITY"]}},
-        "rule_levels": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["MACHINE_FINAL", "MACHINE_CANDIDATE", "PROFILE_REQUIRED", "ADVISORY"]}}
+        "rule_levels": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["MACHINE_FINAL", "MACHINE_CANDIDATE", "PROFILE_REQUIRED", "ADVISORY"]}},
+        "inline_code_tokens": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
       }
     },
     "clarification": {

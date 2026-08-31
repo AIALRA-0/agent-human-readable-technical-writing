@@ -1,13 +1,18 @@
 profile:
   identity:
     profile_id: table-explanation
-    revision: round-1-review
+    revision: round-2-feedback
     description: 表格解释通过列定义、值词典和行映射覆盖全部数据，同时避免机械逐格复述
   source_order:
     original_table:
       policy: before_explanation
       severity: PROFILE_REQUIRED
       description: 原表保留在解释前面，读者可以直接核对数据
+  presentation:
+    alignment:
+      policy: center_if_supported
+      severity: PROFILE_REQUIRED
+      description: 表格与表题在媒介支持时共同居中，原生 Markdown 无法可靠居中时使用经过渲染验证的可访问 HTML 或登记限制
   required_coverage:
     overview:
       description: 说明表格整体回答什么

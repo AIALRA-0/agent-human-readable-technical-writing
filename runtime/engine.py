@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -56,21 +57,62 @@ def compile_contract(specification: dict[str, Any]) -> dict[str, Any]:
         if component in {"IMAGE", "TABLE", "CODE"} and component not in registered_components:
             component_order.append({"component_id": component, "source_before_explanation": True})
 
+    media = list(specification["media"])
+    renderer_name = specification.get("renderer")
+    if renderer_name is None:
+        if "github_markdown" in media or "markdown" in media:
+            renderer_name = "github_markdown"
+        elif "word" in media:
+            renderer_name = "word"
+        elif "pdf" in media:
+            renderer_name = "pdf"
+        elif "html" in media:
+            renderer_name = "html"
+        elif "chat" in media:
+            renderer_name = "chat"
+        else:
+            renderer_name = "other"
+    exact_alignment = renderer_name in {"html", "word", "pdf"}
+    exact_caption_alignment = exact_alignment or renderer_name == "github_markdown"
+    has_visual = any(item in {"IMAGE", "TABLE", "FLOWCHART"} for item in specification["components"])
+    source_material = dict(specification.get("source_material", {}))
+    source_material.setdefault("required", False)
+    source_material.setdefault("format", "none")
+    source_material.setdefault("reason", "当前任务没有要求逐字呈现原始材料")
+    component_alignment = dict(specification.get("component_alignment", {}))
+    component_alignment.setdefault("object", "center" if has_visual else "not_applicable")
+    component_alignment.setdefault("caption", "center" if has_visual else "not_applicable")
+    component_alignment.setdefault(
+        "fallback",
+        "渲染器不能精确控制对象位置时保留原生结构，并在渲染检查中记录限制"
+        if has_visual and not exact_alignment else "当前媒介能够执行登记的对齐方式",
+    )
+
     contract = {
-        "identity": {"task_id": specification["task_id"], "contract_version": "1.1", "profile_revision": "round-1-review"},
+        "identity": {"task_id": specification["task_id"], "contract_version": "1.1", "profile_revision": "round-2-feedback"},
         "operation": {"base_operation": base_operation, "augmentation": specification["augmentation"], "source_coverage_target": source_coverage},
         "context": {
             "audience": specification["audience"], "genre": specification["genre"],
-            "media": list(specification["media"]), "components": list(specification["components"]),
+            "media": media, "components": list(specification["components"]),
             "user_profile": specification.get("user_profile", "lucas"), "reading_context": reading_context,
         },
         "terminology": {"known_terms": known_terms, "term_requirements": list(specification.get("term_requirements", []))},
         "components": {"component_order": component_order, "layout_exceptions": list(specification.get("layout_exceptions", []))},
+        "presentation": {
+            "renderer": {
+                "name": renderer_name,
+                "exact_object_alignment": exact_alignment,
+                "exact_caption_alignment": exact_caption_alignment,
+            },
+            "source_material": source_material,
+            "component_alignment": component_alignment,
+        },
         "boundaries": {"boundary_requirements": list(specification.get("boundary_requirements", []))},
         "quality": {
             "provenance_required": specification.get("provenance_required", True),
             "protected_categories": list(specification.get("protected_categories", ["NUMBER", "DATE", "VERSION", "PATH", "CODE_IDENTIFIER", "NEGATION", "CONDITION", "SCOPE", "MODALITY"])),
             "rule_levels": list(specification.get("rule_levels", RULE_LEVELS)),
+            "inline_code_tokens": list(specification.get("inline_code_tokens", [])),
         },
         "clarification": specification.get("clarification", {"status": "CLEAR", "blocking_questions": []}),
     }
@@ -135,6 +177,22 @@ def verify_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
     atom_ids = source_ids | background_ids | inference_ids
     segment_ids = set(id_groups["segments"])
     sentence_ids = set(id_groups["sentences"])
+
+    presentations_by_span = {item["source_span_id"]: item for item in bundle["source_presentations"]}
+    source_presentation = task["presentation"]["source_material"]
+    if source_presentation["required"]:
+        missing_presentations = span_ids - set(presentations_by_span)
+        if missing_presentations:
+            findings.append(_finding("SOURCE_PRESENTATION", "source_presentations", "要求逐字展示的原始材料缺少呈现记录", "读者无法把解释与原始证据直接核对", "按照任务合同使用引用块、代码块、原图、原表或独立原文小节"))
+        for span_id, presentation in presentations_by_span.items():
+            if presentation["format"] != source_presentation["format"]:
+                findings.append(_finding("SOURCE_PRESENTATION_FORMAT", span_id, "原始材料的呈现形式与任务合同不一致", "逐字证据可能被当成普通结论或使用错误媒介", "改用任务合同登记的呈现形式"))
+            if not presentation["verbatim"]:
+                findings.append(_finding("SOURCE_PRESENTATION_VERBATIM", span_id, "原始材料呈现记录没有声明逐字保留", "原始证据可能在展示时被改写", "恢复逐字内容并把 verbatim 设为 true"))
+            if presentation["rendered_excerpt"] not in bundle["rendered_document"]["text"]:
+                findings.append(_finding("SOURCE_PRESENTATION_PRESENCE", span_id, "登记的原始材料没有出现在最终正文", "读者无法看到需要核对的原始内容", "把登记片段恢复到最终正文"))
+            checks += 3
+    checks += 1
 
     for span in bundle["source_spans"]:
         actual = hashlib.sha256(span["content"]["text"].encode("utf-8")).hexdigest()
@@ -217,6 +275,30 @@ def verify_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
         if not sentence["verbatim"] and "。" in sentence["text"] and task["context"]["user_profile"] == "lucas":
             findings.append(_finding("LUCAS_PUNCTUATION", sentence["sentence_id"], "生成正文含有中文句号", "正文不符合当前用户配置", "只修改该句标点并重新验证"))
         checks += 1
+    previous_actor: str | None = None
+    for sentence in rendered["sentences"]:
+        clarity = sentence["actor_clarity"]
+        if sentence["verbatim"]:
+            continue
+        if clarity["status"] == "explicit":
+            if not clarity["actor"]:
+                findings.append(_finding("ACTOR_CLARITY", sentence["sentence_id"], "句子声明主体明确，但没有登记实际主体", "动作归属无法核对", "登记执行动作或产生结果的主体"))
+            else:
+                previous_actor = clarity["actor"]
+        elif clarity["status"] == "carried":
+            if not clarity["actor"] or previous_actor != clarity["actor"]:
+                findings.append(_finding("ACTOR_CLARITY", sentence["sentence_id"], "句子省略主体，但前文没有同一主体可自然承接", "读者可能无法判断谁执行动作或产生结果", "补出主体，或修正承接关系"))
+        elif clarity["actor"] is not None:
+            findings.append(_finding("ACTOR_CLARITY", sentence["sentence_id"], "无动作句登记了执行主体", "主体账本与正文作用不一致", "清除主体，或把状态改为 explicit"))
+        checks += 1
+
+    if re.search(r"\n[ \t]*\n[ \t]*\n", rendered["text"]):
+        findings.append(_finding("EXCESSIVE_BLANK_LINES", "rendered_document/text", "正文出现连续两个以上空行", "相关内容被过度拉开，阅读连续性下降", "把同一结构之间的空白缩减为 Markdown 解析所需数量"))
+    checks += 1
+    for token in task["quality"]["inline_code_tokens"]:
+        if f"`{token}`" not in rendered["text"]:
+            findings.append(_finding("INLINE_CODE_MARKUP", token, "命令、字段、路径或代码类型没有使用行内代码格式", "机器标识与普通文字难以区分", "只给该标识补充反引号"))
+        checks += 1
 
     term_uses = {item["term_id"]: item for item in bundle["term_uses"]}
     for requirement in task["terminology"]["term_requirements"]:
@@ -250,7 +332,18 @@ def verify_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
                 findings.append(_finding("MERMAID_VERTICAL_DEFAULT", component_id, "横向 Mermaid 没有登记不可替代理由", "图形违反当前纵向阅读配置", "改用 TD 或登记真实布局例外"))
             if any(not value.strip() for value in mermaid["post_explanation"].values()):
                 findings.append(_finding("MERMAID_POST_EXPLANATION", component_id, "图后缺少节点关系、流程结果或证据边界", "读者只能看到结构，无法判断实际含义", "在图后补齐三项说明"))
-        checks += 5
+        presentation = component["presentation"]
+        renderer = task["presentation"]["renderer"]
+        requested = task["presentation"]["component_alignment"]
+        if presentation["renderer"] != renderer["name"]:
+            findings.append(_finding("COMPONENT_RENDERER", component_id, "组件覆盖记录与任务合同登记了不同渲染器", "对齐能力和渲染限制无法可靠核对", "使用任务合同中的渲染器名称"))
+        if requested["object"] == "center" and renderer["exact_object_alignment"] and presentation["object_alignment"] != "center":
+            findings.append(_finding("COMPONENT_ALIGNMENT", component_id, "当前渲染器支持精确居中，但对象没有登记为居中", "视觉对象偏离用户的默认布局要求", "把对象与题注一起设为居中"))
+        if requested["caption"] == "center" and renderer["exact_caption_alignment"] and presentation["caption_alignment"] != "center":
+            findings.append(_finding("CAPTION_ALIGNMENT", component_id, "当前渲染器支持题注居中，但题注没有登记为居中", "题注与对象的视觉关系不一致", "把题注设为居中"))
+        if requested["object"] == "center" and not renderer["exact_object_alignment"] and not presentation["limitation"].strip():
+            findings.append(_finding("ALIGNMENT_LIMITATION", component_id, "渲染器不能保证对象精确居中，但覆盖记录没有说明限制", "系统可能把无法保证的布局误报为已经实现", "说明渲染限制，并完成实际渲染检查"))
+        checks += 9
 
     boundary_coverage = {item["claim_id"]: item for item in bundle["boundary_coverage"]}
     for requirement in task["boundaries"]["boundary_requirements"]:

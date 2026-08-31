@@ -1,4 +1,4 @@
-"""Generate exactly 160 auditable pass/fail fixtures for vNext 1.1."""
+"""Generate exactly 176 auditable pass/fail fixtures for vNext 1.1."""
 
 from __future__ import annotations
 
@@ -110,6 +110,16 @@ RULES = {
         "PRIVACY_NO_PERSONAL_PATH",
         "PRIVACY_NO_RAW_CONVERSATION",
         "PRIVACY_SOURCE_RETAINED",
+    ],
+    "presentation_spacing": [
+        "PRESENTATION_MAX_ONE_BLANK_LINE",
+        "PRESENTATION_LIST_ITEMS_CONTIGUOUS",
+        "PRESENTATION_SHORT_SOURCE_BLOCKQUOTE",
+        "PRESENTATION_NO_GENERATED_BLOCKQUOTE",
+        "PRESENTATION_INLINE_CODE",
+        "PRESENTATION_IMAGE_CENTER",
+        "PRESENTATION_TABLE_CENTER_OR_LIMITATION",
+        "PRESENTATION_MERMAID_CAPTION_CENTER",
     ],
 }
 
@@ -435,6 +445,46 @@ def privacy_payload(rule_id: str, passing: bool) -> dict[str, Any]:
     return payload
 
 
+def presentation_payload(rule_id: str, passing: bool) -> dict[str, Any]:
+    """Build deterministic spacing, source-format, inline-code, and alignment fixtures."""
+
+    payload = {
+        "text": "第一段\n\n第二段",
+        "source_kind": "short_verbatim",
+        "source_format": "blockquote",
+        "content_role": "source_evidence",
+        "inline_tokens": ["task_id"],
+        "object_type": "image",
+        "renderer_exact_alignment": True,
+        "object_alignment": "center",
+        "caption_alignment": "center",
+        "renderer_limitation": "",
+    }
+    if rule_id == "PRESENTATION_LIST_ITEMS_CONTIGUOUS":
+        payload["text"] = "- 第一项\n- 第二项" if passing else "- 第一项\n\n- 第二项"
+    elif rule_id == "PRESENTATION_INLINE_CODE":
+        payload["text"] = "使用 `task_id` 查询状态" if passing else "使用 task_id 查询状态"
+    elif rule_id == "PRESENTATION_TABLE_CENTER_OR_LIMITATION":
+        payload.update({"object_type": "table", "renderer_exact_alignment": False, "object_alignment": "renderer_default", "caption_alignment": "center", "renderer_limitation": "GitHub 原生 Markdown 表格不能可靠控制对象居中"})
+    elif rule_id == "PRESENTATION_MERMAID_CAPTION_CENTER":
+        payload.update({"object_type": "mermaid", "renderer_exact_alignment": False, "object_alignment": "renderer_default", "caption_alignment": "center", "renderer_limitation": "Mermaid 对象位置由渲染器决定"})
+    if passing:
+        return payload
+    if rule_id == "PRESENTATION_MAX_ONE_BLANK_LINE":
+        payload["text"] = "第一段\n\n\n第二段"
+    elif rule_id == "PRESENTATION_SHORT_SOURCE_BLOCKQUOTE":
+        payload["source_format"] = "plain_paragraph"
+    elif rule_id == "PRESENTATION_NO_GENERATED_BLOCKQUOTE":
+        payload.update({"content_role": "generated_summary", "source_format": "blockquote"})
+    elif rule_id == "PRESENTATION_IMAGE_CENTER":
+        payload["object_alignment"] = "renderer_default"
+    elif rule_id == "PRESENTATION_TABLE_CENTER_OR_LIMITATION":
+        payload["renderer_limitation"] = ""
+    elif rule_id == "PRESENTATION_MERMAID_CAPTION_CENTER":
+        payload["caption_alignment"] = "renderer_default"
+    return payload
+
+
 BUILDERS = {
     "lifecycle_schema": lifecycle_payload,
     "terms_official_standalone": term_payload,
@@ -445,6 +495,7 @@ BUILDERS = {
     "table_explanation": table_payload,
     "code_explanation": code_payload,
     "privacy_source_retention": privacy_payload,
+    "presentation_spacing": presentation_payload,
 }
 
 
@@ -474,8 +525,8 @@ def main() -> int:
     """Write the stable JSONL fixture collection."""
 
     cases = build_cases()
-    if len(cases) != 160:
-        raise SystemExit(f"expected 160 cases, built {len(cases)}")
+    if len(cases) != 176:
+        raise SystemExit(f"expected 176 cases, built {len(cases)}")
     TARGET.parent.mkdir(parents=True, exist_ok=True)
     TARGET.write_text(
         "".join(json.dumps(case, ensure_ascii=False, sort_keys=True) + "\n" for case in cases),

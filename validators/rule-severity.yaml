@@ -28,6 +28,9 @@ registry:
     POSSIBLE_MISSING_EXPLANATION:
       severity: MACHINE_CANDIDATE
       description: 术语是否需要解释取决于读者和当前任务
+    ACTOR_CLARITY:
+      severity: MACHINE_CANDIDATE
+      description: 主体是否明确依赖段落上下文，代码只能检查登记是否完整，不能机械要求每句重复主体
     LUCAS_PUNCTUATION:
       severity: PROFILE_REQUIRED
       description: 启用 Lucas 配置时执行个人标点规则
@@ -46,6 +49,24 @@ registry:
     TABLE_CELL_COVERAGE:
       severity: PROFILE_REQUIRED
       description: 所有数据格通过列定义、值词典、行映射或单格说明完成覆盖
+    SOURCE_PRESENTATION:
+      severity: PROFILE_REQUIRED
+      description: 任务要求保留原始材料时，短文本、代码、图片和表格使用对应呈现方式
+    COMPONENT_ALIGNMENT:
+      severity: PROFILE_REQUIRED
+      description: 媒介支持精确控制时，图表对象与题注共同居中，受限时必须登记渲染边界
+    EXCESSIVE_BLANK_LINES:
+      severity: MACHINE_FINAL
+      description: 连续两个以上空行会造成无意义纵向稀疏，确定性检查直接阻断
+    INLINE_CODE_MARKUP:
+      severity: MACHINE_FINAL
+      description: 任务合同登记的命令、字段、路径和代码标识必须使用反引号
     ORDINARY_SENTENCE_RHYTHM:
       severity: ADVISORY
       description: 句子节奏用于优化，不作为单独失败原因
+    LOCAL_NOTATION_CONSISTENCY:
+      severity: ADVISORY
+      description: 同一解释单元优先统一引号、冒号和同类标记，不单独阻断交付
+    COMMA_SEMICOLON_CHOICE:
+      severity: ADVISORY
+      description: 逗号与分号按照分句关系选择，不使用频率阈值或单字硬门

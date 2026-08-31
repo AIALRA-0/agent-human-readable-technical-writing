@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AIALRA-0/agent-human-readable-technical-writing/contracts/forward-candidate.schema.json",
+  "title": "ForwardTestCandidate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["case_id", "round", "generation_attempt", "status", "request_sha256", "answer", "answer_sha256", "source_units", "support_map", "background_claims", "review"],
+  "properties": {
+    "case_id": {"type": "string", "pattern": "^FWD-R1-[0-9]{3}$"},
+    "round": {"const": 1},
+    "generation_attempt": {"const": 1},
+    "status": {"const": "pending_user_review"},
+    "request_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "answer": {"type": "string", "minLength": 1},
+    "answer_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "source_units": {"type": "array", "items": {"type": "string", "pattern": "^SRCU-[0-9]{3}$"}},
+    "support_map": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^SRCU-[0-9]{3}$"}},
+    "background_claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["claim", "source_reference"],
+        "properties": {"claim": {"type": "string", "minLength": 1}, "source_reference": {"type": "string", "minLength": 1}}
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "reasons"],
+      "properties": {"decision": {"const": "pending"}, "reasons": {"type": "array", "maxItems": 0}}
+    }
+  }
+}

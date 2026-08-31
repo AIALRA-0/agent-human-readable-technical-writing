@@ -1,0 +1,26 @@
+{
+  "status": "PASS",
+  "summary": {
+    "total": 176,
+    "matched": 176,
+    "mismatched": 0,
+    "category_counts": {
+      "code_explanation": 16,
+      "image_explanation": 16,
+      "layout_lists_paragraphs": 20,
+      "lifecycle_schema": 20,
+      "mermaid_caption_explanation": 16,
+      "presentation_spacing": 16,
+      "privacy_source_retention": 8,
+      "provenance_support_boundary": 20,
+      "table_explanation": 16,
+      "terms_official_standalone": 28
+    }
+  },
+  "reason": "every independently executed rule produced its reviewed pass or fail result",
+  "impact": "the vNext deterministic gate has executable positive and negative coverage for all ten planned categories",
+  "next": "run lifecycle, contextual, and forward-candidate validation",
+  "count_errors": {},
+  "unexpected_categories": [],
+  "mismatches": []
+}

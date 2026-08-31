@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AIALRA-0/agent-human-readable-technical-writing/contracts/context-case.schema.json",
+  "title": "ContextCandidateFixture",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["case_id", "dimension", "rule_level", "source", "candidate", "expected_disposition", "decision_basis", "review_status", "automatic_decision"],
+  "properties": {
+    "case_id": {"type": "string", "pattern": "^CTX-R2-[0-9]{3}$"},
+    "dimension": {"enum": ["actor_clarity", "punctuation_choice", "local_consistency", "paragraph_boundary"]},
+    "rule_level": {"enum": ["MACHINE_CANDIDATE", "ADVISORY"]},
+    "source": {"type": "string", "minLength": 1},
+    "candidate": {"type": "string", "minLength": 1},
+    "expected_disposition": {"enum": ["confirmed", "false_positive", "advisory_improvement"]},
+    "decision_basis": {"type": "string", "minLength": 1},
+    "review_status": {"const": "candidate_fixture"},
+    "automatic_decision": {"const": false}
+  }
+}

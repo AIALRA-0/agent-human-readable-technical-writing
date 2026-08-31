@@ -1,13 +1,18 @@
 profile:
   identity:
     profile_id: code-explanation
-    revision: round-1-review
+    revision: round-2-feedback
     description: 代码按照零先验读者处理，并保留原始代码后解释功能、原因、输入、结果和边界
   source_order:
     original_code:
       policy: before_or_with_explanation
       severity: PROFILE_REQUIRED
       description: 原始代码必须出现在候选答案中，解释不得用摘要替代代码证据
+  inline_format:
+    identifiers:
+      policy: backticks
+      severity: MACHINE_FINAL
+      description: 正文中的命令、字段、参数、路径、代码类型和标识符使用反引号
   comment_granularity:
     single_command:
       description: 独立生效的单行命令使用同行注释

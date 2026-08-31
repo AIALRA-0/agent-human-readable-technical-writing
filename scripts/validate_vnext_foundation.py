@@ -32,7 +32,12 @@ def validate_contract_schemas() -> int:
     """Check every JSON Schema and return the number of valid contracts."""
 
     schema_paths = sorted((ROOT / "contracts").glob("*.schema.json"))
-    require(len(schema_paths) == 14, f"expected 14 contract schemas, found {len(schema_paths)}")
+    required_names = {
+        "context-case.schema.json", "evaluation-case.schema.json", "forward-candidate.schema.json",
+        "forward-request.schema.json", "task-contract.schema.json", "verification-bundle.schema.json",
+    }
+    actual_names = {path.name for path in schema_paths}
+    require(required_names <= actual_names, f"required contract schemas are missing: {sorted(required_names - actual_names)}")
     for path in schema_paths:
         schema = json.loads(path.read_text(encoding="utf-8"))
         jsonschema.Draft202012Validator.check_schema(schema)
@@ -69,17 +74,17 @@ def validate_yaml_grouping() -> int:
 
 
 def validate_reviewed_cases() -> int:
-    """Validate the 2 accepted and 10 rejected lifecycle records."""
+    """Validate the exact 11 accepted and 11 rejected lifecycle records."""
 
     schema = json.loads((ROOT / "contracts" / "evaluation-case.schema.json").read_text(encoding="utf-8"))
     candidate_schema = json.loads((ROOT / "contracts" / "candidate-case.schema.json").read_text(encoding="utf-8"))
     registry = Registry().with_resource(candidate_schema["$id"], Resource.from_contents(candidate_schema))
     validator = jsonschema.Draft202012Validator(schema, registry=registry, format_checker=jsonschema.FormatChecker())
     gold_paths = sorted((ROOT / "evals" / "gold").glob("GOLD-??.json"))
-    rejected_paths = sorted((ROOT / "evals" / "rejected").glob("REJECTED-??.json"))
+    rejected_paths = sorted((ROOT / "evals" / "rejected").glob("REJECTED-??*.json"))
     paths = gold_paths + rejected_paths
-    require(len(gold_paths) == 2, f"expected 2 gold cases, found {len(gold_paths)}")
-    require(len(rejected_paths) == 10, f"expected 10 rejected cases, found {len(rejected_paths)}")
+    require(len(gold_paths) == 11, f"expected 11 gold cases, found {len(gold_paths)}")
+    require(len(rejected_paths) == 11, f"expected 11 rejected cases, found {len(rejected_paths)}")
     require(not list((ROOT / "evals" / "candidate").glob("CANDIDATE-??.json")), "reviewed round-1 files must not remain candidate")
 
     for path in paths:
@@ -98,7 +103,9 @@ def validate_reviewed_cases() -> int:
         require(source_ids <= supported_ids, f"{path.name}: unmapped source atoms {sorted(source_ids - supported_ids)}")
         require(background_ids <= supported_ids, f"{path.name}: unmapped background atoms {sorted(background_ids - supported_ids)}")
         require(inference_ids <= supported_ids, f"{path.name}: unmapped inference atoms {sorted(inference_ids - supported_ids)}")
-        require("。" not in case["artifact"]["answer"], f"{path.name}: reviewed answer contains Chinese full stop")
+        answer_without_code = re.sub(r"```.*?```", "", case["artifact"]["answer"], flags=re.DOTALL)
+        generated_lines = [line for line in answer_without_code.splitlines() if not line.lstrip().startswith(">")]
+        require("。" not in "\n".join(generated_lines), f"{path.name}: generated answer contains Chinese full stop")
 
         if case["source"]["material_type"] == "image":
             image_path = ROOT / case["source"]["content"]["path"]
@@ -166,14 +173,14 @@ def validate_relative_links() -> int:
 def validate_svg_assets() -> int:
     """Reject active, remote, or inaccessible SVG content in candidate assets."""
 
-    paths = sorted((ROOT / "evals" / "candidate" / "assets").glob("*.svg"))
-    require(len(paths) == 1, f"expected one candidate SVG, found {len(paths)}")
+    paths = sorted((ROOT / "evals").rglob("*.svg"))
+    require(len(paths) == 3, f"expected three reviewed or forward SVG assets, found {len(paths)}")
     for path in paths:
         text = path.read_text(encoding="utf-8")
         lowered = text.lower()
         require("<!doctype" not in lowered and "<!entity" not in lowered, f"{path.name}: declarations are forbidden")
         require("<script" not in lowered and "<foreignobject" not in lowered, f"{path.name}: active SVG content is forbidden")
-        require("url(" not in lowered and "data:" not in lowered, f"{path.name}: remote or data references are forbidden")
+        require(re.search(r"url\((?!#)", lowered) is None and "data:" not in lowered, f"{path.name}: remote or data references are forbidden")
         root = ElementTree.fromstring(text)
         require(root.tag.endswith("svg"), f"{path.name}: invalid SVG root")
         require(root.get("viewBox") is not None or (root.get("width") and root.get("height")), f"{path.name}: stable dimensions missing")
@@ -230,7 +237,7 @@ def main() -> int:
         print(json.dumps({"status": "FAIL", "completed": results, "reason": str(error), "impact": "candidate branch must not be published", "next": "repair the reported deterministic defect and rerun"}, ensure_ascii=False, indent=2))
         return 1
 
-    print(json.dumps({"status": "PASS", "results": results, "reason": "all vNext foundation checks completed without deterministic defects", "impact": "the authority document, contracts, reviewed records, links, assets, and public-file privacy patterns are internally consistent", "next": "run the 160 fixtures and round-two lifecycle validation"}, ensure_ascii=False, indent=2))
+    print(json.dumps({"status": "PASS", "results": results, "reason": "all vNext foundation checks completed without deterministic defects", "impact": "the authority document, contracts, reviewed records, links, assets, and public-file privacy patterns are internally consistent", "next": "run the 176 fixtures, lifecycle validation, contextual cases, and forward-candidate checks"}, ensure_ascii=False, indent=2))
     return 0
 
 

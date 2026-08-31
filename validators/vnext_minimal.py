@@ -1,4 +1,4 @@
-"""Deterministic validators for the 160 auditable vNext minimal fixtures.
+"""Deterministic validators for the 176 auditable vNext minimal fixtures.
 
 Each rule checks an observable structure or exact registered form.  The module
 does not score naturalness or claim semantic equivalence.
@@ -43,7 +43,7 @@ def validate_lifecycle(rule_id: str, payload: dict[str, Any]) -> ValidationResul
     review = payload.get("review", {})
     checks: dict[str, bool] = {
         "LIFECYCLE_CASE_ID": bool(
-            re.fullmatch(r"(?:GOLD|REJECTED)-\d{2}|CANDIDATE-\d{2}-R\d+", str(identity.get("case_id", "")))
+            re.fullmatch(r"GOLD-\d{2}|REJECTED-\d{2}(?:-R\d+)?|CANDIDATE-\d{2}-R\d+", str(identity.get("case_id", "")))
         ),
         "LIFECYCLE_GOLD_APPROVED": identity.get("status") != "gold" or identity.get("approved_by_user") is True,
         "LIFECYCLE_REJECTED_NOT_APPROVED": identity.get("status") != "rejected" or identity.get("approved_by_user") is False,
@@ -202,6 +202,25 @@ def validate_privacy(rule_id: str, payload: dict[str, Any]) -> ValidationResult:
     return [] if checks.get(rule_id, False) else [f"{rule_id} failed"]
 
 
+def validate_presentation(rule_id: str, payload: dict[str, Any]) -> ValidationResult:
+    """Validate only observable Markdown spacing, source formats, and alignment records."""
+
+    text = str(payload.get("text", ""))
+    tokens = payload.get("inline_tokens", [])
+    exact = payload.get("renderer_exact_alignment") is True
+    checks = {
+        "PRESENTATION_MAX_ONE_BLANK_LINE": re.search(r"\n[ \t]*\n[ \t]*\n", text) is None,
+        "PRESENTATION_LIST_ITEMS_CONTIGUOUS": re.search(r"^- .+\n\n- ", text, re.MULTILINE) is None,
+        "PRESENTATION_SHORT_SOURCE_BLOCKQUOTE": payload.get("source_kind") != "short_verbatim" or payload.get("source_format") == "blockquote",
+        "PRESENTATION_NO_GENERATED_BLOCKQUOTE": payload.get("content_role") == "source_evidence" or payload.get("source_format") != "blockquote",
+        "PRESENTATION_INLINE_CODE": all(f"`{token}`" in text for token in tokens),
+        "PRESENTATION_IMAGE_CENTER": payload.get("object_type") != "image" or not exact or payload.get("object_alignment") == "center",
+        "PRESENTATION_TABLE_CENTER_OR_LIMITATION": payload.get("object_type") != "table" or payload.get("object_alignment") == "center" or bool(payload.get("renderer_limitation")),
+        "PRESENTATION_MERMAID_CAPTION_CENTER": payload.get("object_type") != "mermaid" or payload.get("caption_alignment") == "center",
+    }
+    return [] if checks.get(rule_id, False) else [f"{rule_id} failed"]
+
+
 VALIDATORS: dict[str, Callable[[str, dict[str, Any]], ValidationResult]] = {
     "lifecycle_schema": validate_lifecycle,
     "terms_official_standalone": validate_term,
@@ -212,6 +231,7 @@ VALIDATORS: dict[str, Callable[[str, dict[str, Any]], ValidationResult]] = {
     "table_explanation": validate_table,
     "code_explanation": validate_code,
     "privacy_source_retention": validate_privacy,
+    "presentation_spacing": validate_presentation,
 }
 
 

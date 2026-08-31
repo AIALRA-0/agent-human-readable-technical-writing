@@ -4,10 +4,24 @@
   "title": "VerificationBundle",
   "type": "object",
   "additionalProperties": false,
-  "required": ["task_contract", "source_spans", "source_atoms", "background_atoms", "inference_atoms", "segment_contracts", "support_maps", "term_uses", "component_coverage", "boundary_coverage", "rendered_document"],
+  "required": ["task_contract", "source_spans", "source_presentations", "source_atoms", "background_atoms", "inference_atoms", "segment_contracts", "support_maps", "term_uses", "component_coverage", "boundary_coverage", "rendered_document"],
   "properties": {
     "task_contract": {"$ref": "task-contract.schema.json"},
     "source_spans": {"type": "array", "items": {"$ref": "source-span.schema.json"}},
+    "source_presentations": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["source_span_id", "format", "verbatim", "rendered_excerpt", "reason"],
+        "properties": {
+          "source_span_id": {"type": "string", "pattern": "^SRC-[0-9]{3,}$"},
+          "format": {"enum": ["blockquote", "code_fence", "image", "table", "section"]},
+          "verbatim": {"type": "boolean"},
+          "rendered_excerpt": {"type": "string", "minLength": 1},
+          "reason": {"type": "string", "minLength": 1}
+        }
+      }
+    },
     "source_atoms": {"type": "array", "items": {"$ref": "source-atom.schema.json"}},
     "background_atoms": {"type": "array", "items": {"$ref": "background-atom.schema.json"}},
     "inference_atoms": {"type": "array", "items": {"$ref": "inference-atom.schema.json"}},
@@ -30,7 +44,7 @@
       "type": "array",
       "items": {
         "type": "object", "additionalProperties": false,
-        "required": ["component_id", "component_type", "source_text", "source_position", "explanation_position", "required_units", "covered_units", "mermaid", "table_cells"],
+        "required": ["component_id", "component_type", "source_text", "source_position", "explanation_position", "required_units", "covered_units", "presentation", "mermaid", "table_cells"],
         "properties": {
           "component_id": {"type": "string", "minLength": 1},
           "component_type": {"enum": ["IMAGE", "TABLE", "CODE", "FLOWCHART"]},
@@ -39,6 +53,17 @@
           "explanation_position": {"type": "integer", "minimum": 0},
           "required_units": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
           "covered_units": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "presentation": {
+            "type": "object", "additionalProperties": false,
+            "required": ["source_format", "object_alignment", "caption_alignment", "renderer", "limitation"],
+            "properties": {
+              "source_format": {"enum": ["code_fence", "image", "table", "mermaid"]},
+              "object_alignment": {"enum": ["center", "renderer_default", "not_applicable"]},
+              "caption_alignment": {"enum": ["center", "renderer_default", "not_applicable"]},
+              "renderer": {"enum": ["chat", "github_markdown", "html", "word", "pdf", "other"]},
+              "limitation": {"type": "string"}
+            }
+          },
           "mermaid": {
             "type": ["object", "null"],
             "additionalProperties": false,
@@ -90,11 +115,20 @@
           "type": "array",
           "items": {
             "type": "object", "additionalProperties": false,
-            "required": ["sentence_id", "text", "verbatim"],
+            "required": ["sentence_id", "text", "verbatim", "actor_clarity"],
             "properties": {
               "sentence_id": {"type": "string", "pattern": "^SENT-[0-9]{3,}$"},
               "text": {"type": "string"},
-              "verbatim": {"type": "boolean"}
+              "verbatim": {"type": "boolean"},
+              "actor_clarity": {
+                "type": "object", "additionalProperties": false,
+                "required": ["status", "actor", "basis"],
+                "properties": {
+                  "status": {"enum": ["explicit", "carried", "not_applicable"]},
+                  "actor": {"type": ["string", "null"]},
+                  "basis": {"type": "string", "minLength": 1}
+                }
+              }
             }
           }
         }

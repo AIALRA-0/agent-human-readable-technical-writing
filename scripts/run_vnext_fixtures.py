@@ -1,4 +1,4 @@
-"""Execute and summarize the 160 deterministic vNext minimal fixtures."""
+"""Execute and summarize the 176 deterministic vNext minimal fixtures."""
 
 from __future__ import annotations
 
@@ -27,6 +27,7 @@ EXPECTED_COUNTS = {
     "table_explanation": 16,
     "code_explanation": 16,
     "privacy_source_retention": 8,
+    "presentation_spacing": 16,
 }
 
 
@@ -82,7 +83,7 @@ def main() -> int:
         if counts.get(category, 0) != expected
     }
     unexpected_categories = sorted(set(counts) - set(EXPECTED_COUNTS))
-    passed = len(cases) == 160 and not mismatches and not count_errors and not unexpected_categories
+    passed = len(cases) == 176 and not mismatches and not count_errors and not unexpected_categories
     report = {
         "status": "PASS" if passed else "FAIL",
         "summary": {
@@ -92,8 +93,8 @@ def main() -> int:
             "category_counts": dict(sorted(counts.items())),
         },
         "reason": "every independently executed rule produced its reviewed pass or fail result" if passed else "one or more executable fixtures disagreed with the reviewed expectation or required count",
-        "impact": "the vNext deterministic gate has executable positive and negative coverage for all nine planned categories" if passed else "the deterministic gate cannot be used for candidate review until every mismatch is resolved",
-        "next": "run lifecycle and R2 regression validation" if passed else "inspect the reported rule and repair only its validator or fixture",
+        "impact": "the vNext deterministic gate has executable positive and negative coverage for all ten planned categories" if passed else "the deterministic gate cannot be used for candidate review until every mismatch is resolved",
+        "next": "run lifecycle, contextual, and forward-candidate validation" if passed else "inspect the reported rule and repair only its validator or fixture",
         "count_errors": count_errors,
         "unexpected_categories": unexpected_categories,
         "mismatches": mismatches,

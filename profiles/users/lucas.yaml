@@ -1,7 +1,7 @@
 profile:
   identity:
     profile_id: lucas
-    revision: round-1-review
+    revision: round-2-feedback
     description: Lucas 已明确确认的个人写作要求
   punctuation:
     chinese_full_stop:
@@ -9,9 +9,9 @@ profile:
       severity: PROFILE_REQUIRED
       description: 生成的普通中文正文不使用中文句号
     internal_pause:
-      policy: chinese_semicolon
-      severity: PROFILE_REQUIRED
-      description: 句内需要明显停顿时使用中文分号
+      policy: context_sensitive_comma_or_semicolon
+      severity: ADVISORY
+      description: 短停顿和紧密衔接使用逗号，较长并列或对比关系使用分号，不设置机械数量阈值
     paragraph_ending:
       policy: no_trailing_full_stop_or_semicolon
       severity: PROFILE_REQUIRED
@@ -29,6 +29,14 @@ profile:
       policy: below_object
       severity: PROFILE_REQUIRED
       description: 表格、图片和 Mermaid 题注默认放在对象下方，用户指定出版规范时采用对应规则
+    visual_alignment:
+      policy: center_if_supported
+      severity: PROFILE_REQUIRED
+      description: 图片、表格、Mermaid 和题注在媒介支持时共同居中，无法可靠控制时登记渲染限制
+    blank_lines:
+      policy: one_between_semantic_blocks
+      severity: PROFILE_REQUIRED
+      description: 不同主题或块级结构之间最多保留一个空行，同一列表与嵌套列表内部不插入空行
     parallel_items:
       policy: indented_list
       severity: PROFILE_REQUIRED
@@ -59,6 +67,10 @@ profile:
       severity: PROFILE_REQUIRED
       description: 括号只放正式英文全称或缩写，定义、用途、表现和影响写在括号外的自然正文中
   explanation:
+    actor_clarity:
+      policy: explicit_on_start_change_or_ambiguity
+      severity: MACHINE_CANDIDATE
+      description: 独立动作、主体切换和可能产生歧义的位置明确主体，同一明确主体的连续内容允许自然省略
     default_order:
       policy: event_reason_result_supplement
       severity: PROFILE_REQUIRED
@@ -71,3 +83,16 @@ profile:
       policy: forward
       severity: ADVISORY
       description: 优先按照时间、因果或操作顺序展开，避免无必要插叙和倒叙
+  source_presentation:
+    short_verbatim_text:
+      policy: blockquote
+      severity: PROFILE_REQUIRED
+      description: 短篇逐字原文、用户原话和需要核对的证据文本使用引用块，普通强调和生成结论不使用引用块
+    code_and_logs:
+      policy: fenced_code
+      severity: MACHINE_FINAL
+      description: 代码和日志使用对应语言的代码块并保持原文
+    inline_identifiers:
+      policy: backticks
+      severity: MACHINE_FINAL
+      description: 命令、字段、标识符、路径和代码类型使用反引号
