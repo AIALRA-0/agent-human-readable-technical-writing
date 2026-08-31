@@ -1,0 +1,41 @@
+{
+  "audit": {
+    "audit_id": "VNEXT-1.1-ROUND-2-20260831",
+    "audit_date": "2026-08-31",
+    "scope": "第二轮人工决定、规则泛化、运行时合同和未见前向测试",
+    "decision": "proceed_to_forward_review",
+    "release_blocked": true,
+    "authority": {
+      "design": "docs/design/vnext-1.1-authoritative-plan.md",
+      "amendment": "docs/design/vnext-1.1-round-2-amendment.md",
+      "review_record": "evals/reviews/vnext-1.1-round-2.json",
+      "user_profile": "profiles/users/lucas.yaml"
+    },
+    "internal_evidence": [
+      {"claim": "生命周期已经完成第二轮转换", "evidence": ["evals/gold", "evals/rejected", "evals/candidate", "contracts/evaluation-case.schema.json"], "result": "11 gold；11 rejected；1 candidate"},
+      {"claim": "新 Gold 与审核快照一致", "evidence": ["evals/reviews/vnext-1.1-round-2.json", "scripts/validate_vnext_round2.py"], "result": "9/9；正文变化 0"},
+      {"claim": "确定性规则具有独立正反例", "evidence": ["evals/deterministic/vnext-1.1-minimal-cases.jsonl", "validators/vnext_minimal.py"], "result": "176/176"},
+      {"claim": "语境案例不冒充自动语义检查", "evidence": ["evals/contextual/round-2-context-cases.jsonl", "scripts/validate_context_cases.py"], "result": "12/12；automatic_decision=false"},
+      {"claim": "运行时记录主体、空行、原文呈现、行内代码和渲染限制", "evidence": ["runtime/engine.py", "tests/test_vnext_runtime.py"], "result": "11/11"},
+      {"claim": "第一轮未见候选由隔离生成 Agent 一次生成", "evidence": ["evals/forward/round-1/requests.jsonl", "evals/forward/round-1/drafts.jsonl", "evals/forward/round-1/candidates.jsonl", "evals/forward/round-1/deterministic-findings.json"], "result": "20 个待用户审核；3 个中文句号硬错误；round gate FAIL"},
+      {"claim": "两张前向 SVG 资产经过实际浏览器渲染核对", "evidence": ["evals/forward/round-1/assets/greenhouse-control.svg", "evals/forward/round-1/assets/river-gauge.svg"], "result": "2/2 可读；没有文字、箭头或坐标重叠"}
+    ],
+    "external_sources": [
+      {"topic": "npm 官方名称", "url": "https://docs.npmjs.com/policies/logos-and-usage/", "decision": "保持 npm 小写，不扩写成首字母缩写；自然说明 package manager 类别和实际用途"},
+      {"topic": "Markdown 引用块", "url": "https://spec.commonmark.org/", "decision": "只用于短篇逐字原文和证据，不用于生成结论"},
+      {"topic": "GitHub Mermaid", "url": "https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams", "decision": "区分居中请求、实际渲染能力和无法保证的限制"}
+    ],
+    "open_conditions": [
+      "CANDIDATE-03-R3 获得用户接受",
+      "第一轮 20 个未见案例至少接受 18 个且事实硬错误为 0",
+      "第一轮通过后生成并审核第二轮 20 个未见案例",
+      "连续两轮达到要求后才更新 main 和安装正式 Skill"
+    ],
+    "privacy": {
+      "raw_conversations_stored": false,
+      "personal_paths_stored": false,
+      "account_data_stored": false,
+      "review_material": "只保存脱敏技术反馈、合成材料和公开来源"
+    }
+  }
+}

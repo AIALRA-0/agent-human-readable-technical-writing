@@ -4,12 +4,13 @@
 
 <p><strong>完整保留源信息，分开追踪补充解释，再生成能够阅读、核对和局部修复的中文</strong></p>
 
-<p><strong>当前状态：vNext 1.1 运行时候选等待第二轮用户审核</strong></p>
+<p><strong>当前状态：vNext 1.1 候选等待 C03-R3 与第一轮未见前向审核</strong></p>
 
 <p>
-  <a href="evals/candidate/REVIEW-PACKET.md">第二轮审核包</a> ·
+  <a href="evals/candidate/REVIEW-PACKET.md">C03-R3 审核包</a> ·
+  <a href="evals/forward/round-1/REVIEW-PACKET.md">20 个未见案例</a> ·
   <a href="docs/design/vnext-1.1-authoritative-plan.md">权威设计</a> ·
-  <a href="docs/audits/2026-08-30-vnext-1.1-round-1/audit.md">实施审计</a> ·
+  <a href="docs/audits/2026-08-31-vnext-1.1-round-2/audit.md">第二轮审计</a> ·
   <a href="README.en.md">English</a>
 </p>
 
@@ -17,7 +18,7 @@
 
 这个仓库维护 `human-readable-technical-writing` Codex Skill；vNext 1.1 把写作任务拆成基础操作和解释增量，并把原文、用户补充、外部背景与推断分别登记
 
-首轮人工审核已经形成 2 个 gold 和 10 个 rejected；10 个拒绝案例已经生成 R2 修订版，但这些修订版仍是 `candidate`，需要用户再次逐项审核
+两轮锚点审核已经形成 11 个 Gold 和 11 个 Rejected；目前只剩 `CANDIDATE-03-R3` 等待决定，另有 20 个未见案例用于检验规则能否离开首批材料继续工作
 
 ## 1. 项目解决什么问题
 
@@ -50,7 +51,7 @@ flowchart TD
     J -->|"拒绝"| L["进入 rejected 并生成下一版 candidate"]
 ```
 
-图 2.1 vNext 1.1 从任务编译到用户金标的处理路径
+<p align="center">图 2.1 vNext 1.1 从任务编译到用户金标的处理路径</p>
 
 图中的前半段保证来源与内容覆盖，后半段保证确定性问题能够定位和回滚；流程结果只有在用户明确接受后才会进入 gold，自动测试通过只允许生成审核包
 
@@ -66,7 +67,7 @@ flowchart TD
 | 基础操作 | `TRANSFORM`、`TRANSLATE`、`COMPRESS`、`EXPLAIN`、`GENERATE`、`FORMAT_ONLY` | 对原始材料做什么 |
 | 解释增量 | `NONE`、`GLOSS`、`EXPLANATORY`、`TEACHING`、`RESEARCHED` | 为了让目标读者理解，可以增加多少说明 |
 
-表 3.1 写作任务的两个独立维度
+<p align="center">表 3.1 写作任务的两个独立维度</p>
 
 `TRANSLATE + EXPLANATORY` 表示完整翻译原文，同时补充理解原文所需的背景和机制；补充解释具有独立来源，不能抵消原文遗漏
 
@@ -79,7 +80,7 @@ flowchart TD
 - `EXTERNAL_BACKGROUND`；为了理解而加入，并登记外部来源
 - `INFERENCE`；根据已经登记的内容推导，并保留证据与置信度
 
-改写和翻译分别计算源信息覆盖与补充背景来源覆盖；当前 10 个 R2 的源信息映射为 `35/35`，补充背景映射为 `35/35`，原因是每个语义单元都具有支持映射；该结果只能证明结构覆盖完整，不能证明文字已经达到用户偏好
+改写和翻译分别计算源信息覆盖与补充背景来源覆盖；当前 `CANDIDATE-03-R3` 的源信息映射为 `3/3`，补充背景映射为 `5/5`，原因是每个登记单元都具有支持映射；该结果只能证明结构覆盖完整，不能证明文字已经达到用户偏好
 
 ## 5. 可执行运行时
 
@@ -103,25 +104,33 @@ python scripts/run_vnext.py --help # 显示 compile、verify、repair 和 report
 ```powershell
 python scripts/validate_vnext_foundation.py # 核对权威计划摘要、合同、YAML 分类、链接、SVG 和公开文件隐私模式
 
-python scripts/run_vnext_fixtures.py # 执行 160 个确定性正反例；预期结果为 160/160
+python scripts/run_vnext_fixtures.py # 执行 176 个确定性正反例；预期结果为 176/176
 
-python scripts/validate_vnext_round2.py # 核对 22 个生命周期记录、10 个拒绝回归、10 个 R2 和全部来源映射
+python scripts/validate_vnext_round2.py # 核对 23 个生命周期记录、Gold 快照、旧拒绝回归和 C03-R3 来源映射
+
+python scripts/validate_context_cases.py # 核对 12 个主语、标点、局部一致性和段落语境案例；脚本不得自动决定语义对错
+
+python scripts/validate_forward_round1.py # 核对 20 个首次生成答案的摘要、声明来源、原始组件和隐私结果
 
 python -m unittest discover -s tests -p "test_deterministic_committer.py" -v # 执行 18 个摘要、范围、冲突、回滚和原子写入测试
 
-python -m unittest discover -s tests -p "test_vnext_runtime.py" -v # 执行 6 个 compile、verify、repair 和 report 运行时测试
+python -m unittest discover -s tests -p "test_vnext_runtime.py" -v # 执行 11 个 compile、verify、repair 和 report 运行时测试
 
-python scripts/build_candidate_review_packet.py # 从 10 个结构化 R2 重新生成第二轮人工审核包
+python scripts/build_candidate_review_packet.py # 从 C03-R3 重新生成锚点审核包
+
+python scripts/build_forward_review_packet.py # 从 20 个首次生成答案构建人工前向审核包，不修改答案
 ```
 
 当前本地结果：
 
-- 160 个确定性案例全部符合预期；原因是九类规则分别具有通过与失败输入，影响是已登记硬规则可以自动回归
-- 22 个生命周期记录全部有效；原因是 gold、rejected 与 candidate 使用同一状态合同，影响是模型不能越过用户决定
-- 10 个旧拒绝答案全部被发现，10 个 R2 硬错误为 0；原因是案例级回归锁直接对应首轮反馈，影响是 R2 可以进入人工复审
-- 18 个精确补丁测试与 6 个运行时测试全部通过；原因是摘要、范围、次数、冲突和结构入口都具有可执行测试，影响是无效修改会在写入前停止
+- 176 个确定性案例全部符合预期；原因是十类规则分别具有通过与失败输入，影响是空行、引用块、行内代码和对齐记录已经进入可执行回归
+- 23 个生命周期记录全部有效；原因是 11 个 Gold、11 个 Rejected 和 1 个 Candidate 使用同一合同，影响是模型不能越过用户决定
+- 9 个新 Gold 的审核正文变化为 0；原因是每份正文都与 `approved_snapshot_sha256` 绑定，影响是后续格式优化不能冒充原审核版本
+- 12 个语境案例结构全部有效；原因是主语和标点判断明确保留给 Agent，影响是正则检查不会强迫每句话重复主体或机械限制分号
+- 18 个精确补丁测试与 11 个运行时测试全部通过；原因是摘要、范围、次数、冲突、主体承接、原文呈现和渲染限制都有可执行测试，影响是无效修改会在写入前停止
+- 第一轮 20 个未见答案保持首次生成原文，其中 3 个答案出现中文句号；原因是隔离生成仍未稳定遵守用户标点配置，影响是本轮状态已经判定为 `FAIL`，第二轮生成停止
 
-这些数字不等于用户验收；R2 必须继续由用户逐项决定
+这些数字不等于用户验收；`CANDIDATE-03-R3` 和第一轮 20 个未见答案仍需用户逐项决定，3 个确定性失败不会因为其他自动检查通过而被隐藏
 
 ## 7. 仓库结构
 
@@ -136,9 +145,9 @@ python scripts/build_candidate_review_packet.py # 从 10 个结构化 R2 重新�
 | `patcher/` | 保存补丁规划、冲突处理、事务验证和确定性提交器 |
 | `evals/` | 分开保存 candidate、gold、rejected 和确定性案例 |
 
-表 7.1 vNext 1.1 目录职责
+<p align="center">表 7.1 vNext 1.1 目录职责</p>
 
-完整设计见 [vNext 1.1 权威计划](docs/design/vnext-1.1-authoritative-plan.md)；首轮实施证据与差距见 [实施审计](docs/audits/2026-08-30-vnext-1.1-round-1/audit.md)
+完整设计见 [vNext 1.1 权威计划](docs/design/vnext-1.1-authoritative-plan.md)；第二轮证据、外部依据和剩余风险见 [第二轮审计](docs/audits/2026-08-31-vnext-1.1-round-2/audit.md)
 
 ## 8. 隐私与安全
 
@@ -155,9 +164,9 @@ python scripts/build_candidate_review_packet.py # 从 10 个结构化 R2 重新�
 
 ## 9. 当前边界与下一步
 
-`main` 在第二轮审核完成前保持冻结；候选 Skill 不安装到本机正式目录
+`main` 在 C03-R3 和两轮未见前向测试全部通过前保持冻结；候选 Skill 不安装到本机正式目录
 
-下一步逐项审核 [10 个 R2 候选](evals/candidate/REVIEW-PACKET.md)；只有全部接受后，首批锚点才会统一成为 12 个 gold，并进入正式分支、安装和新任务触发验收
+下一步先审核 [C03-R3](evals/candidate/REVIEW-PACKET.md) 和 [第一轮 20 个未见候选](evals/forward/round-1/REVIEW-PACKET.md)；第一轮至少接受 18/20 且事实硬错误为 0，系统才生成第二轮；连续两轮通过后才能更新 `main`、安装 Skill 并运行新任务触发验收
 
 ## 10. 许可
 
