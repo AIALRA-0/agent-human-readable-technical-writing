@@ -1,0 +1,34 @@
+{
+  "round": 1,
+  "status": "FAIL",
+  "checked_candidates": 20,
+  "hard_error_count": 3,
+  "findings": [
+    {
+      "case_id": "FWD-R1-012",
+      "rule_id": "LUCAS_NO_CHINESE_FULL_STOP",
+      "message": "FWD-R1-012 generated prose contains a Chinese full stop",
+      "evidence": "背景解释在‘同位素方法测年’后使用中文句号",
+      "impact": "首次生成不符合当前用户标点配置",
+      "next": "保留首次答案为失败证据，等待用户审核后决定下一版处理"
+    },
+    {
+      "case_id": "FWD-R1-017",
+      "rule_id": "LUCAS_NO_CHINESE_FULL_STOP",
+      "message": "FWD-R1-017 generated prose contains a Chinese full stop",
+      "evidence": "水位趋势说明在‘警戒线下方’后使用中文句号",
+      "impact": "首次生成不符合当前用户标点配置",
+      "next": "保留首次答案为失败证据，等待用户审核后决定下一版处理"
+    },
+    {
+      "case_id": "FWD-R1-018",
+      "rule_id": "LUCAS_NO_CHINESE_FULL_STOP",
+      "message": "FWD-R1-018 generated prose contains a Chinese full stop",
+      "evidence": "温度比较说明在‘A 的温度最高’后使用中文句号",
+      "impact": "首次生成不符合当前用户标点配置",
+      "next": "保留首次答案为失败证据，等待用户审核后决定下一版处理"
+    }
+  ],
+  "user_decisions": 0,
+  "second_round_allowed": false
+}

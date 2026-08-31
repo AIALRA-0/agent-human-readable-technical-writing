@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="560" viewBox="0 0 820 560" role="img" aria-labelledby="title desc">
+  <title id="title">温室灌溉控制图</title>
+  <desc id="desc">土壤传感器把湿度值发送给控制器，控制器根据阈值控制水泵，水泵从水箱抽水并通过阀门向种植区供水</desc>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#315b7d"/></marker></defs>
+  <rect width="820" height="560" fill="#f7faf8"/>
+  <rect x="60" y="70" width="210" height="95" rx="12" fill="#d9edf7" stroke="#315b7d" stroke-width="3"/>
+  <text x="165" y="110" text-anchor="middle" font-size="24">土壤传感器</text><text x="165" y="143" text-anchor="middle" font-size="18">读取湿度</text>
+  <rect x="545" y="70" width="210" height="95" rx="12" fill="#fff3cd" stroke="#8a6d3b" stroke-width="3"/>
+  <text x="650" y="110" text-anchor="middle" font-size="24">控制器</text><text x="650" y="143" text-anchor="middle" font-size="18">阈值 35%</text>
+  <rect x="545" y="250" width="210" height="95" rx="12" fill="#dff0d8" stroke="#3c763d" stroke-width="3"/>
+  <text x="650" y="290" text-anchor="middle" font-size="24">水泵</text><text x="650" y="323" text-anchor="middle" font-size="18">开启或停止</text>
+  <rect x="60" y="250" width="210" height="95" rx="12" fill="#d9edf7" stroke="#315b7d" stroke-width="3"/>
+  <text x="165" y="303" text-anchor="middle" font-size="24">水箱</text>
+  <rect x="300" y="420" width="220" height="85" rx="12" fill="#e8d5b5" stroke="#7a5630" stroke-width="3"/>
+  <text x="410" y="455" text-anchor="middle" font-size="24">阀门与种植区</text><text x="410" y="486" text-anchor="middle" font-size="18">分配灌溉水</text>
+  <line x1="270" y1="117" x2="545" y2="117" stroke="#315b7d" stroke-width="4" marker-end="url(#arrow)"/><text x="408" y="96" text-anchor="middle" font-size="18">湿度值</text>
+  <line x1="650" y1="165" x2="650" y2="250" stroke="#315b7d" stroke-width="4" marker-end="url(#arrow)"/><text x="690" y="215" font-size="18">控制信号</text>
+  <line x1="270" y1="298" x2="545" y2="298" stroke="#315b7d" stroke-width="4" marker-end="url(#arrow)"/><text x="408" y="278" text-anchor="middle" font-size="18">供水</text>
+  <line x1="600" y1="345" x2="485" y2="420" stroke="#315b7d" stroke-width="4" marker-end="url(#arrow)"/><text x="555" y="398" font-size="18">加压水流</text>
+</svg>

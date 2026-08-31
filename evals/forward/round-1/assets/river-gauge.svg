@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="520" viewBox="0 0 820 520" role="img" aria-labelledby="title desc">
+  <title id="title">河流水位变化图</title>
+  <desc id="desc">折线显示六时到十八时的水位，警戒线位于三点五米，水位在十五时达到三点八米后回落</desc>
+  <rect width="820" height="520" fill="#ffffff"/>
+  <line x1="90" y1="430" x2="760" y2="430" stroke="#222" stroke-width="3"/><line x1="90" y1="60" x2="90" y2="430" stroke="#222" stroke-width="3"/>
+  <g font-size="18" fill="#222"><text x="55" y="435">2.0</text><text x="55" y="345">2.5</text><text x="55" y="255">3.0</text><text x="55" y="165">3.5</text><text x="55" y="75">4.0</text></g>
+  <line x1="90" y1="160" x2="760" y2="160" stroke="#c0392b" stroke-width="3" stroke-dasharray="10 8"/><text x="620" y="145" font-size="20" fill="#c0392b">警戒线 3.5 米</text>
+  <polyline points="110,395 235,340 360,250 485,125 610,195 735,285" fill="none" stroke="#2471a3" stroke-width="5"/>
+  <g fill="#2471a3"><circle cx="110" cy="395" r="7"/><circle cx="235" cy="340" r="7"/><circle cx="360" cy="250" r="7"/><circle cx="485" cy="125" r="7"/><circle cx="610" cy="195" r="7"/><circle cx="735" cy="285" r="7"/></g>
+  <g font-size="18" fill="#222" text-anchor="middle"><text x="110" y="460">06:00</text><text x="235" y="460">09:00</text><text x="360" y="460">12:00</text><text x="485" y="460">15:00</text><text x="610" y="460">17:00</text><text x="735" y="460">18:00</text></g>
+  <text x="25" y="35" font-size="20">水位（米）</text><text x="680" y="500" font-size="20">时间</text>
+</svg>
