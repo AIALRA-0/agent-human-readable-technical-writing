@@ -7,18 +7,18 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CASE_PATH = ROOT / "evals" / "candidate" / "CANDIDATE-03-R3.json"
+CASE_PATH = ROOT / "evals" / "candidate" / "CANDIDATE-03-R4.json"
 OUTPUT_PATH = ROOT / "evals" / "candidate" / "REVIEW-PACKET.md"
 
 
 def main() -> None:
-    """Render C03-R3 without changing the candidate text."""
+    """Render C03-R4 without changing the candidate text."""
 
     case = json.loads(CASE_PATH.read_text(encoding="utf-8"))
     lines = [
-        "# vNext 1.1 C03-R3 审核包",
+        "# vNext 1.1 C03-R4 审核包",
         "",
-        "`CANDIDATE-03-R3` 已修复 R2 中的主语归属和 npm 官方命名问题；自动检查只能确认结构、来源和已登记硬要求，用户决定仍是唯一验收依据",
+        "`CANDIDATE-03-R4` 只把 R3 的括号英文类别从 `package manager` 修复为 `Package Manager`；命令主体、npm 官方形式、CI 解释和证据边界保持不变；自动检查不能替代用户决定",
         "",
         "## 1. 用户请求",
         "",
@@ -28,16 +28,16 @@ def main() -> None:
         "",
         f"> {case['source']['content']}",
         "",
-        "## 3. CANDIDATE-03-R3",
+        "## 3. CANDIDATE-03-R4",
         "",
         case["artifact"]["answer"],
         "",
         "## 4. 本轮需要判断的内容",
         "",
         "- 主语是否已经明确，同时避免机械重复",
-        "- npm 是否自然解释了包管理器、命令行工具和软件包仓库三种作用",
-        "- npm 是否保持官方小写，并且没有伪造成英文全称",
-        "- 段落和空行是否适合连续阅读",
+        "- `Package Manager` 的标题式大小写是否符合当前要求",
+        "- npm 是否继续保持官方小写，并且没有伪造成英文全称",
+        "- 其余已经确认正确的内容是否保持不变",
         "",
         "请明确决定接受或拒绝；拒绝时请指出具体位置和原因",
     ]

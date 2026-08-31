@@ -31,10 +31,13 @@
       "type": "array",
       "items": {
         "type": "object", "additionalProperties": false,
-        "required": ["term_id", "official_form", "meanings_covered", "sentence_id"],
+        "required": ["term_id", "official_form", "parenthetical_form", "claimed_expansion", "context", "meanings_covered", "sentence_id"],
         "properties": {
           "term_id": {"type": "string", "minLength": 1},
           "official_form": {"type": "string", "minLength": 1},
+          "parenthetical_form": {"type": ["string", "null"]},
+          "claimed_expansion": {"type": ["string", "null"]},
+          "context": {"enum": ["authored_prose", "code", "inline_code", "url", "path", "verbatim"]},
           "meanings_covered": {"type": "array", "uniqueItems": true, "items": {"enum": ["definition", "current_use", "observable_behavior", "actual_impact", "name_origin"]}},
           "sentence_id": {"type": "string", "pattern": "^SENT-[0-9]{3,}$"}
         }

@@ -37,6 +37,18 @@ registry:
     STANDALONE_TERM_RESET:
       severity: MACHINE_FINAL
       description: 独立阅读单元的 known_terms 必须为空，防止测试借用其他内容的解释
+    REGISTERED_TERM_CASE:
+      severity: MACHINE_FINAL
+      description: 登记表已经确认的品牌、缩写和正式名称必须使用登记大小写
+    PARENTHETICAL_ENGLISH_CASE:
+      severity: MACHINE_FINAL
+      description: 登记表已经确认的括号英文名称和类别必须使用标题式大小写或官方写法
+    ACRONYM_EXPANSION:
+      severity: MACHINE_FINAL
+      description: 登记表明确禁止展开的名称不能伪造成首字母缩写
+    UNVERIFIED_OFFICIAL_CASE:
+      severity: MACHINE_CANDIDATE
+      description: 未登记名称无法确认官方大小写时返回 REVIEW_REQUIRED，程序不能猜测
     SOURCE_COMPONENT_ORDER:
       severity: PROFILE_REQUIRED
       description: 原图、原表和原始代码按照组件合同保留在解释前或与解释同时出现

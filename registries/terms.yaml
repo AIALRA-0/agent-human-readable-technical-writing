@@ -1,7 +1,7 @@
 registry:
   identity:
     registry_id: canonical-terms
-    revision: round-2-feedback
+    revision: round-3-capitalization
     description: 只登记真实审核中出现的术语，正式形式和解释要求按照独立阅读范围执行
   defaults:
     reading_scope:
@@ -13,21 +13,26 @@ registry:
         description: 连续文档只复用任务合同已经登记并实际解释过的术语
     natural_embedding:
       parenthesis_content: official_english_or_abbreviation_only
+      parenthetical_english_case: title_case
+      official_case_precedence: true
       prose_content:
         - definition
         - current_use
         - observable_behavior
         - actual_impact
-      description: 括号不承担整段定义，解释通过相邻正文自然完成
+      description: 括号内普通英文名称和类别使用标题式大小写，官方写法保持原样并具有最高优先级，解释通过相邻正文自然完成
   terms:
     npm:
       official_form: npm
-      first_use: npm 包管理器
-      generic_english_category: package manager
+      parenthetical_english_case: title_case
+      official_case_precedence: true
+      first_use: npm 包管理器（Package Manager）
+      generic_english_category: Package Manager
+      acronym_expansion_allowed: false
       definition: Node.js 生态中安装、更新、管理和发布 JavaScript 或 TypeScript 软件包与依赖的包管理器、命令行工具和软件仓库
       required_meanings: [definition, current_use, observable_behavior, actual_impact]
       source: https://docs.npmjs.com/policies/logos-and-usage/
-      constraint: 官方名称保持小写，package manager 只能作为通用用途类别，禁止把 npm 解释成 Node Package Manager 或其他首字母缩写
+      constraint: 官方名称保持小写，Package Manager 只能作为标题式大小写的通用用途类别，禁止把 npm 解释成 Node Package Manager 或其他首字母缩写；逐字引文、界面、日志和代码中的 NPM 保持原样
     CI:
       official_form: CI 持续集成（Continuous Integration）
       definition: 开发者提交代码后自动执行构建、测试和检查，并尽早发现代码集成问题的开发流程

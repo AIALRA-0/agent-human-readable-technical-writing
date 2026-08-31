@@ -88,15 +88,26 @@ def compile_contract(specification: dict[str, Any]) -> dict[str, Any]:
         if has_visual and not exact_alignment else "当前媒介能够执行登记的对齐方式",
     )
 
+    term_requirements = []
+    for provided in specification.get("term_requirements", []):
+        requirement = dict(provided)
+        registered = requirement.setdefault("registered", True)
+        requirement.setdefault("official_case_verified", registered)
+        requirement.setdefault("parenthetical_english_case", "title_case")
+        requirement.setdefault("parenthetical_form", None)
+        requirement.setdefault("official_case_precedence", True)
+        requirement.setdefault("acronym_expansion_allowed", False)
+        term_requirements.append(requirement)
+
     contract = {
-        "identity": {"task_id": specification["task_id"], "contract_version": "1.1", "profile_revision": "round-2-feedback"},
+        "identity": {"task_id": specification["task_id"], "contract_version": "1.1", "profile_revision": "round-3-capitalization"},
         "operation": {"base_operation": base_operation, "augmentation": specification["augmentation"], "source_coverage_target": source_coverage},
         "context": {
             "audience": specification["audience"], "genre": specification["genre"],
             "media": media, "components": list(specification["components"]),
             "user_profile": specification.get("user_profile", "lucas"), "reading_context": reading_context,
         },
-        "terminology": {"known_terms": known_terms, "term_requirements": list(specification.get("term_requirements", []))},
+        "terminology": {"known_terms": known_terms, "term_requirements": term_requirements},
         "components": {"component_order": component_order, "layout_exceptions": list(specification.get("layout_exceptions", []))},
         "presentation": {
             "renderer": {
@@ -300,10 +311,44 @@ def verify_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
             findings.append(_finding("INLINE_CODE_MARKUP", token, "命令、字段、路径或代码类型没有使用行内代码格式", "机器标识与普通文字难以区分", "只给该标识补充反引号"))
         checks += 1
 
-    term_uses = {item["term_id"]: item for item in bundle["term_uses"]}
+    term_uses: dict[str, list[dict[str, Any]]] = {}
+    for item in bundle["term_uses"]:
+        term_uses.setdefault(item["term_id"], []).append(item)
     for requirement in task["terminology"]["term_requirements"]:
-        use = term_uses.get(requirement["term_id"])
-        if not use or use["official_form"] != requirement["official_form"] or use["official_form"] not in rendered["text"] or not set(requirement["required_meanings"]) <= set(use["meanings_covered"]):
+        uses = term_uses.get(requirement["term_id"], [])
+        authored = next((item for item in uses if item["context"] == "authored_prose"), None)
+        use = authored or (uses[0] if uses else None)
+        if not requirement["registered"] or not requirement["official_case_verified"]:
+            findings.append(_finding(
+                "UNVERIFIED_OFFICIAL_CASE", requirement["term_id"],
+                "术语登记表和官方来源都没有确认当前英文大小写",
+                "程序无法安全决定括号英文或品牌名称应该采用哪种形式",
+                "核对官方来源并登记正式写法后重新编译", "REVIEW_REQUIRED",
+            ))
+        elif authored:
+            if authored["official_form"] != requirement["official_form"] or authored["official_form"] not in rendered["text"]:
+                findings.append(_finding(
+                    "REGISTERED_TERM_CASE", requirement["term_id"],
+                    "生成正文没有使用术语登记表中的官方大小写",
+                    "品牌、缩写或正式名称可能被错误改写",
+                    "只把该术语恢复为登记的 official_form",
+                ))
+            expected_parenthetical = requirement["parenthetical_form"]
+            if expected_parenthetical is not None and authored["parenthetical_form"] != expected_parenthetical:
+                findings.append(_finding(
+                    "PARENTHETICAL_ENGLISH_CASE", requirement["term_id"],
+                    "括号内英文没有使用登记的标题式大小写",
+                    "中文说明与当前用户确认的英文格式不一致",
+                    "只把括号内英文恢复为登记形式",
+                ))
+            if not requirement["acronym_expansion_allowed"] and authored["claimed_expansion"] is not None:
+                findings.append(_finding(
+                    "ACRONYM_EXPANSION", requirement["term_id"],
+                    "生成正文把不可展开的名称写成了首字母缩写",
+                    "读者会把伪造的英文全称误认为官方名称",
+                    "删除伪造展开，只保留官方名称和通用类别",
+                ))
+        if not use or not set(requirement["required_meanings"]) <= set(use["meanings_covered"]):
             findings.append(_finding("TERM_FIRST_USE_COVERAGE", requirement["term_id"], "术语首次形式或解释含义覆盖不足", "零先验读者无法完成当前判断或操作", "补齐正式名称和缺失的自然解释"))
         checks += 1
 

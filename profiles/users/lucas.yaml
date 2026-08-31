@@ -1,7 +1,7 @@
 profile:
   identity:
     profile_id: lucas
-    revision: round-2-feedback
+    revision: round-3-capitalization
     description: Lucas 已明确确认的个人写作要求
   punctuation:
     chinese_full_stop:
@@ -65,7 +65,7 @@ profile:
     natural_embedding:
       policy: formal_name_then_natural_prose
       severity: PROFILE_REQUIRED
-      description: 括号只放正式英文全称或缩写，定义、用途、表现和影响写在括号外的自然正文中
+      description: 括号只放正式英文全称、通用英文类别或缩写；普通英文名称和类别使用标题式大小写，官方品牌和正式名称保持官方大小写；定义、用途、表现和影响写在括号外的自然正文中
   explanation:
     actor_clarity:
       policy: explicit_on_start_change_or_ambiguity

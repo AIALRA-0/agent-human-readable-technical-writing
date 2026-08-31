@@ -1,4 +1,4 @@
-"""Deterministic validators for the 176 auditable vNext minimal fixtures.
+"""Deterministic validators for the 188 auditable vNext minimal fixtures.
 
 Each rule checks an observable structure or exact registered form.  The module
 does not score naturalness or claim semantic equivalence.
@@ -14,7 +14,7 @@ ValidationResult = list[str]
 
 
 TERM_REQUIREMENTS = {
-    "TERM_NPM": ["npm 包管理器", "JavaScript", "TypeScript"],
+    "TERM_NPM": ["npm 是 Node.js 生态使用的包管理器（Package Manager）", "JavaScript", "TypeScript"],
     "TERM_CI": ["CI 持续集成（Continuous Integration）", "自动", "测试"],
     "TERM_HTTP_POST": ["HTTP 超文本传输协议（Hypertext Transfer Protocol）", "`POST /tasks`", "新任务"],
     "TERM_HTTP_202_TASK_ID": ["`202`", "尚未完成", "`task_id`", "查询标识"],
@@ -63,6 +63,20 @@ def validate_term(rule_id: str, payload: dict[str, Any]) -> ValidationResult:
 
     if rule_id == "TERM_STANDALONE_RESET":
         return [] if payload.get("reading_context") != "standalone" or payload.get("known_terms") == [] else ["standalone known_terms must be empty"]
+    if rule_id.startswith("TERM_CASE_"):
+        context = payload.get("context", "authored_prose")
+        if context in {"code", "inline_code", "url", "path", "verbatim"}:
+            return []
+        text = str(payload.get("text", ""))
+        checks = {
+            "TERM_CASE_PACKAGE_MANAGER": "（Package Manager）" in text,
+            "TERM_CASE_CONTINUOUS_INTEGRATION": "（Continuous Integration）" in text,
+            "TERM_CASE_NOT_ALL_CAPS": "（PACKAGE MANAGER）" not in text,
+            "TERM_CASE_NPM_OFFICIAL": re.search(r"(?<![A-Za-z])NPM(?![A-Za-z])", text) is None and "npm" in text,
+            "TERM_CASE_OFFICIAL_MIXED": "Node.js" in text and "iOS" in text,
+            "TERM_CASE_NPM_NO_ACRONYM": "Node Package Manager" not in text,
+        }
+        return [] if checks.get(rule_id, False) else [f"{rule_id} failed"]
     return _missing_text(str(payload.get("text", "")), TERM_REQUIREMENTS[rule_id])
 
 

@@ -1,4 +1,4 @@
-"""Generate exactly 176 auditable pass/fail fixtures for vNext 1.1."""
+"""Generate exactly 188 auditable pass/fail fixtures for vNext 1.1."""
 
 from __future__ import annotations
 
@@ -40,6 +40,12 @@ RULES = {
         "TERM_STRING",
         "TERM_SHA256",
         "TERM_STANDALONE_RESET",
+        "TERM_CASE_PACKAGE_MANAGER",
+        "TERM_CASE_CONTINUOUS_INTEGRATION",
+        "TERM_CASE_NOT_ALL_CAPS",
+        "TERM_CASE_NPM_OFFICIAL",
+        "TERM_CASE_OFFICIAL_MIXED",
+        "TERM_CASE_NPM_NO_ACRONYM",
     ],
     "layout_lists_paragraphs": [
         "LAYOUT_COLON_NEWLINE",
@@ -125,7 +131,7 @@ RULES = {
 
 
 TERM_TEXT = {
-    "TERM_NPM": "npm 包管理器用于安装、更新和管理 JavaScript 或 TypeScript 依赖",
+    "TERM_NPM": "npm 是 Node.js 生态使用的包管理器（Package Manager）、命令行工具和软件包仓库；开发者使用它安装、更新和管理 JavaScript 或 TypeScript 依赖",
     "TERM_CI": "CI 持续集成（Continuous Integration）会自动运行构建和测试",
     "TERM_HTTP_POST": "`POST /tasks` 借助 HTTP 超文本传输协议（Hypertext Transfer Protocol）提交新任务",
     "TERM_HTTP_202_TASK_ID": "`202` 表示处理尚未完成；`task_id` 是查询标识",
@@ -194,6 +200,34 @@ def term_payload(rule_id: str, passing: bool) -> dict[str, Any]:
 
     if rule_id == "TERM_STANDALONE_RESET":
         return {"reading_context": "standalone", "known_terms": [] if passing else ["HTTP"]}
+    contextual = {
+        "TERM_CASE_PACKAGE_MANAGER": (
+            {"context": "authored_prose", "text": "npm 包管理器（Package Manager）用于管理项目依赖"},
+            {"context": "authored_prose", "text": "npm 包管理器（package manager）用于管理项目依赖"},
+        ),
+        "TERM_CASE_CONTINUOUS_INTEGRATION": (
+            {"context": "authored_prose", "text": "CI 持续集成（Continuous Integration）会自动运行测试"},
+            {"context": "authored_prose", "text": "CI 持续集成（continuous integration）会自动运行测试"},
+        ),
+        "TERM_CASE_NOT_ALL_CAPS": (
+            {"context": "authored_prose", "text": "Node.js 使用 npm 管理项目依赖"},
+            {"context": "authored_prose", "text": "npm 包管理器（PACKAGE MANAGER）用于管理项目依赖"},
+        ),
+        "TERM_CASE_NPM_OFFICIAL": (
+            {"context": "authored_prose", "text": "npm 调用项目脚本"},
+            {"context": "authored_prose", "text": "NPM 调用项目脚本"},
+        ),
+        "TERM_CASE_OFFICIAL_MIXED": (
+            {"context": "authored_prose", "text": "Node.js 服务向 iOS 客户端返回结果"},
+            {"context": "authored_prose", "text": "node.js 服务向 IOS 客户端返回结果"},
+        ),
+        "TERM_CASE_NPM_NO_ACRONYM": (
+            {"context": "verbatim", "text": "> NPM"},
+            {"context": "authored_prose", "text": "npm Node Package Manager 用于管理依赖"},
+        ),
+    }
+    if rule_id in contextual:
+        return contextual[rule_id][0 if passing else 1]
     return {"text": TERM_TEXT[rule_id] if passing else "术语已经出现，但没有提供登记形式和用途"}
 
 
@@ -525,8 +559,8 @@ def main() -> int:
     """Write the stable JSONL fixture collection."""
 
     cases = build_cases()
-    if len(cases) != 176:
-        raise SystemExit(f"expected 176 cases, built {len(cases)}")
+    if len(cases) != 188:
+        raise SystemExit(f"expected 188 cases, built {len(cases)}")
     TARGET.parent.mkdir(parents=True, exist_ok=True)
     TARGET.write_text(
         "".join(json.dumps(case, ensure_ascii=False, sort_keys=True) + "\n" for case in cases),

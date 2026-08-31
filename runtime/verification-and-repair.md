@@ -41,3 +41,5 @@ flowchart TD
 - `report` 验证并输出 `PASS`、`FAIL` 或 `REVIEW_REQUIRED` 结果，同时保留问题位置、原因、影响和下一步
 
 这些入口使用 `python -X utf8 scripts/run_vnext.py <入口> --input <输入 JSON>`；程序不负责理解任意自然语言，也不把结构检查通过解释成完全同义已经得到证明
+
+术语检查只在生成正文中执行登记大小写和禁止展开规则；代码块、行内代码、网址、路径和逐字引用保持原样；未登记术语无法从官方来源确认大小写时返回 `REVIEW_REQUIRED`

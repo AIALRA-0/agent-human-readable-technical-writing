@@ -29,14 +29,14 @@ jobs: # 定义相互独立的自动检查任务
       - name: Validate vNext foundation # 验证权威计划、契约、YAML 分类、候选案例、链接、SVG 和隐私模式
         run: python scripts/validate_vnext_foundation.py # 任一确定性缺陷都会返回非零退出状态
 
-      - name: Execute 176 deterministic fixtures # 运行十类确定性规则的独立正反例
-        run: python scripts/run_vnext_fixtures.py # 结果必须为 176/176，数量或判定不一致都会失败
+      - name: Execute 188 deterministic fixtures # 运行十类确定性规则和新增大小写规则的独立正反例
+        run: python scripts/run_vnext_fixtures.py # 结果必须为 188/188，数量或判定不一致都会失败
 
-      - name: Validate lifecycle and C03-R3 # 验证 23 个生命周期记录、Gold 快照、旧拒绝回归和 C03-R3 来源覆盖
-        run: python scripts/validate_vnext_round2.py # C03-R3 保持未批准，快照变化或来源遗漏会阻止继续
+      - name: Validate lifecycle and C03-R4 # 验证 24 个生命周期记录、Gold 快照、版本化拒绝和 C03-R4 来源覆盖
+        run: python scripts/validate_vnext_round3.py # C03-R4 保持未批准，快照变化、来源遗漏或伪造全称都会阻止继续
 
-      - name: Validate 12 contextual cases # 检查主语、标点、局部一致性和段落语境案例的职责边界
-        run: python scripts/validate_context_cases.py # 所有案例必须禁止自动语义判定，避免把风格偏好伪装成硬门
+      - name: Validate 16 contextual cases # 检查主语、标点、段落和大小写场景的职责边界
+        run: python scripts/validate_context_cases.py # 已登记大小写允许确定性判断，未知官方写法必须进入人工复核
 
       - name: Validate first forward round # 核对 20 个首次生成答案的摘要、来源映射、组件保留和隐私
         run: python scripts/validate_forward_round1.py # 只检查确定性事实，人工接受结果继续保持为空
@@ -45,7 +45,7 @@ jobs: # 定义相互独立的自动检查任务
         run: python -m unittest discover -s tests -p "test_deterministic_committer.py" -v # 运行 18 个提交器专用测试，不执行旧架构评测
 
       - name: Test executable runtime # 验证 compile、verify、repair 和 report 的结构化接口
-        run: python -m unittest discover -s tests -p "test_vnext_runtime.py" -v # 运行 11 个运行时测试，不要求外部 Agent
+        run: python -m unittest discover -s tests -p "test_vnext_runtime.py" -v # 运行 15 个运行时测试，不要求外部 Agent
 
       - name: Verify generated evidence synchronization # 确认确定性案例、审核包和前向候选摘要能够从登记源重建
         run: python scripts/build_vnext_minimal_cases.py && python scripts/build_candidate_review_packet.py && python scripts/build_forward_round1_requests.py && python scripts/materialize_forward_round1.py && python scripts/build_forward_review_packet.py && git diff --exit-code -- evals/candidate/REVIEW-PACKET.md evals/deterministic/vnext-1.1-minimal-cases.jsonl evals/forward/round-1 # 任何首次答案或摘要变化都会阻止候选提交

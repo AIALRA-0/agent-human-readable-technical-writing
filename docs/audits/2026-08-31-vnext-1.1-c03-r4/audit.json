@@ -1,0 +1,55 @@
+{
+  "audit": {
+    "audit_id": "2026-08-31-vnext-1.1-c03-r4",
+    "status": "PASS",
+    "candidate_status": "WAITING_FOR_USER_REVIEW",
+    "branch": "candidate/vnext-1.1-foundation",
+    "lifecycle": {
+      "gold": 11,
+      "rejected": 12,
+      "candidate": 1,
+      "total": 24,
+      "gold_snapshot_changes": 0,
+      "forward_answer_changes": 0
+    },
+    "validation": {
+      "deterministic": "188/188",
+      "contextual": "16/16",
+      "patch_tests": "18/18",
+      "runtime_tests": "15/15",
+      "c03_r4_source_coverage": "3/3",
+      "c03_r4_background_coverage": "5/5",
+      "invented_acronym_expansions": 0,
+      "privacy_blockers": 0
+    },
+    "forward_round_one": {
+      "candidate_answers": 20,
+      "deterministic_errors": 3,
+      "round_gate": "FAIL",
+      "round_two_generation": "BLOCKED"
+    },
+    "evidence": [
+      "scripts/validate_vnext_foundation.py",
+      "scripts/run_vnext_fixtures.py",
+      "scripts/validate_vnext_round3.py",
+      "scripts/validate_context_cases.py",
+      "scripts/validate_forward_round1.py",
+      "tests/test_deterministic_committer.py",
+      "tests/test_vnext_runtime.py"
+    ],
+    "external_sources": [
+      {
+        "topic": "npm official casing and naming",
+        "url": "https://docs.npmjs.com/policies/logos-and-usage/",
+        "decision": "Keep npm lowercase and prohibit fabricated acronym expansions"
+      }
+    ],
+    "stop_conditions": [
+      "CANDIDATE-03-R4 still requires explicit user review",
+      "The original 20 forward cases still require user review",
+      "Three Chinese full-stop failures remain preserved",
+      "main remains frozen",
+      "The candidate Skill is not installed"
+    ]
+  }
+}

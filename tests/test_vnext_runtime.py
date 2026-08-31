@@ -78,7 +78,7 @@ class VNextRuntimeTests(unittest.TestCase):
 
         self.assertEqual("PASS", verify_bundle(self.build_bundle())["status"])
 
-    def test_compile_records_round_two_presentation(self) -> None:
+    def test_compile_records_round_three_presentation(self) -> None:
         """The compiler exposes renderer limits instead of claiming universal centering."""
 
         contract = compile_contract({
@@ -86,7 +86,7 @@ class VNextRuntimeTests(unittest.TestCase):
             "audience": "general_reader", "genre": "readme", "media": ["github_markdown"],
             "components": ["TEXT", "IMAGE"],
         })
-        self.assertEqual("round-2-feedback", contract["identity"]["profile_revision"])
+        self.assertEqual("round-3-capitalization", contract["identity"]["profile_revision"])
         self.assertFalse(contract["presentation"]["renderer"]["exact_object_alignment"])
         self.assertEqual("center", contract["presentation"]["component_alignment"]["caption"])
 
@@ -184,6 +184,100 @@ class VNextRuntimeTests(unittest.TestCase):
         bundle["rendered_document"]["sentences"][0]["text"] = "任务已接收。"
         bundle["rendered_document"]["sha256"] = hashlib.sha256("任务已接收。".encode("utf-8")).hexdigest()
         self.assertEqual("FAIL", verify_bundle(bundle)["status"])
+
+    def add_term(self, bundle: dict, requirement: dict, use: dict, text: str) -> None:
+        """Attach one term requirement and its rendered use to a valid bundle."""
+
+        bundle["task_contract"]["terminology"]["term_requirements"] = [requirement]
+        bundle["term_uses"] = [use]
+        bundle["rendered_document"]["text"] = text
+        bundle["rendered_document"]["sentences"][0]["text"] = text
+        bundle["rendered_document"]["sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+    def test_registered_parenthetical_title_case_passes(self) -> None:
+        """Registered prose passes and literal machine or evidence contexts stay unchanged."""
+
+        bundle = self.build_bundle()
+        requirement = {
+            "term_id": "npm", "official_form": "npm", "registered": True,
+            "official_case_verified": True, "parenthetical_english_case": "title_case",
+            "parenthetical_form": "Package Manager", "official_case_precedence": True,
+            "acronym_expansion_allowed": False, "required_meanings": ["definition"],
+        }
+        use = {
+            "term_id": "npm", "official_form": "npm", "parenthetical_form": "Package Manager",
+            "claimed_expansion": None, "context": "authored_prose",
+            "meanings_covered": ["definition"], "sentence_id": "SENT-001",
+        }
+        self.add_term(bundle, requirement, use, "npm 包管理器（Package Manager）")
+        self.assertEqual("PASS", verify_bundle(bundle)["status"])
+        for context in ("code", "inline_code", "url", "path", "verbatim"):
+            with self.subTest(context=context):
+                literal_bundle = self.build_bundle()
+                literal_use = dict(use)
+                literal_use.update({"official_form": "NPM", "parenthetical_form": None, "context": context})
+                self.add_term(literal_bundle, requirement, literal_use, "NPM")
+                self.assertEqual("PASS", verify_bundle(literal_bundle)["status"])
+
+    def test_registered_parenthetical_lowercase_fails(self) -> None:
+        """A registered lowercase parenthetical category is a MACHINE_FINAL error."""
+
+        bundle = self.build_bundle()
+        requirement = {
+            "term_id": "npm", "official_form": "npm", "registered": True,
+            "official_case_verified": True, "parenthetical_english_case": "title_case",
+            "parenthetical_form": "Package Manager", "official_case_precedence": True,
+            "acronym_expansion_allowed": False, "required_meanings": ["definition"],
+        }
+        use = {
+            "term_id": "npm", "official_form": "npm", "parenthetical_form": "package manager",
+            "claimed_expansion": None, "context": "authored_prose",
+            "meanings_covered": ["definition"], "sentence_id": "SENT-001",
+        }
+        self.add_term(bundle, requirement, use, "npm 包管理器（package manager）")
+        report = verify_bundle(bundle)
+        self.assertEqual("FAIL", report["status"])
+        self.assertIn("PARENTHETICAL_ENGLISH_CASE", {item["rule_id"] for item in report["findings"]})
+
+    def test_prohibited_acronym_expansion_fails(self) -> None:
+        """The runtime rejects an invented expansion for a registered non-acronym name."""
+
+        bundle = self.build_bundle()
+        requirement = {
+            "term_id": "npm", "official_form": "npm", "registered": True,
+            "official_case_verified": True, "parenthetical_english_case": "title_case",
+            "parenthetical_form": "Package Manager", "official_case_precedence": True,
+            "acronym_expansion_allowed": False, "required_meanings": ["definition"],
+        }
+        use = {
+            "term_id": "npm", "official_form": "npm", "parenthetical_form": "Package Manager",
+            "claimed_expansion": "Node Package Manager", "context": "authored_prose",
+            "meanings_covered": ["definition"], "sentence_id": "SENT-001",
+        }
+        self.add_term(bundle, requirement, use, "npm Node Package Manager（Package Manager）")
+        report = verify_bundle(bundle)
+        self.assertEqual("FAIL", report["status"])
+        self.assertIn("ACRONYM_EXPANSION", {item["rule_id"] for item in report["findings"]})
+
+    def test_unknown_official_case_requires_review(self) -> None:
+        """An unregistered name stops for review instead of receiving guessed casing."""
+
+        bundle = self.build_bundle()
+        requirement = {
+            "term_id": "UNKNOWN", "official_form": "Unknown Tool", "registered": False,
+            "official_case_verified": False, "parenthetical_english_case": "title_case",
+            "parenthetical_form": None, "official_case_precedence": True,
+            "acronym_expansion_allowed": False, "required_meanings": ["definition"],
+        }
+        use = {
+            "term_id": "UNKNOWN", "official_form": "Unknown Tool", "parenthetical_form": None,
+            "claimed_expansion": None, "context": "authored_prose",
+            "meanings_covered": ["definition"], "sentence_id": "SENT-001",
+        }
+        self.add_term(bundle, requirement, use, "Unknown Tool 用于编排数据")
+        report = verify_bundle(bundle)
+        self.assertEqual("REVIEW_REQUIRED", report["status"])
+        self.assertIn("UNVERIFIED_OFFICIAL_CASE", {item["rule_id"] for item in report["findings"]})
 
 
 if __name__ == "__main__":

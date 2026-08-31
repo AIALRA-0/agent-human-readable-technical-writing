@@ -1,0 +1,27 @@
+{
+  "review_round": {
+    "review_id": "vnext-1.1-c03-r3",
+    "reviewed_at": "2026-08-31",
+    "decision_source": "explicit_user_review",
+    "privacy": "deidentified_technical_feedback_only",
+    "decisions": [
+      {
+        "origin_case_id": "CANDIDATE-03",
+        "reviewed_candidate_id": "CANDIDATE-03-R3",
+        "reviewed_snapshot_sha256": "f9f18e31963cbd2e80ebf0c5b6d9e76283caadf73ee5258060445350ffad58e8",
+        "decision": "rejected",
+        "approved_snapshot_sha256": null,
+        "reasons": [
+          "括号内通用英文类别使用了小写 package manager，没有采用用户确认的标题式大小写 Package Manager"
+        ],
+        "correct_parts": [
+          "命令注释已经明确 npm 调用脚本、系统显示结果",
+          "npm 使用官方小写形式，并且没有伪造成 Node Package Manager",
+          "退出码、CI 和未启用边界解释正确"
+        ],
+        "next_candidate_id": "CANDIDATE-03-R4",
+        "non_blocking_preferences": []
+      }
+    ]
+  }
+}

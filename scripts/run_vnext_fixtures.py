@@ -1,4 +1,4 @@
-"""Execute and summarize the 176 deterministic vNext minimal fixtures."""
+"""Execute and summarize the 188 deterministic vNext minimal fixtures."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ from validators.vnext_minimal import validate_fixture  # noqa: E402
 DEFAULT_FIXTURES = ROOT / "evals" / "deterministic" / "vnext-1.1-minimal-cases.jsonl"
 EXPECTED_COUNTS = {
     "lifecycle_schema": 20,
-    "terms_official_standalone": 28,
+    "terms_official_standalone": 40,
     "layout_lists_paragraphs": 20,
     "mermaid_caption_explanation": 16,
     "provenance_support_boundary": 20,
@@ -83,7 +83,7 @@ def main() -> int:
         if counts.get(category, 0) != expected
     }
     unexpected_categories = sorted(set(counts) - set(EXPECTED_COUNTS))
-    passed = len(cases) == 176 and not mismatches and not count_errors and not unexpected_categories
+    passed = len(cases) == 188 and not mismatches and not count_errors and not unexpected_categories
     report = {
         "status": "PASS" if passed else "FAIL",
         "summary": {
