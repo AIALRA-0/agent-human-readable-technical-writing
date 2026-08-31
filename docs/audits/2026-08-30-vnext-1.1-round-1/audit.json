@@ -1,0 +1,110 @@
+{
+  "audit": {
+    "audit_id": "VNEXT-1.1-ROUND-1-20260830",
+    "audit_date": "2026-08-30",
+    "scope": "首轮人工审核转化、运行时、确定性测试、精确补丁和第二轮候选",
+    "decision": "proceed_to_round_2_manual_review",
+    "authority": {
+      "design": "docs/design/vnext-1.1-authoritative-plan.md",
+      "amendment": "docs/design/vnext-1.1-round-1-amendment.md",
+      "review_record": "evals/reviews/vnext-1.1-round-1.json"
+    },
+    "internal_evidence": [
+      {
+        "claim": "2 个接受案例与 10 个拒绝案例已经按照结构化决定完成状态转换",
+        "evidence": ["evals/gold", "evals/rejected", "contracts/evaluation-case.schema.json"],
+        "result": "12/12"
+      },
+      {
+        "claim": "10 个 R2 候选保持未批准状态并覆盖全部来源与背景单元",
+        "evidence": ["evals/candidate/CANDIDATE-03-R2.json", "scripts/validate_vnext_round2.py"],
+        "result": "10/10；源信息 35/35；补充背景 35/35"
+      },
+      {
+        "claim": "九类确定性规则具有独立正反例",
+        "evidence": ["evals/deterministic/vnext-1.1-minimal-cases.jsonl", "scripts/run_vnext_fixtures.py", "validators/vnext_minimal.py"],
+        "result": "160/160"
+      },
+      {
+        "claim": "精确提交器拒绝摘要漂移、节点越界、次数不符、重叠和验证失败",
+        "evidence": ["patcher/deterministic_committer/committer.py", "tests/test_deterministic_committer.py"],
+        "result": "18/18"
+      },
+      {
+        "claim": "本地运行时能够编译、验证、修复和报告结构化合同",
+        "evidence": ["runtime/engine.py", "scripts/run_vnext.py", "tests/test_vnext_runtime.py"],
+        "result": "6/6"
+      }
+    ],
+    "external_sources": [
+      {
+        "topic": "npm 官方名称",
+        "url": "https://docs.npmjs.com/policies/logos-and-usage/",
+        "decision": "保持 npm 官方小写；不把名称扩写成 Node Package Manager"
+      },
+      {
+        "topic": "HTTP 202",
+        "url": "https://www.rfc-editor.org/rfc/rfc9110.html",
+        "decision": "解释为请求已接收但处理未完成，且处理可能尚未开始"
+      },
+      {
+        "topic": "持续集成",
+        "url": "https://docs.github.com/en/actions/get-started/continuous-integration",
+        "decision": "覆盖代码提交、自动构建、测试和尽早发现集成问题"
+      },
+      {
+        "topic": "PowerShell 与命令",
+        "url": "https://learn.microsoft.com/en-us/powershell/scripting/overview",
+        "decision": "解释工具、输入、命令作用、结果、失败和副作用"
+      },
+      {
+        "topic": "SHA-256",
+        "url": "https://csrc.nist.gov/glossary/term/sha_256",
+        "decision": "说明摘要比较用途，并保留来源与安全性边界"
+      },
+      {
+        "topic": "复杂图片说明",
+        "url": "https://www.w3.org/WAI/tutorials/images/complex/",
+        "decision": "原图在前；长说明覆盖元素、关系、结论和限制"
+      },
+      {
+        "topic": "Skill 渐进式加载",
+        "url": "https://learn.chatgpt.com/docs/build-skills",
+        "decision": "SKILL.md 保持短入口；详细合同和组件规则按任务加载"
+      }
+    ],
+    "implementation_gaps": [
+      {
+        "gap": "10 个 R2 尚未获得用户接受",
+        "cause": "自动检查不能代替真实阅读偏好",
+        "impact": "R2 不能转为 gold，也不能安装为正式 Skill",
+        "next": "逐项完成人工复审"
+      },
+      {
+        "gap": "当前只有 2 个 gold",
+        "cause": "其余首批锚点在第一轮被拒绝",
+        "impact": "完整 48 个可见金标和隐藏组合测试仍不能扩展",
+        "next": "先把首批锚点达到 12/12 gold"
+      },
+      {
+        "gap": "运行时不自动理解任意自然语言",
+        "cause": "语义建模仍由 Agent 完成，程序只验证结构与覆盖关系",
+        "impact": "运行时不能宣称自动证明完全同义",
+        "next": "通过人工金标和隐藏测试持续校准 Agent"
+      }
+    ],
+    "re_review_conditions": [
+      "10 个 R2 全部获得明确接受",
+      "生命周期转为 12 个 gold 且 approved_by_user 全部为 true",
+      "远程 vNext 检查全部通过",
+      "main 继续冻结直到人工审核结束",
+      "候选 Skill 在人工审核以前不安装"
+    ],
+    "privacy": {
+      "raw_conversations_stored": false,
+      "personal_paths_stored": false,
+      "account_data_stored": false,
+      "review_material": "只保存脱敏技术反馈和合成案例"
+    }
+  }
+}

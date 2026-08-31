@@ -2,53 +2,59 @@
 
 <h1 align="center">AIALRA Verifiable Chinese Writing</h1>
 
-<p><strong>Preserve every source claim, track explanatory additions separately, and render Chinese for a real reader</strong></p>
+<p><strong>Preserve complete source information, track explanatory additions separately, and produce Chinese that can be read, audited, and repaired locally</strong></p>
 
-<p><strong>Status: vNext 1.1 candidate awaiting user review</strong></p>
+<p><strong>Status: vNext 1.1 runtime candidate awaiting second-round user review</strong></p>
 
 <p>
+  <a href="evals/candidate/REVIEW-PACKET.md">Round-two review packet</a> ·
   <a href="docs/design/vnext-1.1-authoritative-plan.md">Authoritative design</a> ·
-  <a href="evals/candidate/REVIEW-PACKET.md">Review 12 candidate anchors</a> ·
-  <a href="constitution/principles.md">Principles</a> ·
+  <a href="docs/audits/2026-08-30-vnext-1.1-round-1/audit.md">Implementation audit</a> ·
   <a href="README.md">简体中文</a>
 </p>
 
 </div>
 
-This repository maintains the `human-readable-technical-writing` Codex Skill. vNext 1.1 models each task as a base operation plus an augmentation level, then tracks source claims, user-supplied facts, external background, and inference separately.
+This repository maintains the `human-readable-technical-writing` Codex Skill. vNext 1.1 models each task as a base operation plus an augmentation level, then records source claims, user-supplied facts, external background, and inference separately.
 
-The candidate branch contains the constitution, structural contracts, task profiles, exact-patch foundation, and 12 candidate anchors. The user has not reviewed those answers yet, so none of them are gold examples and the candidate has not been installed as a released Skill.
+The first manual review produced two gold and ten rejected cases. Those ten rejected cases now have R2 revisions, but each revision remains a candidate until the user reviews it again.
 
 ## 1. Problem and scope
 
-Ordinary rewriting can preserve only the gist. Ordinary explanation can change emphasis, reorder content, or add unsupported conclusions. vNext 1.1 protects two independent requirements:
+Ordinary rewriting can preserve only the gist. Ordinary explanation can add unsupported background or present an explanatory addition as the source author's conclusion.
 
-- Source completeness: rewriting and translation retain every source item that carries information.
-- Explanatory provenance: background, definitions, mechanisms, examples, and inference are tracked separately from the source.
+vNext 1.1 protects four requirements:
 
-The system does not impose one universal writing style. It makes provenance, coverage, location, repair scope, and human acceptance inspectable.
+- Source completeness: every source item that carries information remains represented.
+- Explanatory provenance: definitions, mechanisms, examples, and inference are tracked separately.
+- Bounded repair: a defect in a phrase or segment does not authorize whole-document regeneration.
+- User authority: model scores cannot promote a candidate to gold.
 
-## 2. Architecture
+The system does not impose a universal Chinese style. Facts, conditions, scope, quantities, provenance, and source completeness are hard boundaries; tone and ordinary narrative order are calibrated through user-approved gold examples.
+
+## 2. Processing path
 
 ```mermaid
 flowchart TD
-    A[Compile base operation and augmentation] --> B{Would ambiguity change the result}
-    B -->|Yes| C[Ask once with choices, default, and impact]
+    A[Compile operation, augmentation, and audience] --> B{Would ambiguity change facts, scope, or output size}
+    B -->|Yes| C[Ask once with choices, recommendation, and impact]
     C --> A
-    B -->|No| D[Register source spans, source atoms, background, and inference]
-    D --> E[Build segment contracts and a coverage matrix]
-    E --> F[Render the target text directly]
-    F --> G[Run deterministic checks and contextual candidate review]
-    G --> H[Create SHA-256-bound exact patches]
+    B -->|No| D[Register source atoms, background, and inference]
+    D --> E[Build segment contracts and coverage]
+    E --> F[Render the target text]
+    F --> G[Run deterministic and structural validation]
+    G --> H[Create digest-bound exact patches]
     H --> I[Validate the affected area and whole document]
     I --> J[User review]
     J -->|Accept| K[Promote to gold]
-    J -->|Reject| L[Record as rejected]
+    J -->|Reject| L[Record as rejected and create another candidate]
 ```
 
-Figure 2.1 vNext 1.1 path from task compilation to user-approved gold examples
+Figure 2.1 vNext 1.1 path from task compilation to user-approved gold
 
-## 3. Task model
+The first half protects provenance and coverage. The second half makes deterministic defects locatable and reversible. Automated checks can create a review packet, but only an explicit user decision can create gold.
+
+## 3. Task contract
 
 | Dimension | Values | Decision |
 | --- | --- | --- |
@@ -57,113 +63,90 @@ Figure 2.1 vNext 1.1 path from task compilation to user-approved gold examples
 
 Table 3.1 Independent task dimensions
 
-Common combinations include:
-
-- Faithful rewrite: `TRANSFORM + NONE`.
-- Glossed rewrite: `TRANSFORM + GLOSS`.
-- Explanatory translation: `TRANSLATE + EXPLANATORY`.
-- Teaching rewrite: `TRANSFORM + TEACHING`.
+For example, `TRANSLATE + EXPLANATORY` means complete translation plus the background and mechanism needed to understand the source. Additions retain separate provenance and cannot compensate for omitted source content.
 
 ## 4. Provenance and coverage
 
-The intermediate representation separates four provenance types:
+The intermediate representation distinguishes:
 
-- `SOURCE`: directly stated by the source and linked to a source location.
-- `USER_SUPPLIED`: provided by the user for the current task.
-- `EXTERNAL_BACKGROUND`: added to support understanding and linked to a reference.
-- `INFERENCE`: derived from registered material with confidence preserved.
+- `SOURCE`: directly stated by the source and linked to its location.
+- `USER_SUPPLIED`: supplied by the user for the active task.
+- `EXTERNAL_BACKGROUND`: added for understanding and linked to a reference.
+- `INFERENCE`: derived from registered material with evidence and confidence retained.
 
-Rewrite and translation tasks measure source coverage and added-claim provenance coverage separately. Both targets are `100%`; extra explanation cannot compensate for missing source information.
+The ten R2 cases currently map 35 of 35 source atoms and 35 of 35 background atoms. This proves structural allocation only; it does not prove that the user accepts the wording.
 
-## 5. Rule levels
+## 5. Executable runtime
 
-| Level | Authority | Failure behavior |
-| --- | --- | --- |
-| `MACHINE_FINAL` | Deterministic code | Block immediately |
-| `MACHINE_CANDIDATE` | Agent or user in context | Confirm, reject as a false positive, or request a decision |
-| `PROFILE_REQUIRED` | Active task or user profile | Block for this contract |
-| `ADVISORY` | User preference | Optimize without blocking |
+The local entry point provides:
 
-Table 5.1 Rule levels and enforcement
-
-Ordinary words, fixed sentence-length limits, common word order, and a universal section template are not machine-final rules. Changes to facts, conditions, scope, quantities, provenance, and source completeness remain blocking defects.
-
-## 6. Exact patches
-
-The committer accepts only literal replacements bound to the current document digest. Before writing, it checks:
-
-- Document SHA-256.
-- Authorized node range.
-- Expected old-text occurrence count.
-- Patch overlap.
-- Local and whole-document validators.
-
-Any failure rejects the complete batch and leaves the original file unchanged.
-
-## 7. Candidate anchors
-
-The first 12 candidates cover:
-
-- Two faithful rewrites.
-- Two glossed rewrites.
-- Two explanatory translations.
-- Two teaching rewrites.
-- One image, table, code, and multi-turn example each.
-
-Every case has `status: candidate` and `approved_by_user: false`. Use the [candidate review packet](evals/candidate/REVIEW-PACKET.md) to accept, reject, or request changes for each case.
-
-## 8. Candidate validation
-
-The validation commands require Python 3.12 or a compatible version, plus `jsonschema` and `PyYAML`.
+- `compile`: fill deterministic defaults and validate a task contract.
+- `verify`: check provenance, segments, terms, components, support maps, and evidence boundaries.
+- `repair`: validate an exact patch and perform the smallest authorized replacement.
+- `report`: return `PASS`, `FAIL`, or `REVIEW_REQUIRED` with cause, impact, and next action.
 
 ```powershell
-python scripts/validate_vnext_foundation.py # Validate the authority digest, 11 schemas, grouped YAML, 12 candidates, structured examples, and privacy patterns
-
-python -m unittest discover -s tests -p 'test_deterministic_committer.py' -v # Test digest, range, count, conflict, rollback, and atomic-write behavior
-
-python scripts/build_candidate_review_packet.py # Regenerate the human review packet from structured candidate cases
+python scripts/run_vnext.py --help # List compile, verify, repair, and report without changing a file
 ```
 
-Current candidate baseline:
+The runtime does not infer arbitrary natural-language meaning. The Agent builds the semantic model; deterministic code checks structure, references, coverage, and exact edits.
 
-- Foundation validation passed across 11 schemas, 13 grouped YAML files, 12 candidates, 2 structured examples, 19 Skill resources, 10 local links, 1 SVG asset, and 108 public files.
-- The exact committer passed 10 of 10 tests covering accepted replacement, missing authorization, and all currently implemented rejection paths.
+## 6. Validation
 
-These results establish deterministic candidate consistency. They do not prove user preference and cannot promote candidates to gold.
+Use Python 3.12 or a compatible version with `jsonschema` and `PyYAML`.
 
-## 9. Repository map
+```powershell
+python scripts/validate_vnext_foundation.py # Check the authority digest, contracts, grouped YAML, links, SVG, and public-file privacy patterns
+
+python scripts/run_vnext_fixtures.py # Execute all 160 deterministic positive and negative cases
+
+python scripts/validate_vnext_round2.py # Check 22 lifecycle records, ten rejected regressions, ten R2 candidates, and complete mappings
+
+python -m unittest discover -s tests -p "test_deterministic_committer.py" -v # Execute 18 digest, range, conflict, rollback, and atomic-write tests
+
+python -m unittest discover -s tests -p "test_vnext_runtime.py" -v # Execute six compile, verify, repair, and report tests
+
+python scripts/build_candidate_review_packet.py # Regenerate the ten-case manual review packet
+```
+
+Current local evidence:
+
+- 160 of 160 deterministic fixtures match their reviewed expectations.
+- All 22 lifecycle records are valid.
+- Ten of ten rejected answers trigger their case-specific regression lock, while all ten R2 answers have zero registered hard defects.
+- All 18 exact-patch tests and all six runtime tests pass.
+
+These numbers do not constitute user acceptance.
+
+## 7. Repository map
 
 | Directory | Responsibility |
 | --- | --- |
 | `constitution/` | Source priority, provenance, rule levels, and user-gold boundary |
-| `runtime/` | Task compilation, clarification, source understanding, blueprinting, constrained rendering, and repair |
-| `contracts/` | JSON Schemas for tasks, provenance, segments, support, findings, patches, and candidates |
+| `runtime/` | Task compilation, source understanding, blueprinting, rendering, validation, and repair |
+| `contracts/` | Schemas for tasks, provenance, segments, support, findings, patches, and lifecycle cases |
 | `profiles/` | Operations, augmentation, genres, media, audiences, components, and Lucas preferences |
 | `registries/` | Terms, units, and protected patterns |
-| `validators/` | Deterministic, contextual-candidate, and advisory checks |
-| `patcher/` | Patch planning, conflicts, transaction validation, and exact commits |
-| `evals/` | Candidate, gold, rejected, hidden, and component cases |
+| `validators/` | Deterministic rules, contextual candidates, and advisory checks |
+| `patcher/` | Patch planning, conflict handling, transaction validation, and exact commits |
+| `evals/` | Candidate, gold, rejected, and deterministic cases |
 
-Table 9.1 vNext 1.1 directory responsibilities
+Table 7.1 vNext 1.1 directory responsibilities
 
-Read the [authoritative vNext 1.1 plan](docs/design/vnext-1.1-authoritative-plan.md) for the complete design and the [migration map](docs/migration/current-to-vnext-1.1.md) for decisions about retained, downgraded, and replaced rules.
+Read the [authoritative design](docs/design/vnext-1.1-authoritative-plan.md) for the complete model and the [implementation audit](docs/audits/2026-08-30-vnext-1.1-round-1/audit.md) for evidence, gaps, and re-review conditions.
 
-## 10. Privacy and security
+## 8. Privacy and security
 
-- Do not scan complete local conversations.
-- Do not store accounts, tokens, private paths, or raw sessions.
-- Candidate cases use synthetic material and repository-local assets.
-- The SVG candidate image contains no scripts, event handlers, or remote references.
-- Run the independent GitHub publication safety gate before pushing.
+The public repository stores synthetic cases, redacted technical feedback, repository-relative paths, and public references. It does not store raw conversations, account data, personal absolute paths, credentials, or unreviewed screenshots.
 
-If a real secret has reached a remote, stop routine updates, rotate the credential, and follow an incident cleanup process.
+An independent publication safety gate runs before every remote push. If a real secret reaches a remote, routine updates stop until the credential is rotated and the incident process addresses history.
 
-## 11. Current limit and next stage
+## 9. Current boundary and next step
 
-This version stops at the first user-review gate. It does not yet contain user-approved gold cases, user-rejected cases, the gold-calibrated full runtime, or the planned expanded evaluation sets.
+`main` remains frozen during second-round review, and the candidate Skill is not installed into the active user Skill directory.
 
-The project stops here because implementing more validators before the user approves representative answers would turn model preferences into the optimization target again.
+The next step is to review the [ten R2 candidates](evals/candidate/REVIEW-PACKET.md). Only ten explicit acceptances can convert the first anchor set into 12 gold cases and permit the formal-branch, installation, and fresh-task activation stages.
 
-## 12. License
+## 10. License
 
-The repository uses the [MIT License](LICENSE). Third-party methods and copied material are recorded in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+The repository uses the [MIT License](LICENSE). Third-party methods and copied material are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

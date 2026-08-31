@@ -1,4 +1,4 @@
-"""Build one human review packet from the twelve structured candidate cases."""
+"""Build the second manual review packet from the ten structured R2 cases."""
 
 from __future__ import annotations
 
@@ -21,25 +21,29 @@ def render_source(source: dict[str, object]) -> str:
 
 
 def main() -> None:
-    """Load cases in numeric order and regenerate the complete review packet."""
+    """Load R2 cases in numeric order and regenerate the complete review packet."""
 
-    case_paths = sorted(CANDIDATE_DIRECTORY.glob("CANDIDATE-??.json"))
+    case_paths = sorted(CANDIDATE_DIRECTORY.glob("CANDIDATE-??-R2.json"))
+    if len(case_paths) != 10:
+        raise SystemExit(f"expected 10 R2 candidates, found {len(case_paths)}")
     sections = [
-        "# vNext 1.1 首批候选锚点审核包",
+        "# vNext 1.1 第二轮候选审核包",
         "",
-        "本审核包包含 12 个由 Codex 生成的候选版本；所有案例的状态都是 `candidate`，并且 `approved_by_user` 均为 `false`",
+        "本审核包包含 10 个根据首轮用户反馈修订的 R2 候选；所有案例的状态仍为 `candidate`，`approved_by_user` 仍为 `false`",
         "",
-        "请对每个案例给出接受、拒绝或修改意见；系统只有在收到你的明确判断后，才能把接受版本复制到金标区",
+        "自动检查只确认来源映射、结构和已登记硬规则；请逐项决定接受、拒绝或继续修改，系统收到明确判断后才能把接受版本转入金标区",
     ]
 
-    for path in case_paths:
+    for ordinal, path in enumerate(case_paths, start=1):
         case = json.loads(path.read_text(encoding="utf-8"))
         identity = case["identity"]
         task = case["task"]
+        rejected_path = ROOT / "evals" / "rejected" / f"REJECTED-{identity['origin_case_id'][-2:]}.json"
+        rejected = json.loads(rejected_path.read_text(encoding="utf-8"))
         sections.extend(
             [
                 "",
-                f"## {identity['case_id']}",
+                f"## {ordinal}. {identity['case_id']}",
                 "",
                 f"任务配置：`{task['base_operation']} + {task['augmentation']}`；类型为 `{identity['category']}`",
                 "",
@@ -51,15 +55,23 @@ def main() -> None:
                 "",
                 render_source(case["source"]),
                 "",
-                "候选答案：",
+                "R2 候选答案：",
                 "",
-                case["candidate"]["answer"],
+                case["artifact"]["answer"],
                 "",
-                "审核问题：",
+                "首轮拒绝原因：",
                 "",
             ]
         )
-        sections.extend(f"- {question}" for question in case["review"]["questions"])
+        sections.extend(f"- {reason}" for reason in rejected["review"]["reasons"])
+        sections.extend(["", "本轮复审要点：", ""])
+        sections.extend(f"- {requirement}" for requirement in case["review"]["regression_requirements"])
+        sections.extend(
+            [
+                "",
+                "请给出一个明确决定：接受、拒绝，或指出需要修改的具体位置与原因",
+            ]
+        )
 
     OUTPUT_PATH.write_text("\n".join(sections).rstrip() + "\n", encoding="utf-8", newline="\n")
 

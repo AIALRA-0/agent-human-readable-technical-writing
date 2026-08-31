@@ -9,7 +9,7 @@ permissions: # 限制自动任务只能读取仓库内容
   contents: read # 检查任务不能修改分支、标签或发布内容
 
 jobs: # 定义相互独立的自动检查任务
-  vnext-foundation: # 验证 vNext 契约、候选状态、补丁事务和审核包同步
+  vnext-runtime: # 验证 vNext 契约、运行时、R2 生命周期、补丁事务和审核包同步
     runs-on: ubuntu-latest # 使用干净 Linux 环境证明基础实现不依赖本机状态
     steps: # 按照依赖准备、确定性检查、提交器测试和生成物核对的顺序执行
       - name: Check out repository # 下载触发本次检查的精确提交
@@ -24,13 +24,22 @@ jobs: # 定义相互独立的自动检查任务
         run: python -m pip install jsonschema==4.23.0 PyYAML==6.0.2 # 使用本地验证过的精确版本，避免依赖漂移改变结果
 
       - name: Compile Python sources # 在运行以前发现语法和编码错误
-        run: python -m compileall -q patcher scripts tests # 只编译 vNext 实现、验证脚本和测试
+        run: python -m compileall -q patcher runtime scripts tests validators # 只编译 vNext 实现、验证器和测试
 
       - name: Validate vNext foundation # 验证权威计划、契约、YAML 分类、候选案例、链接、SVG 和隐私模式
         run: python scripts/validate_vnext_foundation.py # 任一确定性缺陷都会返回非零退出状态
 
-      - name: Test deterministic committer # 验证精确替换、拒绝路径和整批回滚
-        run: python -m unittest discover -s tests -p "test_deterministic_committer.py" -v # 运行 vNext 提交器专用测试，不执行旧架构评测
+      - name: Execute 160 deterministic fixtures # 运行九类确定性规则的独立正反例
+        run: python scripts/run_vnext_fixtures.py # 结果必须为 160/160，数量或判定不一致都会失败
 
-      - name: Verify review packet synchronization # 确认公开审核包与 12 个结构化候选案例完全同步
-        run: python scripts/build_candidate_review_packet.py && git diff --exit-code -- evals/candidate/REVIEW-PACKET.md # 生成结果变化时阻止候选提交
+      - name: Validate lifecycle and R2 candidates # 验证 22 个生命周期记录、旧拒绝回归和 R2 来源覆盖
+        run: python scripts/validate_vnext_round2.py # R2 保持未批准，来源或背景遗漏会阻止继续
+
+      - name: Test deterministic committer # 验证精确替换、拒绝路径和整批回滚
+        run: python -m unittest discover -s tests -p "test_deterministic_committer.py" -v # 运行 18 个提交器专用测试，不执行旧架构评测
+
+      - name: Test executable runtime # 验证 compile、verify、repair 和 report 的结构化接口
+        run: python -m unittest discover -s tests -p "test_vnext_runtime.py" -v # 运行 6 个运行时测试，不要求外部 Agent
+
+      - name: Verify generated evidence synchronization # 确认 R2、160 个最小案例和第二轮审核包都能从登记源重建
+        run: python scripts/build_round2_candidates.py && python scripts/build_vnext_minimal_cases.py && python scripts/build_candidate_review_packet.py && git diff --exit-code -- evals/candidate evals/deterministic/vnext-1.1-minimal-cases.jsonl # 生成结果变化时阻止候选提交

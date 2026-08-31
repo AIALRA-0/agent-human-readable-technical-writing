@@ -189,7 +189,7 @@ def validate_svg_assets() -> int:
 def validate_privacy() -> int:
     """Reject common personal paths, session metadata, and credential markers."""
 
-    allowed_suffixes = {".md", ".json", ".yaml", ".yml", ".py", ".ps1", ".svg"}
+    allowed_suffixes = {".md", ".json", ".jsonl", ".yaml", ".yml", ".py", ".ps1", ".svg"}
     forbidden = [
         re.compile(r"[A-Za-z]:\\Users\\", re.IGNORECASE),
         re.compile(r"[A-Za-z]:\\AIALRA", re.IGNORECASE),
@@ -230,7 +230,7 @@ def main() -> int:
         print(json.dumps({"status": "FAIL", "completed": results, "reason": str(error), "impact": "candidate branch must not be published", "next": "repair the reported deterministic defect and rerun"}, ensure_ascii=False, indent=2))
         return 1
 
-    print(json.dumps({"status": "PASS", "results": results, "reason": "all vNext round-1 lifecycle checks completed without deterministic defects", "impact": "2 accepted answers are fixed as gold and 10 rejected answers remain available for regression development", "next": "build the R2 candidates without changing approved_by_user"}, ensure_ascii=False, indent=2))
+    print(json.dumps({"status": "PASS", "results": results, "reason": "all vNext foundation checks completed without deterministic defects", "impact": "the authority document, contracts, reviewed records, links, assets, and public-file privacy patterns are internally consistent", "next": "run the 160 fixtures and round-two lifecycle validation"}, ensure_ascii=False, indent=2))
     return 0
 
 
