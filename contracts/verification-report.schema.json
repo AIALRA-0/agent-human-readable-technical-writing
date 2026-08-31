@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AIALRA-0/agent-human-readable-technical-writing/contracts/verification-report.schema.json",
+  "title": "VerificationReport",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["status", "summary", "findings"],
+  "properties": {
+    "status": {"enum": ["PASS", "FAIL", "REVIEW_REQUIRED"]},
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["checked_rules", "failed_rules", "review_rules", "reason", "impact", "next"],
+      "properties": {
+        "checked_rules": {"type": "integer", "minimum": 0},
+        "failed_rules": {"type": "integer", "minimum": 0},
+        "review_rules": {"type": "integer", "minimum": 0},
+        "reason": {"type": "string", "minLength": 1},
+        "impact": {"type": "string", "minLength": 1},
+        "next": {"type": "string", "minLength": 1}
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["rule_id", "status", "location", "reason", "impact", "next"],
+        "properties": {
+          "rule_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]+$"},
+          "status": {"enum": ["FAIL", "REVIEW_REQUIRED"]},
+          "location": {"type": "string", "minLength": 1},
+          "reason": {"type": "string", "minLength": 1},
+          "impact": {"type": "string", "minLength": 1},
+          "next": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

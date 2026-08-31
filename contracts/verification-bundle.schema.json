@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AIALRA-0/agent-human-readable-technical-writing/contracts/verification-bundle.schema.json",
+  "title": "VerificationBundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["task_contract", "source_spans", "source_atoms", "background_atoms", "inference_atoms", "segment_contracts", "support_maps", "term_uses", "component_coverage", "boundary_coverage", "rendered_document"],
+  "properties": {
+    "task_contract": {"$ref": "task-contract.schema.json"},
+    "source_spans": {"type": "array", "items": {"$ref": "source-span.schema.json"}},
+    "source_atoms": {"type": "array", "items": {"$ref": "source-atom.schema.json"}},
+    "background_atoms": {"type": "array", "items": {"$ref": "background-atom.schema.json"}},
+    "inference_atoms": {"type": "array", "items": {"$ref": "inference-atom.schema.json"}},
+    "segment_contracts": {"type": "array", "items": {"$ref": "segment-contract.schema.json"}},
+    "support_maps": {"type": "array", "items": {"$ref": "support-map.schema.json"}},
+    "term_uses": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["term_id", "official_form", "meanings_covered", "sentence_id"],
+        "properties": {
+          "term_id": {"type": "string", "minLength": 1},
+          "official_form": {"type": "string", "minLength": 1},
+          "meanings_covered": {"type": "array", "uniqueItems": true, "items": {"enum": ["definition", "current_use", "observable_behavior", "actual_impact", "name_origin"]}},
+          "sentence_id": {"type": "string", "pattern": "^SENT-[0-9]{3,}$"}
+        }
+      }
+    },
+    "component_coverage": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["component_id", "component_type", "source_text", "source_position", "explanation_position", "required_units", "covered_units", "mermaid", "table_cells"],
+        "properties": {
+          "component_id": {"type": "string", "minLength": 1},
+          "component_type": {"enum": ["IMAGE", "TABLE", "CODE", "FLOWCHART"]},
+          "source_text": {"type": "string", "minLength": 1},
+          "source_position": {"type": "integer", "minimum": 0},
+          "explanation_position": {"type": "integer", "minimum": 0},
+          "required_units": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "covered_units": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "mermaid": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["direction", "post_explanation"],
+            "properties": {
+              "direction": {"enum": ["TD", "TB", "LR", "RL"]},
+              "post_explanation": {
+                "type": "object", "additionalProperties": false,
+                "required": ["node_relationships", "process_result", "evidence_boundary"],
+                "properties": {
+                  "node_relationships": {"type": "string"},
+                  "process_result": {"type": "string"},
+                  "evidence_boundary": {"type": "string"}
+                }
+              }
+            }
+          },
+          "table_cells": {
+            "type": "object", "additionalProperties": false,
+            "required": ["all", "covered"],
+            "properties": {
+              "all": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+              "covered": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+            }
+          }
+        }
+      }
+    },
+    "boundary_coverage": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["claim_id", "missing_evidence", "importance", "next_verification"],
+        "properties": {
+          "claim_id": {"type": "string", "minLength": 1},
+          "missing_evidence": {"type": "string", "minLength": 1},
+          "importance": {"type": "string", "minLength": 1},
+          "next_verification": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "rendered_document": {
+      "type": "object", "additionalProperties": false,
+      "required": ["text", "sha256", "sentences"],
+      "properties": {
+        "text": {"type": "string"},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "sentences": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["sentence_id", "text", "verbatim"],
+            "properties": {
+              "sentence_id": {"type": "string", "pattern": "^SENT-[0-9]{3,}$"},
+              "text": {"type": "string"},
+              "verbatim": {"type": "boolean"}
+            }
+          }
+        }
+      }
+    }
+  }
+}

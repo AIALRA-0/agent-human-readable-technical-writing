@@ -12,6 +12,7 @@ from xml.etree import ElementTree
 
 import jsonschema
 import yaml
+from referencing import Registry, Resource
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,7 +32,7 @@ def validate_contract_schemas() -> int:
     """Check every JSON Schema and return the number of valid contracts."""
 
     schema_paths = sorted((ROOT / "contracts").glob("*.schema.json"))
-    require(len(schema_paths) == 12, f"expected 12 contract schemas, found {len(schema_paths)}")
+    require(len(schema_paths) == 14, f"expected 14 contract schemas, found {len(schema_paths)}")
     for path in schema_paths:
         schema = json.loads(path.read_text(encoding="utf-8"))
         jsonschema.Draft202012Validator.check_schema(schema)
@@ -72,8 +73,8 @@ def validate_reviewed_cases() -> int:
 
     schema = json.loads((ROOT / "contracts" / "evaluation-case.schema.json").read_text(encoding="utf-8"))
     candidate_schema = json.loads((ROOT / "contracts" / "candidate-case.schema.json").read_text(encoding="utf-8"))
-    resolver = jsonschema.RefResolver.from_schema(schema, store={candidate_schema["$id"]: candidate_schema})
-    validator = jsonschema.Draft202012Validator(schema, resolver=resolver, format_checker=jsonschema.FormatChecker())
+    registry = Registry().with_resource(candidate_schema["$id"], Resource.from_contents(candidate_schema))
+    validator = jsonschema.Draft202012Validator(schema, registry=registry, format_checker=jsonschema.FormatChecker())
     gold_paths = sorted((ROOT / "evals" / "gold").glob("GOLD-??.json"))
     rejected_paths = sorted((ROOT / "evals" / "rejected").glob("REJECTED-??.json"))
     paths = gold_paths + rejected_paths

@@ -49,3 +49,5 @@ flowchart TD
 任务包含图片、表格或代码时，`component_order` 登记原始组件是否先于解释出现；正文存在证据边界时，`boundary_requirements` 分别登记缺失证据、缺失证据的重要性和下一项验证方法
 
 Mermaid 默认使用纵向布局；只有横向排列表达并列比较且纵向布局会明显破坏理解时，才在 `layout_exceptions` 登记组件、原因和纵向布局不可用的依据
+
+本地程序使用 `python -X utf8 scripts/run_vnext.py compile --input <输入 JSON> --output <任务合同 JSON>`；输入 JSON 由 Agent 提供已经识别的任务类型、读者和组件，程序只填充固定默认值并验证合同，不从任意自然语言中猜测语义
