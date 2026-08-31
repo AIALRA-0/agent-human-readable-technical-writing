@@ -6,7 +6,8 @@
     "revision": 1,
     "approved_by_user": false,
     "category": "teaching_transform",
-    "reviewed_at": "2026-08-30"
+    "reviewed_at": "2026-08-30",
+    "profile_revision_at_review": "round-1-review"
   },
   "task": {
     "base_operation": "TRANSFORM",
@@ -136,7 +137,8 @@
       }
     ],
     "self_claims": [],
-    "original_case_sha256": "3d5b9de5be14b7346900aac8b4f108f0d6640f10c26cf540fd16fb57777d2ad0"
+    "original_case_sha256": "3d5b9de5be14b7346900aac8b4f108f0d6640f10c26cf540fd16fb57777d2ad0",
+    "approved_snapshot_sha256": null
   },
   "review": {
     "decision_source": "explicit_user_review",
@@ -159,6 +161,7 @@
     "privacy": {
       "status": "public_safe",
       "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
-    }
+    },
+    "non_blocking_preferences": []
   }
 }

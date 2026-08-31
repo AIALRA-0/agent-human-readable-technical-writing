@@ -1,4 +1,4 @@
-"""Build the second manual review packet from the ten structured R2 cases."""
+"""Build the manual review packet for the only remaining anchor candidate."""
 
 from __future__ import annotations
 
@@ -7,73 +7,41 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CANDIDATE_DIRECTORY = ROOT / "evals" / "candidate"
-OUTPUT_PATH = CANDIDATE_DIRECTORY / "REVIEW-PACKET.md"
-
-
-def render_source(source: dict[str, object]) -> str:
-    """Render text directly and structured source material as readable JSON."""
-
-    content = source["content"]
-    if isinstance(content, str):
-        return content
-    return "```json\n" + json.dumps(content, ensure_ascii=False, indent=2) + "\n```"
+CASE_PATH = ROOT / "evals" / "candidate" / "CANDIDATE-03-R3.json"
+OUTPUT_PATH = ROOT / "evals" / "candidate" / "REVIEW-PACKET.md"
 
 
 def main() -> None:
-    """Load R2 cases in numeric order and regenerate the complete review packet."""
+    """Render C03-R3 without changing the candidate text."""
 
-    case_paths = sorted(CANDIDATE_DIRECTORY.glob("CANDIDATE-??-R2.json"))
-    if len(case_paths) != 10:
-        raise SystemExit(f"expected 10 R2 candidates, found {len(case_paths)}")
-    sections = [
-        "# vNext 1.1 第二轮候选审核包",
+    case = json.loads(CASE_PATH.read_text(encoding="utf-8"))
+    lines = [
+        "# vNext 1.1 C03-R3 审核包",
         "",
-        "本审核包包含 10 个根据首轮用户反馈修订的 R2 候选；所有案例的状态仍为 `candidate`，`approved_by_user` 仍为 `false`",
+        "`CANDIDATE-03-R3` 已修复 R2 中的主语归属和 npm 官方命名问题；自动检查只能确认结构、来源和已登记硬要求，用户决定仍是唯一验收依据",
         "",
-        "自动检查只确认来源映射、结构和已登记硬规则；请逐项决定接受、拒绝或继续修改，系统收到明确判断后才能把接受版本转入金标区",
+        "## 1. 用户请求",
+        "",
+        f"> {case['task']['request']}",
+        "",
+        "## 2. 原始材料",
+        "",
+        f"> {case['source']['content']}",
+        "",
+        "## 3. CANDIDATE-03-R3",
+        "",
+        case["artifact"]["answer"],
+        "",
+        "## 4. 本轮需要判断的内容",
+        "",
+        "- 主语是否已经明确，同时避免机械重复",
+        "- npm 是否自然解释了包管理器、命令行工具和软件包仓库三种作用",
+        "- npm 是否保持官方小写，并且没有伪造成英文全称",
+        "- 段落和空行是否适合连续阅读",
+        "",
+        "请明确决定接受或拒绝；拒绝时请指出具体位置和原因",
     ]
-
-    for ordinal, path in enumerate(case_paths, start=1):
-        case = json.loads(path.read_text(encoding="utf-8"))
-        identity = case["identity"]
-        task = case["task"]
-        rejected_path = ROOT / "evals" / "rejected" / f"REJECTED-{identity['origin_case_id'][-2:]}.json"
-        rejected = json.loads(rejected_path.read_text(encoding="utf-8"))
-        sections.extend(
-            [
-                "",
-                f"## {ordinal}. {identity['case_id']}",
-                "",
-                f"任务配置：`{task['base_operation']} + {task['augmentation']}`；类型为 `{identity['category']}`",
-                "",
-                "用户请求：",
-                "",
-                f"> {task['request']}",
-                "",
-                "原始材料：",
-                "",
-                render_source(case["source"]),
-                "",
-                "R2 候选答案：",
-                "",
-                case["artifact"]["answer"],
-                "",
-                "首轮拒绝原因：",
-                "",
-            ]
-        )
-        sections.extend(f"- {reason}" for reason in rejected["review"]["reasons"])
-        sections.extend(["", "本轮复审要点：", ""])
-        sections.extend(f"- {requirement}" for requirement in case["review"]["regression_requirements"])
-        sections.extend(
-            [
-                "",
-                "请给出一个明确决定：接受、拒绝，或指出需要修改的具体位置与原因",
-            ]
-        )
-
-    OUTPUT_PATH.write_text("\n".join(sections).rstrip() + "\n", encoding="utf-8", newline="\n")
+    OUTPUT_PATH.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 
 
 if __name__ == "__main__":

@@ -1,12 +1,13 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-10-R2",
+    "case_id": "GOLD-10",
     "origin_case_id": "CANDIDATE-10",
-    "status": "candidate",
+    "status": "gold",
     "revision": 2,
-    "approved_by_user": false,
+    "approved_by_user": true,
     "category": "table_explanation",
-    "reviewed_at": null
+    "reviewed_at": "2026-08-31",
+    "profile_revision_at_review": "round-2-feedback"
   },
   "task": {
     "base_operation": "EXPLAIN",
@@ -126,13 +127,14 @@
       }
     ],
     "self_claims": [],
-    "original_case_sha256": "08d545498f76f835e44d3fb4a047d857552f5deee719207cc098d8cb413ef6c9"
+    "original_case_sha256": "08d545498f76f835e44d3fb4a047d857552f5deee719207cc098d8cb413ef6c9",
+    "approved_snapshot_sha256": "a4bbb7732ba84ef6daa4588c0c9920e9573cab29be6a2e89d4310b231387091f"
   },
   "review": {
     "decision_source": "explicit_user_review",
-    "decision": "pending",
+    "decision": "accepted",
     "reasons": [
-      "R2 已按首轮审核意见修订，等待第二轮用户审核"
+      "用户确认表格阅读方法、值定义和证据边界可以接受"
     ],
     "correct_parts": [
       "表格原文、列定义和未运行不等于失败的解释正确"
@@ -146,6 +148,9 @@
     "privacy": {
       "status": "public_safe",
       "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
-    }
+    },
+    "non_blocking_preferences": [
+      "同一段落中的引号与冒号形式保持局部一致"
+    ]
   }
 }

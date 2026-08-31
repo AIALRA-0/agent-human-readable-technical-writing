@@ -1,12 +1,13 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-07-R2",
+    "case_id": "GOLD-07",
     "origin_case_id": "CANDIDATE-07",
-    "status": "candidate",
+    "status": "gold",
     "revision": 2,
-    "approved_by_user": false,
+    "approved_by_user": true,
     "category": "teaching_transform",
-    "reviewed_at": null
+    "reviewed_at": "2026-08-31",
+    "profile_revision_at_review": "round-2-feedback"
   },
   "task": {
     "base_operation": "TRANSFORM",
@@ -173,13 +174,14 @@
       }
     ],
     "self_claims": [],
-    "original_case_sha256": "b37dea06897fff697aa951a58c294aa914fb88aa3e145261755e63dda884dcff"
+    "original_case_sha256": "b37dea06897fff697aa951a58c294aa914fb88aa3e145261755e63dda884dcff",
+    "approved_snapshot_sha256": "e356000000d8d1820d85a0ef0a2c92a198b9eeec0000c6577329569623360094"
   },
   "review": {
     "decision_source": "explicit_user_review",
-    "decision": "pending",
+    "decision": "accepted",
     "reasons": [
-      "R2 已按首轮审核意见修订，等待第二轮用户审核"
+      "用户确认软件流程、真实硬件边界和后续验证说明可以接受"
     ],
     "correct_parts": [
       "软件流程与真实板卡验证的范围区分正确"
@@ -193,6 +195,9 @@
     "privacy": {
       "status": "public_safe",
       "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
-    }
+    },
+    "non_blocking_preferences": [
+      "部分短停顿可以使用逗号，避免连续使用分号"
+    ]
   }
 }

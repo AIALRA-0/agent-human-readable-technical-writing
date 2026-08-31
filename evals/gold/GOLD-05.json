@@ -1,12 +1,13 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-05-R2",
+    "case_id": "GOLD-05",
     "origin_case_id": "CANDIDATE-05",
-    "status": "candidate",
+    "status": "gold",
     "revision": 2,
-    "approved_by_user": false,
+    "approved_by_user": true,
     "category": "explanatory_translation",
-    "reviewed_at": null
+    "reviewed_at": "2026-08-31",
+    "profile_revision_at_review": "round-2-feedback"
   },
   "task": {
     "base_operation": "TRANSLATE",
@@ -170,13 +171,14 @@
       }
     ],
     "self_claims": [],
-    "original_case_sha256": "4e9cdc795885683996efde22c60f272fe68d123935772bf227d9a537cf69d60b"
+    "original_case_sha256": "4e9cdc795885683996efde22c60f272fe68d123935772bf227d9a537cf69d60b",
+    "approved_snapshot_sha256": "cc00ed5e7e65287e7a37f2e62228614b470d7ae83d12085016028a972bffcd6a"
   },
   "review": {
     "decision_source": "explicit_user_review",
-    "decision": "pending",
+    "decision": "accepted",
     "reasons": [
-      "R2 已按首轮审核意见修订，等待第二轮用户审核"
+      "用户确认解释深度和结论边界可以接受"
     ],
     "correct_parts": [
       "结论范围没有扩展到多比特数据和异步复位"
@@ -190,6 +192,9 @@
     "privacy": {
       "status": "public_safe",
       "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
-    }
+    },
+    "non_blocking_preferences": [
+      "同一列表不需要额外空行，后续新版本继续减少非必要空白"
+    ]
   }
 }

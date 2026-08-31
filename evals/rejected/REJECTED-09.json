@@ -6,7 +6,8 @@
     "revision": 1,
     "approved_by_user": false,
     "category": "image_explanation",
-    "reviewed_at": "2026-08-30"
+    "reviewed_at": "2026-08-30",
+    "profile_revision_at_review": "round-1-review"
   },
   "task": {
     "base_operation": "EXPLAIN",
@@ -160,7 +161,8 @@
       }
     ],
     "self_claims": [],
-    "original_case_sha256": "23b2813cdc4f91e72e5206efb0291b9b76848424003e5f396c58e142c68e52fd"
+    "original_case_sha256": "23b2813cdc4f91e72e5206efb0291b9b76848424003e5f396c58e142c68e52fd",
+    "approved_snapshot_sha256": null
   },
   "review": {
     "decision_source": "explicit_user_review",
@@ -184,6 +186,7 @@
     "privacy": {
       "status": "public_safe",
       "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
-    }
+    },
+    "non_blocking_preferences": []
   }
 }

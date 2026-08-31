@@ -1,12 +1,13 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-03-R2",
+    "case_id": "REJECTED-03-R2",
     "origin_case_id": "CANDIDATE-03",
-    "status": "candidate",
+    "status": "rejected",
     "revision": 2,
     "approved_by_user": false,
     "category": "glossed_transform",
-    "reviewed_at": null
+    "reviewed_at": "2026-08-31",
+    "profile_revision_at_review": "round-2-feedback"
   },
   "task": {
     "base_operation": "TRANSFORM",
@@ -170,27 +171,31 @@
       }
     ],
     "self_claims": [],
-    "original_case_sha256": "42c29960e24e5d90d76590c46f6e21ee19d41ba2e5a70dad7c25220c2d73f237"
+    "original_case_sha256": "42c29960e24e5d90d76590c46f6e21ee19d41ba2e5a70dad7c25220c2d73f237",
+    "approved_snapshot_sha256": null
   },
   "review": {
     "decision_source": "explicit_user_review",
-    "decision": "pending",
+    "decision": "rejected",
     "reasons": [
-      "R2 已按首轮审核意见修订，等待第二轮用户审核"
+      "命令注释缺少执行主体，读者无法确认谁调用脚本、谁显示结果",
+      "npm 的解释没有完整覆盖包管理器、命令行工具和软件包仓库三种作用",
+      "用户要求的 NPM Node.js Package Manager 形式与 npm 官方命名规则冲突，不能作为修复内容"
     ],
     "correct_parts": [
       "退出码 2 与失效链接的关系正确",
-      "没有声称当前项目已经启用 CI"
+      "CI 的定义、自动执行范围和未启用边界正确"
     ],
     "regression_requirements": [
-      "独立案例中的 known_terms 必须为空",
-      "npm 保持官方小写并说明包管理用途",
-      "CI 首次出现时解释提交、构建、测试和集成问题",
-      "独立主题换行"
+      "代码注释必须明确 npm 调用脚本，系统显示结果",
+      "npm 保持官方小写，不得解释成首字母缩写",
+      "npm 的自然解释覆盖包管理、命令行工具和软件包仓库",
+      "相邻句主体自然承接时不机械重复，主体变化或可能歧义时必须补出主体"
     ],
     "privacy": {
       "status": "public_safe",
       "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
-    }
+    },
+    "non_blocking_preferences": []
   }
 }

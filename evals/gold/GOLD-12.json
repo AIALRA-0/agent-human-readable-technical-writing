@@ -1,12 +1,13 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-12-R2",
+    "case_id": "GOLD-12",
     "origin_case_id": "CANDIDATE-12",
-    "status": "candidate",
+    "status": "gold",
     "revision": 2,
-    "approved_by_user": false,
+    "approved_by_user": true,
     "category": "multi_turn",
-    "reviewed_at": null
+    "reviewed_at": "2026-08-31",
+    "profile_revision_at_review": "round-2-feedback"
   },
   "task": {
     "base_operation": "TRANSFORM",
@@ -143,13 +144,14 @@
       }
     ],
     "self_claims": [],
-    "original_case_sha256": "a39cb3e55046a99c53b13afdba7a35516cb77b7549bac6387f19248dedadf8f5"
+    "original_case_sha256": "a39cb3e55046a99c53b13afdba7a35516cb77b7549bac6387f19248dedadf8f5",
+    "approved_snapshot_sha256": "c59385837a3e50d9f4c3d0ff313cbd0ae32991bf4485e980775bd540cfc61d16"
   },
   "review": {
     "decision_source": "explicit_user_review",
-    "decision": "pending",
+    "decision": "accepted",
     "reasons": [
-      "R2 已按首轮审核意见修订，等待第二轮用户审核"
+      "用户确认多轮材料、引用块和边界说明可以接受"
     ],
     "correct_parts": [
       "多轮约束合并正确",
@@ -164,6 +166,9 @@
     "privacy": {
       "status": "public_safe",
       "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
-    }
+    },
+    "non_blocking_preferences": [
+      "引用块用于区分逐字原始状态材料与后续解释"
+    ]
   }
 }

@@ -1,12 +1,13 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-09-R2",
+    "case_id": "GOLD-09",
     "origin_case_id": "CANDIDATE-09",
-    "status": "candidate",
+    "status": "gold",
     "revision": 2,
-    "approved_by_user": false,
+    "approved_by_user": true,
     "category": "image_explanation",
-    "reviewed_at": null
+    "reviewed_at": "2026-08-31",
+    "profile_revision_at_review": "round-2-feedback"
   },
   "task": {
     "base_operation": "EXPLAIN",
@@ -164,13 +165,14 @@
       }
     ],
     "self_claims": [],
-    "original_case_sha256": "23b2813cdc4f91e72e5206efb0291b9b76848424003e5f396c58e142c68e52fd"
+    "original_case_sha256": "23b2813cdc4f91e72e5206efb0291b9b76848424003e5f396c58e142c68e52fd",
+    "approved_snapshot_sha256": "10e478046bc2203e25a2b2c695197b0d7b4336528ed5661e58ece76d5b2697a7"
   },
   "review": {
     "decision_source": "explicit_user_review",
-    "decision": "pending",
+    "decision": "accepted",
     "reasons": [
-      "R2 已按首轮审核意见修订，等待第二轮用户审核"
+      "用户确认图片解释内容可以接受，图形重叠不属于写作职责"
     ],
     "correct_parts": [
       "FF1 到 FF2 的直接连接关系识别正确"
@@ -184,6 +186,9 @@
     "privacy": {
       "status": "public_safe",
       "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
-    }
+    },
+    "non_blocking_preferences": [
+      "原始 SVG 的局部重叠属于图片资产质量问题，不计入写作答案失败"
+    ]
   }
 }

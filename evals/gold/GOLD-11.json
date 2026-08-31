@@ -1,12 +1,13 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-11-R2",
+    "case_id": "GOLD-11",
     "origin_case_id": "CANDIDATE-11",
-    "status": "candidate",
+    "status": "gold",
     "revision": 2,
-    "approved_by_user": false,
+    "approved_by_user": true,
     "category": "code_explanation",
-    "reviewed_at": null
+    "reviewed_at": "2026-08-31",
+    "profile_revision_at_review": "round-2-feedback"
   },
   "task": {
     "base_operation": "EXPLAIN",
@@ -158,13 +159,14 @@
       }
     ],
     "self_claims": [],
-    "original_case_sha256": "ae95bbfb4fb3908d9960c9846f6c5c0fbcdcf48af63d5f0be33024874ac44853"
+    "original_case_sha256": "ae95bbfb4fb3908d9960c9846f6c5c0fbcdcf48af63d5f0be33024874ac44853",
+    "approved_snapshot_sha256": "bdf710c8e4470a2af371131f208365ba2bd6e58dcda0caa7a531532844fa3202"
   },
   "review": {
     "decision_source": "explicit_user_review",
-    "decision": "pending",
+    "decision": "accepted",
     "reasons": [
-      "R2 已按首轮审核意见修订，等待第二轮用户审核"
+      "用户确认原始代码、行内标识和解释内容可以接受"
     ],
     "correct_parts": [
       "代码注释覆盖动作、原因和可观察结果",
@@ -179,6 +181,9 @@
     "privacy": {
       "status": "public_safe",
       "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
-    }
+    },
+    "non_blocking_preferences": [
+      "命令、字段、标识符、路径和代码类型继续使用反引号"
+    ]
   }
 }

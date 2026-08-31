@@ -6,7 +6,8 @@
     "revision": 1,
     "approved_by_user": false,
     "category": "code_explanation",
-    "reviewed_at": "2026-08-30"
+    "reviewed_at": "2026-08-30",
+    "profile_revision_at_review": "round-1-review"
   },
   "task": {
     "base_operation": "EXPLAIN",
@@ -129,7 +130,8 @@
       }
     ],
     "self_claims": [],
-    "original_case_sha256": "ae95bbfb4fb3908d9960c9846f6c5c0fbcdcf48af63d5f0be33024874ac44853"
+    "original_case_sha256": "ae95bbfb4fb3908d9960c9846f6c5c0fbcdcf48af63d5f0be33024874ac44853",
+    "approved_snapshot_sha256": null
   },
   "review": {
     "decision_source": "explicit_user_review",
@@ -153,6 +155,7 @@
     "privacy": {
       "status": "public_safe",
       "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
-    }
+    },
+    "non_blocking_preferences": []
   }
 }

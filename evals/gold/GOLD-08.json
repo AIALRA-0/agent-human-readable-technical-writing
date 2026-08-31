@@ -1,12 +1,13 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-08-R2",
+    "case_id": "GOLD-08",
     "origin_case_id": "CANDIDATE-08",
-    "status": "candidate",
+    "status": "gold",
     "revision": 2,
-    "approved_by_user": false,
+    "approved_by_user": true,
     "category": "teaching_transform",
-    "reviewed_at": null
+    "reviewed_at": "2026-08-31",
+    "profile_revision_at_review": "round-2-feedback"
   },
   "task": {
     "base_operation": "TRANSFORM",
@@ -173,13 +174,14 @@
       }
     ],
     "self_claims": [],
-    "original_case_sha256": "3d5b9de5be14b7346900aac8b4f108f0d6640f10c26cf540fd16fb57777d2ad0"
+    "original_case_sha256": "3d5b9de5be14b7346900aac8b4f108f0d6640f10c26cf540fd16fb57777d2ad0",
+    "approved_snapshot_sha256": "c814654bc31cac1f1872833c2a855d38adfe48dc45b5f67fe99dae40a7447b7d"
   },
   "review": {
     "decision_source": "explicit_user_review",
-    "decision": "pending",
+    "decision": "accepted",
     "reasons": [
-      "R2 已按首轮审核意见修订，等待第二轮用户审核"
+      "用户确认幂等处理流程、失效边界和图后说明可以接受"
     ],
     "correct_parts": [
       "同一次业务操作复用同一键和同一请求体的方向正确"
@@ -193,6 +195,10 @@
     "privacy": {
       "status": "public_safe",
       "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
-    }
+    },
+    "non_blocking_preferences": [
+      "Mermaid 节点内部优先使用逗号",
+      "图、表及题注在渲染器支持时默认居中"
+    ]
   }
 }

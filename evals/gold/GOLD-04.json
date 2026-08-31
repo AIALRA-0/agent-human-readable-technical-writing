@@ -1,12 +1,13 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-04-R2",
+    "case_id": "GOLD-04",
     "origin_case_id": "CANDIDATE-04",
-    "status": "candidate",
+    "status": "gold",
     "revision": 2,
-    "approved_by_user": false,
+    "approved_by_user": true,
     "category": "glossed_transform",
-    "reviewed_at": null
+    "reviewed_at": "2026-08-31",
+    "profile_revision_at_review": "round-2-feedback"
   },
   "task": {
     "base_operation": "TRANSFORM",
@@ -171,13 +172,14 @@
       }
     ],
     "self_claims": [],
-    "original_case_sha256": "55f0b050a76940c0904323db160d8eefcc8aabf1469dc3c2a4c50f378f219979"
+    "original_case_sha256": "55f0b050a76940c0904323db160d8eefcc8aabf1469dc3c2a4c50f378f219979",
+    "approved_snapshot_sha256": "a2bb04afe3a88796573da709605009377120ff18111e643be5ea47f07fe76ceb"
   },
   "review": {
     "decision_source": "explicit_user_review",
-    "decision": "pending",
+    "decision": "accepted",
     "reasons": [
-      "R2 已按首轮审核意见修订，等待第二轮用户审核"
+      "用户明确表示满意，接口含义、HTTP 通信过程和状态码边界均可接受"
     ],
     "correct_parts": [
       "HTTP 202 的未完成边界方向正确"
@@ -190,6 +192,7 @@
     "privacy": {
       "status": "public_safe",
       "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
-    }
+    },
+    "non_blocking_preferences": []
   }
 }

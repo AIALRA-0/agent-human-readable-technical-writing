@@ -1,12 +1,13 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-06-R2",
+    "case_id": "GOLD-06",
     "origin_case_id": "CANDIDATE-06",
-    "status": "candidate",
+    "status": "gold",
     "revision": 2,
-    "approved_by_user": false,
+    "approved_by_user": true,
     "category": "explanatory_translation",
-    "reviewed_at": null
+    "reviewed_at": "2026-08-31",
+    "profile_revision_at_review": "round-2-feedback"
   },
   "task": {
     "base_operation": "TRANSLATE",
@@ -124,13 +125,14 @@
       }
     ],
     "self_claims": [],
-    "original_case_sha256": "cd5deb7618e0be9acd98c9b22dd15ae3debbc7077828802b5759036308959da4"
+    "original_case_sha256": "cd5deb7618e0be9acd98c9b22dd15ae3debbc7077828802b5759036308959da4",
+    "approved_snapshot_sha256": "d6ee76725c854ff13964e075e9e26efa7b466fad27f31b6b3ec2f3b04bd8ab86"
   },
   "review": {
     "decision_source": "explicit_user_review",
-    "decision": "pending",
+    "decision": "accepted",
     "reasons": [
-      "R2 已按首轮审核意见修订，等待第二轮用户审核"
+      "用户确认主体、合同效力和工作日边界没有阻塞问题"
     ],
     "correct_parts": [
       "暂停访问、协议效力和恢复条件的顺序清楚"
@@ -143,6 +145,7 @@
     "privacy": {
       "status": "public_safe",
       "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
-    }
+    },
+    "non_blocking_preferences": []
   }
 }

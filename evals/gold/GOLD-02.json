@@ -6,7 +6,8 @@
     "revision": 1,
     "approved_by_user": true,
     "category": "faithful_transform",
-    "reviewed_at": "2026-08-30"
+    "reviewed_at": "2026-08-30",
+    "profile_revision_at_review": "round-1-review"
   },
   "task": {
     "base_operation": "TRANSFORM",
@@ -87,7 +88,8 @@
       }
     ],
     "self_claims": [],
-    "original_case_sha256": "44c275bf884afec095cafc99719c727af8db170da42a7f081b64bcc84d00e42b"
+    "original_case_sha256": "44c275bf884afec095cafc99719c727af8db170da42a7f081b64bcc84d00e42b",
+    "approved_snapshot_sha256": "7e9a800e37e4d4592b5cf8fc10a8113bf33898391a4461f984591a4a4afa861f"
   },
   "review": {
     "decision_source": "explicit_user_review",
@@ -102,6 +104,7 @@
     "privacy": {
       "status": "public_safe",
       "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
-    }
+    },
+    "non_blocking_preferences": []
   }
 }

@@ -1,7 +1,8 @@
-"""Validate the 22 lifecycle records and ten unapproved R2 candidates."""
+"""Validate the round-two lifecycle state and the single C03-R3 anchor candidate."""
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import sys
@@ -16,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class ValidationFailure(RuntimeError):
-    """Represent one deterministic round-two validation failure."""
+    """Represent one deterministic lifecycle or anchor-candidate failure."""
 
 
 def require(condition: bool, message: str) -> None:
@@ -27,7 +28,7 @@ def require(condition: bool, message: str) -> None:
 
 
 def lifecycle_validator() -> jsonschema.Draft202012Validator:
-    """Build a validator that resolves the local candidate-case reference."""
+    """Build the lifecycle validator with its local schema reference."""
 
     schema = json.loads((ROOT / "contracts" / "evaluation-case.schema.json").read_text(encoding="utf-8"))
     candidate_schema = json.loads((ROOT / "contracts" / "candidate-case.schema.json").read_text(encoding="utf-8"))
@@ -35,142 +36,116 @@ def lifecycle_validator() -> jsonschema.Draft202012Validator:
     return jsonschema.Draft202012Validator(schema, registry=registry, format_checker=jsonschema.FormatChecker())
 
 
-def load_lifecycle_cases() -> list[tuple[Path, dict[str, Any]]]:
-    """Load the exact 2 gold, 10 rejected, and 10 R2 candidate records."""
+def load_records() -> list[tuple[Path, dict[str, Any]]]:
+    """Load the exact 11 Gold, 11 Rejected, and one Candidate records."""
 
     paths = (
         sorted((ROOT / "evals" / "gold").glob("GOLD-??.json"))
-        + sorted((ROOT / "evals" / "rejected").glob("REJECTED-??.json"))
-        + sorted((ROOT / "evals" / "candidate").glob("CANDIDATE-??-R2.json"))
+        + sorted((ROOT / "evals" / "rejected").glob("REJECTED-??*.json"))
+        + sorted((ROOT / "evals" / "candidate").glob("CANDIDATE-??-R3.json"))
     )
-    require(len(paths) == 22, f"expected 22 lifecycle records, found {len(paths)}")
+    require(len(paths) == 23, f"expected 23 lifecycle records, found {len(paths)}")
     return [(path, json.loads(path.read_text(encoding="utf-8"))) for path in paths]
 
 
 def support_coverage(case: dict[str, Any]) -> tuple[int, int, int, int]:
-    """Return source and background covered/total counts."""
+    """Return covered and total source/background atom counts."""
 
     source_ids = {atom["id"] for atom in case["semantics"]["source_atoms"]}
     background_ids = {atom["id"] for atom in case["semantics"]["background_atoms"]}
-    support_ids = {
-        support
-        for mapping in case["artifact"]["support_map"]
-        for support in mapping.get("supports", [])
+    support_ids = {item for mapping in case["artifact"]["support_map"] for item in mapping.get("supports", [])}
+    return len(source_ids & support_ids), len(source_ids), len(background_ids & support_ids), len(background_ids)
+
+
+def validate_gold_snapshots(records: list[tuple[Path, dict[str, Any]]]) -> None:
+    """Bind every accepted decision to the exact reviewed answer text."""
+
+    review = json.loads((ROOT / "evals" / "reviews" / "vnext-1.1-round-2.json").read_text(encoding="utf-8"))
+    reviewed_hashes = {
+        item["origin_case_id"]: item["approved_snapshot_sha256"]
+        for item in review["review_round"]["decisions"]
+        if item["decision"] == "accepted"
     }
-    return (
-        len(source_ids & support_ids),
-        len(source_ids),
-        len(background_ids & support_ids),
-        len(background_ids),
-    )
+    for path, case in records:
+        if case["identity"]["status"] != "gold":
+            continue
+        actual = hashlib.sha256(case["artifact"]["answer"].encode("utf-8")).hexdigest()
+        require(actual == case["artifact"]["approved_snapshot_sha256"], f"{path.name}: approved snapshot digest mismatch")
+        origin = case["identity"]["origin_case_id"]
+        if origin in reviewed_hashes:
+            require(actual == reviewed_hashes[origin], f"{path.name}: answer differs from round-two reviewed snapshot")
 
 
-def visible_text_without_verbatim(answer: str) -> str:
-    """Remove fenced code and quoted source before checking generated punctuation."""
-
-    without_fences = re.sub(r"```.*?```", "", answer, flags=re.DOTALL)
-    return "\n".join(line for line in without_fences.splitlines() if not line.startswith(">"))
-
-
-def validate_component_retention(number: str, case: dict[str, Any]) -> list[str]:
-    """Check original image, table, or code appears before its explanation."""
-
-    answer = case["artifact"]["answer"]
-    material_type = case["source"]["material_type"]
-    failures: list[str] = []
-    if material_type in {"table", "code"}:
-        source = case["source"]["content"]
-        if source not in answer:
-            failures.append(f"CANDIDATE-{number}-R2: original {material_type} is missing")
-        elif answer.index(source) > answer.find("解释") >= 0:
-            failures.append(f"CANDIDATE-{number}-R2: original {material_type} must precede explanation")
-    elif material_type == "image":
-        filename = Path(case["source"]["content"]["path"]).name
-        first_nonempty = next((line for line in answer.splitlines() if line.strip()), "")
-        if filename not in first_nonempty or not first_nonempty.startswith("!["):
-            failures.append(f"CANDIDATE-{number}-R2: original image must be first")
-    return failures
-
-
-def validate_all() -> dict[str, Any]:
-    """Run lifecycle, regression, coverage, provenance, and component checks."""
-
-    validator = lifecycle_validator()
-    lifecycle_cases = load_lifecycle_cases()
-    counts = {"gold": 0, "rejected": 0, "candidate": 0}
-    for path, case in lifecycle_cases:
-        errors = sorted(validator.iter_errors(case), key=lambda error: list(error.path))
-        require(not errors, f"{path.name}: {errors[0].message if errors else ''}")
-        counts[case["identity"]["status"]] += 1
-    require(counts == {"gold": 2, "rejected": 10, "candidate": 10}, f"lifecycle counts mismatch: {counts}")
+def validate_round_one_rejections() -> int:
+    """Keep every first-round failure detectable by its case-specific lock."""
 
     expectations = json.loads(
         (ROOT / "evals" / "deterministic" / "round1-rejected-expectations.json").read_text(encoding="utf-8")
     )["cases"]
-    rejected_detected = 0
-    r2_passed = 0
-    source_covered = source_total = 0
-    background_covered = background_total = 0
-    hard_failures: list[str] = []
-
+    detected = 0
     for number, expectation in sorted(expectations.items()):
         rejected = json.loads((ROOT / "evals" / "rejected" / f"REJECTED-{number}.json").read_text(encoding="utf-8"))
-        candidate = json.loads((ROOT / "evals" / "candidate" / f"CANDIDATE-{number}-R2.json").read_text(encoding="utf-8"))
-        old_answer = rejected["artifact"]["answer"]
-        new_answer = candidate["artifact"]["answer"]
+        answer = rejected["artifact"]["answer"]
+        findings = [item for item in expectation["required_all"] if item not in answer]
+        findings.extend(item for item in expectation["forbidden_all"] if item in answer)
+        if findings:
+            detected += 1
+    require(detected == 10, f"round-one rejected regression detected {detected}/10")
+    return detected
 
-        old_findings = [item for item in expectation["required_all"] if item not in old_answer]
-        old_findings.extend(item for item in expectation["forbidden_all"] if item in old_answer)
-        if old_findings:
-            rejected_detected += 1
-        else:
-            hard_failures.append(f"REJECTED-{number}: known rejected answer escaped its regression lock")
 
-        new_findings = [item for item in expectation["required_all"] if item not in new_answer]
-        new_findings.extend(item for item in expectation["forbidden_all"] if item in new_answer)
-        new_findings.extend(validate_component_retention(number, candidate))
-        if "flowchart LR" in new_answer:
-            new_findings.append("horizontal Mermaid layout without exception")
-        if "。" in visible_text_without_verbatim(new_answer):
-            new_findings.append("generated text contains Chinese full stop")
-        if candidate["artifact"]["self_claims"]:
-            new_findings.append("candidate contains ungrounded self claims")
-        if candidate["artifact"]["original_case_sha256"] != rejected["artifact"]["original_case_sha256"]:
-            new_findings.append("original candidate digest changed")
+def validate_c03_r3() -> dict[str, int]:
+    """Check only facts and structures that can be determined without style guessing."""
 
-        reference_ids = {reference["id"] for reference in candidate["source"]["references"]}
-        for atom in candidate["semantics"]["background_atoms"]:
-            if atom["source_reference"] not in reference_ids:
-                new_findings.append(f"background atom {atom['id']} has unresolved source reference")
+    candidate = json.loads((ROOT / "evals" / "candidate" / "CANDIDATE-03-R3.json").read_text(encoding="utf-8"))
+    rejected = json.loads((ROOT / "evals" / "rejected" / "REJECTED-03-R2.json").read_text(encoding="utf-8"))
+    answer = candidate["artifact"]["answer"]
+    required = [
+        "npm run check # npm 调用项目已登记的 check 脚本；系统在命令结束后显示检查结果",
+        "npm 是 Node.js 生态使用的包管理器（package manager）、命令行工具和软件包仓库",
+        "CI 持续集成（Continuous Integration）",
+        "退出码 `2`",
+        "没有证明当前项目已经启用 CI",
+    ]
+    forbidden = ["NPM（Node Package Manager）", "npm（Node Package Manager）", "Node Package Manager，npm"]
+    require(all(item in answer for item in required), "C03-R3 is missing a reviewed subject, npm, CI, or boundary requirement")
+    require(not any(item in answer for item in forbidden), "C03-R3 invents a prohibited npm acronym expansion")
+    visible = re.sub(r"```.*?```", "", answer, flags=re.DOTALL)
+    require("。" not in visible, "C03-R3 generated prose contains a Chinese full stop")
+    require(re.search(r"\n[ \t]*\n[ \t]*\n", answer) is None, "C03-R3 contains two consecutive blank lines")
+    require(candidate["artifact"]["self_claims"] == [], "C03-R3 contains an ungrounded self claim")
+    require(candidate["artifact"]["original_case_sha256"] == rejected["artifact"]["original_case_sha256"], "C03-R3 no longer points to the reviewed original candidate")
+    references = {item["id"] for item in candidate["source"]["references"]}
+    require("REF-NPM-OFFICIAL" in references, "C03-R3 lacks the official npm naming reference")
+    require(all(atom["source_reference"] in references for atom in candidate["semantics"]["background_atoms"]), "C03-R3 contains an unresolved background reference")
+    source_covered, source_total, background_covered, background_total = support_coverage(candidate)
+    require(source_covered == source_total, f"C03-R3 source coverage {source_covered}/{source_total}")
+    require(background_covered == background_total, f"C03-R3 background coverage {background_covered}/{background_total}")
+    return {"source_covered": source_covered, "source_total": source_total, "background_covered": background_covered, "background_total": background_total}
 
-        source_count, source_expected, background_count, background_expected = support_coverage(candidate)
-        source_covered += source_count
-        source_total += source_expected
-        background_covered += background_count
-        background_total += background_expected
-        if source_count != source_expected:
-            new_findings.append(f"source coverage {source_count}/{source_expected}")
-        if background_count != background_expected:
-            new_findings.append(f"background coverage {background_count}/{background_expected}")
 
-        if new_findings:
-            hard_failures.extend(f"CANDIDATE-{number}-R2: {finding}" for finding in new_findings)
-        else:
-            r2_passed += 1
+def validate_all() -> dict[str, Any]:
+    """Run schema, snapshot, rejection, provenance, and C03-R3 checks."""
 
-    require(rejected_detected == 10, f"rejected regression detected {rejected_detected}/10")
-    require(not hard_failures, " | ".join(hard_failures))
-    require(source_covered == source_total, f"source coverage {source_covered}/{source_total}")
-    require(background_covered == background_total, f"background coverage {background_covered}/{background_total}")
-    require(r2_passed == 10, f"R2 hard-rule pass {r2_passed}/10")
-
+    records = load_records()
+    validator = lifecycle_validator()
+    counts = {"gold": 0, "rejected": 0, "candidate": 0}
+    for path, case in records:
+        errors = sorted(validator.iter_errors(case), key=lambda error: list(error.path))
+        require(not errors, f"{path.name}: {errors[0].message if errors else ''}")
+        counts[case["identity"]["status"]] += 1
+    require(counts == {"gold": 11, "rejected": 11, "candidate": 1}, f"lifecycle counts mismatch: {counts}")
+    validate_gold_snapshots(records)
+    rejected_detected = validate_round_one_rejections()
+    c03 = validate_c03_r3()
     return {
         "lifecycle": counts,
-        "lifecycle_total": 22,
-        "rejected_regression": "10/10",
-        "r2_hard_rule_pass": "10/10",
-        "source_coverage": f"{source_covered}/{source_total}",
-        "background_coverage": f"{background_covered}/{background_total}",
+        "lifecycle_total": len(records),
+        "approved_snapshot_mismatches": 0,
+        "round_one_rejected_regression": f"{rejected_detected}/10",
+        "c03_r3_hard_rule_pass": "1/1",
+        "c03_r3_source_coverage": f"{c03['source_covered']}/{c03['source_total']}",
+        "c03_r3_background_coverage": f"{c03['background_covered']}/{c03['background_total']}",
         "hard_errors": 0,
         "ungrounded_additions": 0,
     }
@@ -182,32 +157,9 @@ def main() -> int:
     try:
         results = validate_all()
     except (ValidationFailure, jsonschema.ValidationError, json.JSONDecodeError) as error:
-        print(
-            json.dumps(
-                {
-                    "status": "FAIL",
-                    "reason": str(error),
-                    "impact": "the R2 review packet cannot be generated because at least one lifecycle, provenance, regression, or component invariant failed",
-                    "next": "repair the named case or validator and rerun this command",
-                },
-                ensure_ascii=False,
-                indent=2,
-            )
-        )
+        print(json.dumps({"status": "FAIL", "reason": str(error), "impact": "第二轮状态或 C03-R3 不能进入人工审核", "next": "修复指定记录后重新验证"}, ensure_ascii=False, indent=2))
         return 1
-    print(
-        json.dumps(
-            {
-                "status": "PASS",
-                "results": results,
-                "reason": "all 22 lifecycle records are valid, every rejected answer triggers its case-specific regression lock, and every R2 answer preserves complete source and background mappings",
-                "impact": "the ten R2 answers can enter the second manual review packet but remain unapproved candidates",
-                "next": "generate the review packet and wait for explicit user decisions before changing approved_by_user",
-            },
-            ensure_ascii=False,
-            indent=2,
-        )
-    )
+    print(json.dumps({"status": "PASS", "results": results, "reason": "23 个生命周期记录有效，Gold 快照未变化，C03-R3 的确定性要求和来源覆盖完整", "impact": "C03-R3 可以进入人工审核，但仍不是 Gold", "next": "等待用户对 C03-R3 作出明确决定"}, ensure_ascii=False, indent=2))
     return 0
 
 
