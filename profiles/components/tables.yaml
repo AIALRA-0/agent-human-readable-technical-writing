@@ -1,0 +1,24 @@
+profile:
+  identity:
+    profile_id: table-explanation
+    description: 表格解释覆盖阅读方法、数据含义、比较关系和证据边界
+  required_coverage:
+    overview:
+      description: 说明表格整体回答什么
+    columns:
+      description: 说明每一列的名称、单位和作用
+    rows:
+      description: 说明每一行代表的对象
+    cells:
+      description: 说明每个数据格的值及其状态
+    comparisons:
+      description: 说明行与行、列与列的比较关系
+    findings:
+      description: 说明趋势、异常和数据支持的结论
+    limits:
+      description: 说明缺失数据、零值、空白格、不适用值和无法证明的内容
+  large_table_output:
+    main_text:
+      description: 解释阅读方法、主要关系、趋势和异常
+    appendix:
+      description: 按照单元格编号逐格覆盖

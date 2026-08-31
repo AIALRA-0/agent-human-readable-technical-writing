@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AIALRA-0/agent-human-readable-technical-writing/contracts/finding.schema.json",
+  "title": "Finding",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["identity", "classification", "location", "observation", "repair"],
+  "properties": {
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["finding_id", "rule_id"],
+      "properties": {
+        "finding_id": {"type": "string", "pattern": "^[A-Z]+-[A-Z0-9-]+-[0-9]{3,}$"},
+        "rule_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]+$"}
+      }
+    },
+    "classification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["severity", "status"],
+      "properties": {
+        "severity": {"enum": ["MACHINE_FINAL", "MACHINE_CANDIDATE", "PROFILE_REQUIRED", "ADVISORY"]},
+        "status": {"enum": ["OPEN", "CONFIRMED", "FALSE_POSITIVE", "REVIEW_REQUIRED", "RESOLVED"]}
+      }
+    },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node_id", "span_start", "span_end"],
+      "properties": {
+        "node_id": {"type": "string", "minLength": 1},
+        "span_start": {"type": "integer", "minimum": 0},
+        "span_end": {"type": "integer", "minimum": 0}
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observed", "reason"],
+      "properties": {
+        "observed": {"type": "string"},
+        "expected_pattern": {"type": "string"},
+        "reason": {"type": "string", "minLength": 1}
+      }
+    },
+    "repair": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["repair_scope", "automatic"],
+      "properties": {
+        "repair_scope": {"enum": ["none", "token", "phrase", "sentence", "segment", "adjacent_segments", "section", "blueprint"]},
+        "automatic": {"type": "boolean"}
+      }
+    }
+  }
+}

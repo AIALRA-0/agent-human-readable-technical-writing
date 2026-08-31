@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AIALRA-0/agent-human-readable-technical-writing/contracts/segment-contract.schema.json",
+  "title": "SegmentContract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["identity", "purpose", "coverage", "claims", "ordering"],
+  "properties": {
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["segment_id"],
+      "properties": {"segment_id": {"type": "string", "pattern": "^SEG-[0-9]{2,}$"}}
+    },
+    "purpose": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reader_task"],
+      "properties": {"reader_task": {"type": "string", "minLength": 1}}
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_atoms", "background_atoms", "inference_atoms"],
+      "properties": {
+        "source_atoms": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^ATOM-[0-9]{3,}$"}},
+        "background_atoms": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^BG-[0-9]{3,}$"}},
+        "inference_atoms": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^INF-[0-9]{3,}$"}}
+      }
+    },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["must_claim", "must_not_claim"],
+      "properties": {
+        "must_claim": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "must_not_claim": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "ordering": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["preferred_order"],
+      "properties": {"preferred_order": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+      }
+    }
+  }
+}

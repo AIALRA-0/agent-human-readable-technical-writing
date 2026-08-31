@@ -1,0 +1,29 @@
+profile:
+  identity:
+    profile_id: augmentation-levels
+    description: 解释增量规定为了让目标读者理解可以增加多少原文以外的说明
+  levels:
+    NONE:
+      description: 不增加背景，只重新表达原文
+      external_research: forbidden
+    GLOSS:
+      description: 只解释陌生术语、缩写、符号和局部关系
+      external_research: optional_when_authorized
+    EXPLANATORY:
+      description: 增加必要背景、机制、前置概念、例子和因果说明
+      external_research: required_when_claims_need_sources
+    TEACHING:
+      description: 从零先验开始建立完整知识路径，可以增加类比、反例、图表和分层说明
+      external_research: required_when_claims_need_sources
+    RESEARCHED:
+      description: 检索外部资料补充背景、争议和最新进展，并提供来源
+      external_research: required
+  defaults:
+    plain_translation:
+      base_operation: TRANSLATE
+      augmentation: GLOSS
+      description: 用户只要求翻译时使用必要术语解释
+    understandable_translation:
+      base_operation: TRANSLATE
+      augmentation: EXPLANATORY
+      description: 用户明确要求翻译到能够理解时加入必要背景

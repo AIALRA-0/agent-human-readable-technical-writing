@@ -1,0 +1,17 @@
+profile:
+  identity:
+    profile_id: audience-defaults
+    description: 读者配置规定可以假设的先验知识和必须补齐的解释
+  audiences:
+    zero_prior_knowledge:
+      description: 读者第一次接触主题，陌生术语和内容组件需要完整入口解释
+    general_reader:
+      description: 读者具备普通阅读能力，但不假设领域经验
+    university_reader:
+      description: 可以使用基础学术概念，同时解释领域专用知识
+    engineer:
+      description: 可以保留工程术语，同时明确接口、边界、证据和失败表现
+    expert:
+      description: 可以提高信息密度，但不能省略决定结论的条件和范围
+    cross_domain_expert:
+      description: 读者在其他领域具备专业能力，当前领域术语仍需解释

@@ -1,0 +1,39 @@
+profile:
+  identity:
+    profile_id: lucas
+    description: Lucas 已明确确认的个人写作要求
+  punctuation:
+    chinese_full_stop:
+      policy: forbidden_in_generated_chinese
+      description: 生成的普通中文正文不使用中文句号
+    internal_pause:
+      policy: chinese_semicolon
+      description: 句内需要明显停顿时使用中文分号
+    paragraph_ending:
+      policy: no_trailing_full_stop_or_semicolon
+      description: 段落末尾不保留中文句号或中文分号
+    verbatim_exception:
+      policy: preserve
+      description: 逐字引文、日志、代码和用户要求原样保留的材料不改标点
+  structure:
+    section_numbering:
+      policy: dotted_decimal
+      description: 多章节标题使用 1.、1.1. 和 1.1.1. 形式
+    captions:
+      policy: below_object
+      description: 表格、图片和 Mermaid 题注默认放在对象下方，用户指定出版规范时采用对应规则
+    parallel_items:
+      policy: indented_list
+      description: 引导语后出现两个以上并列项目时换行并缩进
+  explanation:
+    default_order:
+      policy: event_reason_result_supplement
+      description: 相邻句子共同说明事件、原因、结果和必要补充，不机械重复字段
+    logic:
+      policy: forward
+      description: 优先按照时间、因果或操作顺序展开，避免无必要插叙和倒叙
+  enforcement:
+    punctuation: PROFILE_REQUIRED
+    numbering: PROFILE_REQUIRED
+    caption_position: PROFILE_REQUIRED
+    ordinary_rhythm: ADVISORY

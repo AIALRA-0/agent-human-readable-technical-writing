@@ -1,0 +1,23 @@
+profile:
+  identity:
+    profile_id: base-operations
+    description: 基础操作只说明用户要求系统对原始材料做什么
+  operations:
+    TRANSFORM:
+      description: 使用同一种语言重新表达原文
+      source_policy: 原文承担信息作用的内容全部保留
+    TRANSLATE:
+      description: 将原文转换成另一种语言
+      source_policy: 原文承担信息作用的内容全部保留
+    COMPRESS:
+      description: 在用户允许的范围内压缩原文
+      source_policy: 只允许删除任务契约明确允许省略的内容
+    EXPLAIN:
+      description: 围绕问题重新组织知识并建立理解
+      source_policy: 保留用户指定的事实和证据边界
+    GENERATE:
+      description: 根据问题和登记来源从零生成内容
+      source_policy: 每项事实主张都要具有来源或明确推断关系
+    FORMAT_ONLY:
+      description: 只调整结构和版式
+      source_policy: 语言内容和语义顺序保持不变

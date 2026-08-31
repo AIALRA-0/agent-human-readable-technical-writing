@@ -1,0 +1,51 @@
+registry:
+  identity:
+    registry_id: canonical-terms
+    description: 术语登记表按照概念和用户配置规定首次出现与后续使用形式
+  terms:
+    AMD:
+      aliases:
+        values:
+          - AMD
+          - Advanced Micro Devices
+          - 超微半导体
+        description: 这些形式指向同一公司实体
+      first_use:
+        lucas: AMD 超微半导体（Advanced Micro Devices）
+        description: Lucas 配置使用缩写、中文名称和英文全称的顺序
+      later_use:
+        lucas: AMD
+        description: 后续使用官方缩写
+      protected_meaning:
+        entity_type: company
+        description: 改写不能改变实体类型
+    HTTP:
+      aliases:
+        values:
+          - HTTP
+          - Hypertext Transfer Protocol
+          - 超文本传输协议
+        description: 这些形式指向网页和接口通信使用的协议
+      first_use:
+        lucas: HTTP 超文本传输协议（Hypertext Transfer Protocol）
+        description: 首次出现时保留官方缩写并解释正式名称
+      later_use:
+        lucas: HTTP
+        description: 后续使用官方缩写
+      protected_meaning:
+        entity_type: protocol
+        description: 状态码必须与协议响应语义保持关联
+    npm:
+      aliases:
+        values:
+          - npm
+        description: 官方名称保持小写，不自行展开成未经确认的全称
+      first_use:
+        lucas: npm
+        description: 正文另用自然短句解释用途
+      later_use:
+        lucas: npm
+        description: 后续继续保持官方小写形式
+      protected_meaning:
+        entity_type: tool
+        description: 不能把工具名称改写成普通名词

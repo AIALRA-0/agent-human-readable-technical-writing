@@ -1,0 +1,100 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-02",
+    "status": "candidate",
+    "revision": 1,
+    "approved_by_user": false,
+    "category": "faithful_transform"
+  },
+  "task": {
+    "base_operation": "TRANSFORM",
+    "augmentation": "NONE",
+    "genre": "legal_notice",
+    "audience": "general_reader",
+    "media": [
+      "markdown"
+    ],
+    "components": [
+      "TEXT"
+    ],
+    "request": "把条款改成普通读者能顺着读懂的中文，不增加法律结论"
+  },
+  "source": {
+    "material_type": "text",
+    "content": "许可证在客户付清全部到期费用后生效；如果客户在到期后 30 天内仍未付款，授权自动终止，但已经产生的付款义务不受影响。",
+    "references": []
+  },
+  "semantics": {
+    "source_atoms": [
+      {
+        "id": "ATOM-001",
+        "source_locator": "分号前",
+        "claim": "许可证在全部到期费用付清后生效",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-002",
+        "source_locator": "分号后条件句",
+        "claim": "到期后 30 天仍未付款时授权自动终止",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-003",
+        "source_locator": "末尾例外",
+        "claim": "已经产生的付款义务不受授权终止影响",
+        "provenance_type": "SOURCE"
+      }
+    ],
+    "background_atoms": [],
+    "must_preserve": [
+      "生效条件",
+      "30 天期限",
+      "授权自动终止",
+      "付款义务继续存在"
+    ],
+    "must_not_invent": [
+      "宽限期可以延长",
+      "授权终止会免除欠款",
+      "已经完成付款"
+    ],
+    "inference_atoms": []
+  },
+  "candidate": {
+    "answer": "客户付清全部到期费用后，许可证才会生效；如果到期后 30 天仍未付款，授权会自动终止；授权终止不会免除已经产生的付款义务",
+    "support_map": [
+      {
+        "sentence": 1,
+        "supports": [
+          "ATOM-001"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "sentence": 2,
+        "supports": [
+          "ATOM-002"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "sentence": 3,
+        "supports": [
+          "ATOM-003"
+        ],
+        "role": "source_restatement"
+      }
+    ],
+    "self_claims": []
+  },
+  "review": {
+    "questions": [
+      "是否保持了条件、期限、终止结果和付款义务之间的法律关系",
+      "拆句以后是否比原文更容易顺着理解",
+      "是否出现了原文没有授权的法律解释"
+    ],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "案例为合成条款，不对应真实合同或客户"
+    }
+  }
+}

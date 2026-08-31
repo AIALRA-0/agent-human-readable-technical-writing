@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AIALRA-0/agent-human-readable-technical-writing/contracts/patch.schema.json",
+  "title": "ExactPatch",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["identity", "target", "replacement", "authorization", "verification"],
+  "properties": {
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["patch_id", "finding_id", "operation"],
+      "properties": {
+        "patch_id": {"type": "string", "pattern": "^PATCH-[0-9]{3,}$"},
+        "finding_id": {"type": "string", "minLength": 1},
+        "operation": {"const": "replace_exact"}
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document_sha256", "node_id"],
+      "properties": {
+        "document_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "node_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "replacement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["old_text", "new_text", "expected_occurrences"],
+      "properties": {
+        "old_text": {"type": "string", "minLength": 1},
+        "new_text": {"type": "string"},
+        "expected_occurrences": {"type": "integer", "minimum": 1}
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason", "repair_scope", "preserve"],
+      "properties": {
+        "reason": {"type": "string", "minLength": 1},
+        "repair_scope": {"enum": ["token", "phrase", "sentence", "segment", "adjacent_segments", "section", "blueprint"]},
+        "preserve": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rerun_validators"],
+      "properties": {
+        "rerun_validators": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    }
+  }
+}

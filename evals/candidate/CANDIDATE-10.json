@@ -1,0 +1,146 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-10",
+    "status": "candidate",
+    "revision": 1,
+    "approved_by_user": false,
+    "category": "table_explanation"
+  },
+  "task": {
+    "base_operation": "EXPLAIN",
+    "augmentation": "TEACHING",
+    "genre": "engineering_report",
+    "audience": "zero_prior_knowledge",
+    "media": [
+      "markdown"
+    ],
+    "components": [
+      "TABLE",
+      "TEXT"
+    ],
+    "request": "逐列、逐行和逐格解释表格，并说明它支持和不支持什么结论"
+  },
+  "source": {
+    "material_type": "table",
+    "content": "| 版本 | 软件检查 | 板卡测试 | 发布条件 |\n| --- | --- | --- | --- |\n| A | 通过 | 未运行 | 不满足 |\n| B | 通过 | 通过 | 满足 |",
+    "references": [
+      {
+        "id": "REF-001",
+        "kind": "fixture_rule",
+        "content": "本案例把发布条件定义为软件检查和板卡测试都通过；表格没有提供性能、可靠性或安全认证数据"
+      }
+    ]
+  },
+  "semantics": {
+    "source_atoms": [
+      {
+        "id": "ATOM-001",
+        "source_locator": "表头",
+        "claim": "表格包含版本、软件检查、板卡测试和发布条件四列",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-002",
+        "source_locator": "A 行",
+        "claim": "版本 A 的软件检查通过、板卡测试未运行、发布条件不满足",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-003",
+        "source_locator": "B 行",
+        "claim": "版本 B 的软件检查通过、板卡测试通过、发布条件满足",
+        "provenance_type": "SOURCE"
+      }
+    ],
+    "background_atoms": [
+      {
+        "id": "BG-001",
+        "source_reference": "REF-001",
+        "purpose": "解释发布条件判定",
+        "claim": "本案例要求软件检查和板卡测试都通过",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-002",
+        "source_reference": "REF-001",
+        "purpose": "限制表格结论",
+        "claim": "表格不提供性能、可靠性或安全认证数据",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      }
+    ],
+    "must_preserve": [
+      "A 软件通过",
+      "A 板卡未运行",
+      "A 不满足发布条件",
+      "B 软件通过",
+      "B 板卡通过",
+      "B 满足发布条件"
+    ],
+    "must_not_invent": [
+      "A 板卡测试失败",
+      "B 已经正式发布",
+      "B 性能达标",
+      "B 已通过安全认证"
+    ],
+    "inference_atoms": []
+  },
+  "candidate": {
+    "answer": "| 版本 | 软件检查 | 板卡测试 | 发布条件 |\n| --- | --- | --- | --- |\n| A | 通过 | 未运行 | 不满足 |\n| B | 通过 | 通过 | 满足 |\n\n表 1. 版本 A 与版本 B 的验证状态和发布条件\n\n这张表回答两个版本是否完成本案例规定的发布前检查；发布条件要求软件检查和板卡测试同时通过\n\n四列分别表示：\n\n- 版本：当前比较的结果对象\n- 软件检查：设计是否通过规定的软件验证\n- 板卡测试：真实硬件是否已经运行测试\n- 发布条件：前两项是否同时通过\n\n版本 A 的 3 个结果格分别表示：\n\n- 软件检查为“通过”：规定的软件验证已经完成\n- 板卡测试为“未运行”：这项测试尚未开始，不能解释成测试失败\n- 发布条件为“不满足”：缺少板卡通过证据，因此当前不能按本案例规则进入发布\n\n版本 B 的 3 个结果格分别表示：\n\n- 软件检查为“通过”：规定的软件验证已经完成\n- 板卡测试为“通过”：真实硬件测试已经完成并通过\n- 发布条件为“满足”：两项前置检查同时通过\n\n两行比较显示，A 与 B 的差异来自板卡测试状态；表格支持“B 满足本案例发布条件，A 不满足”的判断；它没有提供性能、可靠性或安全认证数据，也没有说明 B 已经实际发布",
+    "support_map": [
+      {
+        "sentence": 1,
+        "supports": [
+          "ATOM-001",
+          "BG-001"
+        ],
+        "role": "table_overview"
+      },
+      {
+        "sentence": 2,
+        "supports": [
+          "ATOM-001"
+        ],
+        "role": "column_explanation"
+      },
+      {
+        "sentence": 3,
+        "supports": [
+          "ATOM-002",
+          "BG-001"
+        ],
+        "role": "row_and_cell_explanation"
+      },
+      {
+        "sentence": 4,
+        "supports": [
+          "ATOM-003",
+          "BG-001"
+        ],
+        "role": "row_and_cell_explanation"
+      },
+      {
+        "sentence": 5,
+        "supports": [
+          "ATOM-002",
+          "ATOM-003",
+          "BG-001",
+          "BG-002"
+        ],
+        "role": "comparison_and_limit"
+      }
+    ],
+    "self_claims": []
+  },
+  "review": {
+    "questions": [
+      "四列、两行和 6 个结果格是否全部解释",
+      "未运行是否清楚区分于失败",
+      "比较结论是否有数据支持且没有扩大成正式发布或性能结论",
+      "小表逐格解释是否显得过重"
+    ],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "表格和发布规则均为合成测试材料"
+    }
+  }
+}

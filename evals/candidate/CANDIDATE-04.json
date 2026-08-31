@@ -1,0 +1,140 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-04",
+    "status": "candidate",
+    "revision": 1,
+    "approved_by_user": false,
+    "category": "glossed_transform"
+  },
+  "task": {
+    "base_operation": "TRANSFORM",
+    "augmentation": "GLOSS",
+    "genre": "api",
+    "audience": "zero_prior_knowledge",
+    "media": [
+      "markdown"
+    ],
+    "components": [
+      "TEXT",
+      "CODE"
+    ],
+    "request": "保留接口含义，解释普通读者判断结果需要知道的术语"
+  },
+  "source": {
+    "material_type": "text",
+    "content": "`POST /tasks` 返回 HTTP `202` 和 `task_id`。客户端随后使用 `task_id` 查询处理状态。返回 `202` 不表示任务已经处理成功。",
+    "references": [
+      {
+        "id": "REF-001",
+        "kind": "fixture_glossary",
+        "content": "HTTP 是客户端与服务交换请求和响应的协议；202 表示请求已被接收处理，但处理尚未完成；task_id 是服务为本次任务分配的唯一查询标识"
+      }
+    ]
+  },
+  "semantics": {
+    "source_atoms": [
+      {
+        "id": "ATOM-001",
+        "source_locator": "第 1 句",
+        "claim": "POST /tasks 返回 HTTP 202 和 task_id",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-002",
+        "source_locator": "第 2 句",
+        "claim": "客户端使用 task_id 查询状态",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-003",
+        "source_locator": "第 3 句",
+        "claim": "HTTP 202 不表示任务最终成功",
+        "provenance_type": "SOURCE"
+      }
+    ],
+    "background_atoms": [
+      {
+        "id": "BG-001",
+        "source_reference": "REF-001",
+        "purpose": "解释 HTTP",
+        "claim": "HTTP 是客户端与服务交换请求和响应的协议",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-002",
+        "source_reference": "REF-001",
+        "purpose": "解释状态码 202",
+        "claim": "202 表示请求已经被接收，但处理尚未完成",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-003",
+        "source_reference": "REF-001",
+        "purpose": "解释 task_id",
+        "claim": "task_id 是本次任务的查询标识",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      }
+    ],
+    "must_preserve": [
+      "POST /tasks",
+      "HTTP 202",
+      "task_id",
+      "后续查询",
+      "202 不等于最终成功"
+    ],
+    "must_not_invent": [
+      "任务已经成功",
+      "task_id 是用户账户 ID",
+      "客户端不需要查询状态"
+    ],
+    "inference_atoms": []
+  },
+  "candidate": {
+    "answer": "客户端向 `POST /tasks` 发送创建任务请求后，服务会返回 HTTP 超文本传输协议（Hypertext Transfer Protocol）状态码 `202` 和 `task_id`；`202` 表示服务已经接收请求并开始安排处理，任务此时仍未完成；`task_id` 是服务为本次任务分配的查询标识，客户端需要用它继续查询处理状态；只有后续状态明确显示成功，才能确认任务已经处理完成",
+    "support_map": [
+      {
+        "sentence": 1,
+        "supports": [
+          "ATOM-001",
+          "BG-001"
+        ],
+        "role": "source_restatement_and_gloss"
+      },
+      {
+        "sentence": 2,
+        "supports": [
+          "ATOM-003",
+          "BG-002"
+        ],
+        "role": "source_restatement_and_gloss"
+      },
+      {
+        "sentence": 3,
+        "supports": [
+          "ATOM-002",
+          "BG-003"
+        ],
+        "role": "source_restatement_and_gloss"
+      },
+      {
+        "sentence": 4,
+        "supports": [
+          "ATOM-003"
+        ],
+        "role": "logical_bridge"
+      }
+    ],
+    "self_claims": []
+  },
+  "review": {
+    "questions": [
+      "HTTP、202 和 task_id 是否解释到可以判断任务状态",
+      "是否清楚区分请求已接收与任务最终成功",
+      "术语解释是否过重或仍然不足"
+    ],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "接口和标识均为合成示例，不对应真实服务"
+    }
+  }
+}

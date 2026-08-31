@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AIALRA-0/agent-human-readable-technical-writing/contracts/source-span.schema.json",
+  "title": "SourceSpan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["identity", "location", "content", "protection"],
+  "properties": {
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_span_id", "source_id"],
+      "properties": {
+        "source_span_id": {"type": "string", "pattern": "^SRC-[0-9]{3,}$"},
+        "source_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["locator"],
+      "properties": {
+        "locator": {"type": "string", "minLength": 1},
+        "start_offset": {"type": "integer", "minimum": 0},
+        "end_offset": {"type": "integer", "minimum": 0}
+      }
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "sha256"],
+      "properties": {
+        "text": {"type": "string"},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "protection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protected_tokens"],
+      "properties": {
+        "protected_tokens": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    }
+  }
+}

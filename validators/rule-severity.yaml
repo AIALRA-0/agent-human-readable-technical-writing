@@ -1,0 +1,36 @@
+registry:
+  identity:
+    registry_id: rule-severity
+    description: 规则严重度决定问题由代码阻断、Agent 判断、任务配置阻断或只作建议
+  levels:
+    MACHINE_FINAL:
+      authority: deterministic_validator
+      description: 代码能够确定，不通过时直接阻断
+    MACHINE_CANDIDATE:
+      authority: agent_or_user
+      description: 代码只定位候选，Agent 确认语境后决定
+    PROFILE_REQUIRED:
+      authority: active_task_profile
+      description: 当前任务或用户配置明确要求，不通过时按本次契约阻断
+    ADVISORY:
+      authority: user_preference
+      description: 用于优化，不单独阻断
+  rules:
+    PROTECTED_TOKEN_PRESENCE:
+      severity: MACHINE_FINAL
+      description: 受保护数字、路径和机器标识不能丢失
+    PATCH_DOCUMENT_HASH:
+      severity: MACHINE_FINAL
+      description: 补丁必须绑定当前文档摘要
+    POSSIBLE_REDUNDANCY:
+      severity: MACHINE_CANDIDATE
+      description: 重复需要根据传播边界和语境确认
+    POSSIBLE_MISSING_EXPLANATION:
+      severity: MACHINE_CANDIDATE
+      description: 术语是否需要解释取决于读者和当前任务
+    LUCAS_PUNCTUATION:
+      severity: PROFILE_REQUIRED
+      description: 启用 Lucas 配置时执行个人标点规则
+    ORDINARY_SENTENCE_RHYTHM:
+      severity: ADVISORY
+      description: 句子节奏用于优化，不作为单独失败原因

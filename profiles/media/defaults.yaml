@@ -1,0 +1,17 @@
+profile:
+  identity:
+    profile_id: media-defaults
+    description: 媒介配置规定输出结构和渲染边界
+  media:
+    chat:
+      description: 使用短段和必要列表，避免把回答写成完整报告
+    markdown:
+      description: 使用可渲染标题、列表、表格、链接和 Mermaid
+    word:
+      description: 保留可访问标题层级、题注和分页关系
+    pdf:
+      description: 在固定页面中核对文字、图表和题注的位置
+    webpage:
+      description: 同时核对桌面和窄屏阅读顺序
+    presentation:
+      description: 每页只承担一个主要判断，并为图表提供口头可讲解说明

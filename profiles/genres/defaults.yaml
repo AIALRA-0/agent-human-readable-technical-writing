@@ -1,0 +1,21 @@
+profile:
+  identity:
+    profile_id: genre-defaults
+    description: 文体配置规定读者任务、常见结构和需要保留的专业边界
+  genres:
+    chat:
+      description: 直接回应当前问题，控制长度并保留自然口语
+    status:
+      description: 说明已做内容、得到结果、形成原因、实际影响和未完成事项
+    readme:
+      description: 先说明项目用途、适用对象和使用入口，再解释实现和限制
+    tutorial:
+      description: 按照读者下一步操作组织信息，并说明每步结果
+    architecture:
+      description: 使用模块、数据、依赖和边界解释系统关系
+    ui:
+      description: 显示用户能够理解的动作和结果，隐藏无必要内部类型
+    api:
+      description: 保留正式术语、字段、状态码和机器含义
+    audit:
+      description: 说明证据范围、未知信息、判断依据和恢复动作

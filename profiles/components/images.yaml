@@ -1,0 +1,28 @@
+profile:
+  identity:
+    profile_id: image-explanation
+    description: 图片按照零先验读者处理，并区分可见事实、背景与推断
+  required_coverage:
+    overview:
+      description: 说明图片整体展示什么以及读者应从哪里开始看
+    prerequisites:
+      description: 补充理解图片所需的最小先验知识
+    effective_elements:
+      description: 覆盖影响理解的对象、文字、图例、箭头、区域、数值、颜色、形状和空间关系
+    relationships:
+      description: 说明元素之间的连接、方向、趋势、异常和重点
+    impact:
+      description: 说明图片支持的实际判断和影响
+    limits:
+      description: 说明图片没有证明什么以及哪些内容无法确认
+  provenance_layers:
+    visible_fact:
+      description: 图片直接显示的内容
+    direct_relation:
+      description: 根据箭头、位置和数值能够直接得到的关系
+    background:
+      description: 为帮助理解而加入并登记来源的知识
+    inference:
+      description: 结合上下文推导并保留强度的含义
+    unresolved:
+      description: 分辨率或证据不足时明确无法确认

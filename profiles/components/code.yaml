@@ -1,0 +1,34 @@
+profile:
+  identity:
+    profile_id: code-explanation
+    description: 代码按照零先验读者处理，并解释功能、原因、输入、结果和边界
+  comment_granularity:
+    single_command:
+      description: 独立生效的单行命令使用同行注释
+    configuration_item:
+      description: 独立配置项使用同行注释
+    functional_block:
+      description: 完整功能块在块开头解释功能、输入、原因和结果
+    non_obvious_statement:
+      description: 不直观语句增加同行注释
+    closing_syntax:
+      description: 纯括号和闭合符继承所在块说明，不添加机械废注释
+    non_commentable_format:
+      description: JSON 等格式同时提供原始版本和可注释等价版本
+  required_coverage:
+    tool:
+      description: 说明语言或工具是什么
+    action:
+      description: 说明这一行或功能块做什么
+    reason:
+      description: 说明为什么需要以及为什么采用当前写法
+    syntax:
+      description: 说明影响理解的关键语法
+    input:
+      description: 说明输入从哪里来
+    result:
+      description: 说明执行后的可观察结果
+    failure:
+      description: 说明失败时可能发生什么
+    boundary:
+      description: 说明副作用和兼容性边界

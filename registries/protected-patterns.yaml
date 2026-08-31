@@ -1,0 +1,20 @@
+registry:
+  identity:
+    registry_id: protected-patterns
+    description: 受保护模式用于发现能够逐字确认的数值和机器标识漂移
+  patterns:
+    semantic_version:
+      expression: '(?<![A-Za-z0-9])v?\d+\.\d+(?:\.\d+)?(?![A-Za-z0-9])'
+      description: 保护版本号及其数字顺序
+    windows_path:
+      expression: '(?<!\S)[A-Za-z]:[\\/][^\s]+'
+      description: 保护 Windows 路径的盘符、目录和文件名
+    unix_path:
+      expression: '(?<!\S)(?:\./|\.\./|/)[^\s]+'
+      description: 保护相对路径和 Unix 风格路径
+    code_identifier:
+      expression: '(?<![A-Za-z0-9_])[A-Za-z_][A-Za-z0-9_]*(?![A-Za-z0-9_])'
+      description: 保护字段、函数和枚举等代码标识
+    numeric_value:
+      expression: '(?<![A-Za-z0-9])[-+]?\d+(?:\.\d+)?(?:%|ms|MHz|B|bit)?(?![A-Za-z0-9])'
+      description: 保护数值与紧邻单位

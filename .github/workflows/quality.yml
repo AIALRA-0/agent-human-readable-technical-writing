@@ -1,37 +1,36 @@
-name: Quality checks # 在仓库页面显示这组自动检查的名称
+name: vNext candidate checks # 在仓库页面显示候选基础检查名称
 
-on: # 指定哪些仓库事件会触发检查
-  push: # 每次推送后验证默认分支仍然通过
-  pull_request: # 每次合并请求变更后验证候选内容
-  workflow_dispatch: # 允许维护者从仓库页面手动运行
+on: # 指定需要重新验证候选文件树的事件
+  push: # 每次候选分支或默认分支推送后运行
+  pull_request: # 外部贡献使用拉取请求时运行，不改变本项目的直接推送约定
+  workflow_dispatch: # 允许维护者手动重新验证当前提交
 
-permissions: # 限制自动任务能够使用的仓库权限
-  contents: read # 只允许读取代码，不允许修改仓库内容
+permissions: # 限制自动任务只能读取仓库内容
+  contents: read # 检查任务不能修改分支、标签或发布内容
 
-jobs: # 定义需要执行的独立检查任务
-  writing-quality: # 运行规则测试和完整问答测试
-    runs-on: windows-latest # 使用自带 PowerShell 的 Windows 执行环境
-    steps: # 按顺序准备仓库并执行检查
-      - name: Check out repository # 把当前提交下载到临时执行环境
-        uses: actions/checkout@v5 # 使用基于当前运行环境的官方仓库下载步骤
-      - name: Run rule checks # 验证正确写法能够通过并拦截错误写法
-        shell: pwsh # 使用 PowerShell 执行项目脚本
-        run: ./scripts/Test-HumanReadableChinese.Tests.ps1 # 执行全部规则正反测试
-      - name: Run full answer evaluation # 验证多行业完整回答和样本差异
-        shell: pwsh # 使用 PowerShell 执行项目脚本
-        run: ./evals/Invoke-QualityEvaluation.20260729.ps1 # 执行全部多行业完整问答测试
-      - name: Validate semantic adversarial cases # 验证语义正反案例的数量、配对和字段完整性
-        shell: pwsh # 使用 PowerShell 执行案例结构检查
-        run: ./evals/Invoke-NaturalChineseEvaluation.ps1 -Mode ValidateCases # 不使用模型，只验证公开案例清单
-      - name: Validate live evaluation manifests # 验证触发、现场生成和盲评案例的数量与场景平衡
-        shell: pwsh # 使用 PowerShell 检查公开评测清单
-        run: ./evals/Measure-NaturalChineseLive.ps1 -Mode ValidateManifests # 不使用模型，只验证 24 个触发请求和 48 个现场生成请求
-      - name: Test public corpus scanner # 验证扫描范围、相对路径、脱敏和代码围栏识别
-        shell: pwsh # 使用 Python 标准库运行扫描器单元测试
-        run: python -m unittest discover -s tests -p "test_*.py" -v # 执行全部公开语料扫描测试
-      - name: Scan public repository language # 扫描当前公开仓库中的语域风险，不读取本地对话
-        shell: pwsh # 使用临时目录保存扫描结果，避免把扫描产物提交进仓库
-        run: python ./scripts/audit_aialra_corpus.py . --confirm-public --output "$env:RUNNER_TEMP/aialra-corpus-audit.json" # 报告只保存仓库相对路径并遮盖敏感片段
-      - name: Run repository content audit # 使用技能自身的检查器验证全部公开文档和案例同步状态
-        shell: pwsh # 使用 PowerShell 执行仓库级自查脚本
-        run: ./scripts/Test-RepositoryContent.ps1 # 检查文档写作、案例新鲜度和相对链接
+jobs: # 定义相互独立的自动检查任务
+  vnext-foundation: # 验证 vNext 契约、候选状态、补丁事务和审核包同步
+    runs-on: ubuntu-latest # 使用干净 Linux 环境证明基础实现不依赖本机状态
+    steps: # 按照依赖准备、确定性检查、提交器测试和生成物核对的顺序执行
+      - name: Check out repository # 下载触发本次检查的精确提交
+        uses: actions/checkout@v5 # 使用官方仓库下载动作，不写回远端
+
+      - name: Set up Python # 安装与本地候选基线一致的 Python 主版本
+        uses: actions/setup-python@v5 # 使用官方 Python 环境准备动作
+        with: # 把运行版本固定在任务分类下面
+          python-version: "3.12" # 当前候选基础在 Python 3.12 上验证
+
+      - name: Install validation dependencies # 安装 JSON Schema 和 YAML 解析依赖
+        run: python -m pip install jsonschema==4.23.0 PyYAML==6.0.2 # 使用本地验证过的精确版本，避免依赖漂移改变结果
+
+      - name: Compile Python sources # 在运行以前发现语法和编码错误
+        run: python -m compileall -q patcher scripts tests # 只编译 vNext 实现、验证脚本和测试
+
+      - name: Validate vNext foundation # 验证权威计划、契约、YAML 分类、候选案例、链接、SVG 和隐私模式
+        run: python scripts/validate_vnext_foundation.py # 任一确定性缺陷都会返回非零退出状态
+
+      - name: Test deterministic committer # 验证精确替换、拒绝路径和整批回滚
+        run: python -m unittest discover -s tests -p "test_deterministic_committer.py" -v # 运行 vNext 提交器专用测试，不执行旧架构评测
+
+      - name: Verify review packet synchronization # 确认公开审核包与 12 个结构化候选案例完全同步
+        run: python scripts/build_candidate_review_packet.py && git diff --exit-code -- evals/candidate/REVIEW-PACKET.md # 生成结果变化时阻止候选提交

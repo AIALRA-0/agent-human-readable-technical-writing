@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="420" viewBox="0 0 960 420" role="img" aria-labelledby="title desc">
+  <title id="title">单比特控制信号从 clk_a 进入 clk_b</title>
+  <desc id="desc">左侧蓝色 clk_a 区域通过箭头向右侧绿色 clk_b 区域发送 control 信号，右侧包含依次连接的 FF1 和 FF2 两级触发器</desc>
+  <rect width="960" height="420" fill="#ffffff"/>
+  <rect x="40" y="60" width="250" height="300" rx="18" fill="#dbeafe" stroke="#2563eb" stroke-width="3"/>
+  <text x="165" y="105" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#1e3a8a">clk_a 时钟域</text>
+  <rect x="490" y="60" width="430" height="300" rx="18" fill="#dcfce7" stroke="#16a34a" stroke-width="3"/>
+  <text x="705" y="105" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#14532d">clk_b 时钟域</text>
+  <circle cx="165" cy="220" r="46" fill="#ffffff" stroke="#2563eb" stroke-width="3"/>
+  <text x="165" y="228" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#1e3a8a">control</text>
+  <line x1="211" y1="220" x2="500" y2="220" stroke="#111827" stroke-width="5"/>
+  <polygon points="500,220 478,207 478,233" fill="#111827"/>
+  <text x="355" y="190" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" fill="#111827">跨时钟域</text>
+  <rect x="520" y="170" width="100" height="100" rx="10" fill="#f3f4f6" stroke="#4b5563" stroke-width="3"/>
+  <text x="570" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#111827">FF1</text>
+  <line x1="620" y1="220" x2="705" y2="220" stroke="#111827" stroke-width="5"/>
+  <polygon points="705,220 683,207 683,233" fill="#111827"/>
+  <rect x="720" y="170" width="100" height="100" rx="10" fill="#f3f4f6" stroke="#4b5563" stroke-width="3"/>
+  <text x="770" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#111827">FF2</text>
+  <line x1="820" y1="220" x2="875" y2="220" stroke="#111827" stroke-width="5"/>
+  <polygon points="875,220 853,207 853,233" fill="#111827"/>
+  <text x="670" y="315" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" fill="#374151">两级触发器同步器</text>
+  <rect x="330" y="335" width="300" height="48" rx="9" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>
+  <text x="480" y="366" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="#9a3412">图中没有展示多比特总线</text>
+</svg>

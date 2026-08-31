@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AIALRA-0/agent-human-readable-technical-writing/contracts/task-contract.schema.json",
+  "title": "TaskContract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["identity", "operation", "context", "quality", "clarification"],
+  "properties": {
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_id", "contract_version"],
+      "properties": {
+        "task_id": {"type": "string", "pattern": "^TASK-[A-Z0-9-]+$"},
+        "contract_version": {"const": "1.1"}
+      }
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["base_operation", "augmentation", "source_coverage_target"],
+      "properties": {
+        "base_operation": {"enum": ["TRANSFORM", "TRANSLATE", "COMPRESS", "EXPLAIN", "GENERATE", "FORMAT_ONLY"]},
+        "augmentation": {"enum": ["NONE", "GLOSS", "EXPLANATORY", "TEACHING", "RESEARCHED"]},
+        "source_coverage_target": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["audience", "genre", "media", "components", "user_profile"],
+      "properties": {
+        "audience": {"type": "string", "minLength": 1},
+        "genre": {"type": "string", "minLength": 1},
+        "media": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+        "components": {"type": "array", "uniqueItems": true, "items": {"enum": ["TEXT", "IMAGE", "TABLE", "CODE", "FORMULA", "CITATION", "FLOWCHART"]}},
+        "user_profile": {"type": "string", "minLength": 1}
+      }
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provenance_required", "protected_categories", "rule_levels"],
+      "properties": {
+        "provenance_required": {"type": "boolean"},
+        "protected_categories": {"type": "array", "uniqueItems": true, "items": {"enum": ["NUMBER", "DATE", "VERSION", "PATH", "CODE_IDENTIFIER", "NEGATION", "CONDITION", "SCOPE", "MODALITY"]}},
+        "rule_levels": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["MACHINE_FINAL", "MACHINE_CANDIDATE", "PROFILE_REQUIRED", "ADVISORY"]}}
+      }
+    },
+    "clarification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "blocking_questions"],
+      "properties": {
+        "status": {"enum": ["CLEAR", "BLOCKED"]},
+        "blocking_questions": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    }
+  }
+}

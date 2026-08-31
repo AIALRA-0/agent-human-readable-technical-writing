@@ -1,0 +1,89 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-01",
+    "status": "candidate",
+    "revision": 1,
+    "approved_by_user": false,
+    "category": "faithful_transform"
+  },
+  "task": {
+    "base_operation": "TRANSFORM",
+    "augmentation": "NONE",
+    "genre": "status",
+    "audience": "general_reader",
+    "media": [
+      "chat"
+    ],
+    "components": [
+      "TEXT"
+    ],
+    "request": "把这段状态说明改得更清楚，不增加新信息"
+  },
+  "source": {
+    "material_type": "text",
+    "content": "本次导出包含 18 个文件。由于网络中断，上传步骤尚未开始。请保留本地压缩包，恢复网络后重新上传。",
+    "references": []
+  },
+  "semantics": {
+    "source_atoms": [
+      {
+        "id": "ATOM-001",
+        "source_locator": "第 1 句",
+        "claim": "本次导出包含 18 个文件",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-002",
+        "source_locator": "第 2 句",
+        "claim": "网络中断导致上传尚未开始",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-003",
+        "source_locator": "第 3 句",
+        "claim": "需要保留本地压缩包并在网络恢复后重新上传",
+        "provenance_type": "SOURCE"
+      }
+    ],
+    "background_atoms": [],
+    "must_preserve": [
+      "文件数量为 18",
+      "上传尚未开始",
+      "原因是网络中断",
+      "保留压缩包",
+      "网络恢复后重新上传"
+    ],
+    "must_not_invent": [
+      "文件已经上传",
+      "网络已经恢复",
+      "上传失败的其他原因"
+    ],
+    "inference_atoms": []
+  },
+  "candidate": {
+    "answer": "本次已经导出 18 个文件；网络中断导致上传尚未开始；请先保留本地压缩包，网络恢复后再重新上传",
+    "support_map": [
+      {
+        "sentence": 1,
+        "supports": [
+          "ATOM-001",
+          "ATOM-002",
+          "ATOM-003"
+        ],
+        "role": "source_restatement"
+      }
+    ],
+    "self_claims": []
+  },
+  "review": {
+    "questions": [
+      "是否完整保留了 18 个文件、网络中断、尚未上传和后续动作",
+      "状态、原因和下一步是否按照自然顺序展开",
+      "是否存在你不愿意阅读的压缩或断句"
+    ],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "案例为合成材料，不含账户、真实路径或会话原文"
+    }
+  }
+}

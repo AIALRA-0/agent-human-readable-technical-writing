@@ -1,0 +1,24 @@
+{
+  "identity": {
+    "finding_id": "TERM-AMD-001",
+    "rule_id": "TERM_CANONICAL_FIRST_USE"
+  },
+  "classification": {
+    "severity": "MACHINE_FINAL",
+    "status": "CONFIRMED"
+  },
+  "location": {
+    "node_id": "SEG-014",
+    "span_start": 36,
+    "span_end": 70
+  },
+  "observation": {
+    "observed": "超微半导体（Advanced Micro Devices，AMD ）",
+    "expected_pattern": "AMD 超微半导体（Advanced Micro Devices）",
+    "reason": "术语登记表为 Lucas 配置规定了首次出现顺序"
+  },
+  "repair": {
+    "repair_scope": "phrase",
+    "automatic": true
+  }
+}

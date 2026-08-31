@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AIALRA-0/agent-human-readable-technical-writing/contracts/user-supplied-atom.schema.json",
+  "title": "UserSuppliedAtom",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["identity", "provenance", "meaning", "user_linkage", "preservation"],
+  "properties": {
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["atom_id"],
+      "properties": {"atom_id": {"type": "string", "pattern": "^ATOM-[0-9]{3,}$"}}
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provenance_type"],
+      "properties": {"provenance_type": {"const": "USER_SUPPLIED"}}
+    },
+    "meaning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim"],
+      "properties": {"claim": {"type": "string", "minLength": 1}}
+    },
+    "user_linkage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["message_id", "locator"],
+      "properties": {
+        "message_id": {"type": "string", "minLength": 1},
+        "locator": {"type": "string", "minLength": 1}
+      }
+    },
+    "preservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required"],
+      "properties": {"required": {"type": "boolean"}}
+    }
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-11",
+    "status": "candidate",
+    "revision": 1,
+    "approved_by_user": false,
+    "category": "code_explanation"
+  },
+  "task": {
+    "base_operation": "EXPLAIN",
+    "augmentation": "TEACHING",
+    "genre": "tutorial",
+    "audience": "zero_prior_knowledge",
+    "media": [
+      "markdown"
+    ],
+    "components": [
+      "CODE",
+      "TEXT"
+    ],
+    "request": "逐块解释代码，让第一次使用 PowerShell 的人知道输入、原因、结果、失败表现和副作用"
+  },
+  "source": {
+    "material_type": "code",
+    "content": "param([string]$Path)\nif (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { exit 2 }\nGet-FileHash -Algorithm SHA256 -LiteralPath $Path",
+    "references": [
+      {
+        "id": "REF-001",
+        "kind": "fixture_glossary",
+        "content": "PowerShell 是 Windows、Linux 和 macOS 可用的命令行与自动化环境；Test-Path 检查路径是否存在；LiteralPath 按原样解释路径；Get-FileHash 计算文件摘要；SHA-256 生成固定长度摘要用于比较内容；exit 2 让调用方识别失败"
+      }
+    ]
+  },
+  "semantics": {
+    "source_atoms": [
+      {
+        "id": "ATOM-001",
+        "source_locator": "第 1 行",
+        "claim": "脚本接收字符串类型的 Path 参数",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-002",
+        "source_locator": "第 2 行",
+        "claim": "路径不存在或不是文件时脚本以退出码 2 结束",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-003",
+        "source_locator": "第 3 行",
+        "claim": "脚本使用 SHA256 计算指定文件摘要",
+        "provenance_type": "SOURCE"
+      }
+    ],
+    "background_atoms": [
+      {
+        "id": "BG-001",
+        "source_reference": "REF-001",
+        "purpose": "解释 PowerShell 和关键命令",
+        "claim": "PowerShell 用于命令行与自动化，Test-Path 检查路径，Get-FileHash 计算摘要",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-002",
+        "source_reference": "REF-001",
+        "purpose": "解释 LiteralPath、SHA-256 和退出码",
+        "claim": "LiteralPath 按原样处理路径，SHA-256 用于内容比较，退出码 2 让调用方识别失败",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      }
+    ],
+    "must_preserve": [
+      "Path 为输入",
+      "必须是现有文件",
+      "失败退出码 2",
+      "算法 SHA256",
+      "LiteralPath"
+    ],
+    "must_not_invent": [
+      "脚本修改文件",
+      "摘要可以恢复文件内容",
+      "退出码 2 代表系统定义的唯一错误",
+      "目录也可以通过"
+    ],
+    "inference_atoms": []
+  },
+  "candidate": {
+    "answer": "这段代码使用 PowerShell 命令行与自动化环境；它接收一个文件路径，先确认路径指向真实文件，再计算该文件的 SHA-256 内容摘要；摘要可以用于比较两份文件内容是否一致，脚本不会修改原文件\n\n```powershell\nparam([string]$Path) # 接收调用者提供的文件路径；string 表示这个输入按文字保存\n\n# 先确认路径存在并且指向文件；-LiteralPath 按原样读取路径，避免把方括号等字符当成匹配符\nif (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {\n    exit 2 # 路径不存在或不是文件时立即结束；退出码 2 让外部脚本或 CI 识别本次检查失败\n}\n\n# 读取文件内容并计算 SHA-256 摘要；成功时屏幕会显示算法、摘要值和文件路径\nGet-FileHash -Algorithm SHA256 -LiteralPath $Path\n```\n\n运行时需要把 `$Path` 换成要检查的文件路径；如果路径有效，PowerShell 输出固定长度的摘要值；如果路径不存在或指向目录，脚本不会继续读取内容，并以退出码 `2` 结束\n\n这种写法的副作用是读取目标文件，运行时间会随文件大小增加；它不会写入或删除目标文件；摘要相同可以作为内容一致的强证据，但这段代码没有校验文件来源，也不能说明文件本身安全",
+    "support_map": [
+      {
+        "sentence": 1,
+        "supports": [
+          "ATOM-001",
+          "ATOM-002",
+          "ATOM-003",
+          "BG-001",
+          "BG-002"
+        ],
+        "role": "code_overview"
+      },
+      {
+        "sentence": 2,
+        "supports": [
+          "ATOM-001",
+          "ATOM-002",
+          "ATOM-003",
+          "BG-001",
+          "BG-002"
+        ],
+        "role": "annotated_code"
+      },
+      {
+        "sentence": 3,
+        "supports": [
+          "ATOM-001",
+          "ATOM-002",
+          "ATOM-003"
+        ],
+        "role": "input_and_result"
+      },
+      {
+        "sentence": 4,
+        "supports": [
+          "ATOM-003",
+          "BG-002"
+        ],
+        "role": "side_effect_and_limit"
+      }
+    ],
+    "self_claims": []
+  },
+  "review": {
+    "questions": [
+      "第一次使用 PowerShell 的读者是否知道 Path、LiteralPath、Leaf、exit 2 和 SHA-256 的作用",
+      "代码注释是否说明原因和可观察结果，而非逐字翻译",
+      "副作用和证据边界是否清楚",
+      "解释是否存在无必要细节"
+    ],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "代码为合成示例，不包含真实路径或文件摘要"
+    }
+  }
+}

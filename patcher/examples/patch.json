@@ -1,0 +1,32 @@
+{
+  "identity": {
+    "patch_id": "PATCH-001",
+    "finding_id": "TERM-AMD-001",
+    "operation": "replace_exact"
+  },
+  "target": {
+    "document_sha256": "6de1c58a36f7a7970bdc6e03d864f928408ca867daf59d853dac0961362afcc9",
+    "node_id": "SEG-014"
+  },
+  "replacement": {
+    "old_text": "超微半导体（Advanced Micro Devices，AMD ）",
+    "new_text": "AMD 超微半导体（Advanced Micro Devices）",
+    "expected_occurrences": 1
+  },
+  "authorization": {
+    "reason": "术语登记表要求首次出现采用缩写、中文名称和英文全称的顺序",
+    "repair_scope": "phrase",
+    "preserve": [
+      "公司实体不变",
+      "AMD 缩写不变",
+      "Advanced Micro Devices 英文全称不变"
+    ]
+  },
+  "verification": {
+    "rerun_validators": [
+      "term_registry",
+      "protected_tokens",
+      "support_map"
+    ]
+  }
+}

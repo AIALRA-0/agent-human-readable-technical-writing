@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AIALRA-0/agent-human-readable-technical-writing/contracts/source-atom.schema.json",
+  "title": "SourceAtom",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["identity", "provenance", "meaning", "source_linkage", "preservation"],
+  "properties": {
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["atom_id"],
+      "properties": {"atom_id": {"type": "string", "pattern": "^ATOM-[0-9]{3,}$"}}
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provenance_type"],
+      "properties": {"provenance_type": {"const": "SOURCE"}}
+    },
+    "meaning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim"],
+      "properties": {
+        "claim": {"type": "string", "minLength": 1},
+        "subject": {"type": "string"},
+        "predicate": {"type": "string"},
+        "object": {"type": "string"},
+        "modality": {"enum": ["ASSERTED", "POSSIBLE", "PROBABLE", "RECOMMENDED", "REQUIRED", "UNKNOWN"]}
+      }
+    },
+    "source_linkage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_span_id"],
+      "properties": {"source_span_id": {"type": "string", "pattern": "^SRC-[0-9]{3,}$"}}
+    },
+    "preservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "protected_relations"],
+      "properties": {
+        "required": {"type": "boolean"},
+        "protected_relations": {"type": "array", "uniqueItems": true, "items": {"enum": ["SUBJECT", "OBJECT", "NEGATION", "CONDITION", "SCOPE", "QUANTITY", "CAUSALITY", "MODALITY"]}}
+      }
+    }
+  }
+}

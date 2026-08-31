@@ -1,0 +1,20 @@
+registry:
+  identity:
+    registry_id: protected-units
+    description: 单位登记表用于保护数值与单位的绑定关系
+  units:
+    percent:
+      canonical_symbol: "%"
+      description: 百分比符号必须与原数值保持绑定
+    millisecond:
+      canonical_symbol: ms
+      description: 毫秒单位保持官方小写形式
+    megahertz:
+      canonical_symbol: MHz
+      description: 兆赫兹单位保持官方大小写
+    byte:
+      canonical_symbol: B
+      description: 字节与比特需要保持区分
+    bit:
+      canonical_symbol: bit
+      description: 比特与字节需要保持区分
