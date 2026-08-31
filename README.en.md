@@ -267,13 +267,14 @@ This instruction loads the core rules and routes only to report, structure, or t
 %% Show the complete route from source material to a verifiable and actionable result
 flowchart TD
     A[Receive a question or source material] --> B[Identify what the reader must decide]
-    B --> C[Find facts and missing evidence]
-    C --> D[Identify rules required by this task]
-    D --> E[Load only matching references]
-    E --> F[Organize concrete reasons and consequences]
-    F --> G[Explain required terms]
-    G --> H[Validate the complete final text]
-    H --> I[Deliver a verifiable actionable result]
+    B --> C[Identify what the reader must understand see decide and verify]
+    C --> D[Find facts evidence and gaps]
+    D --> E[Identify rules required by this task]
+    E --> F[Load only matching references]
+    F --> G[Organize concrete reasons and consequences]
+    G --> H[Explain required terms and remove noise]
+    H --> I[Validate the complete final text]
+    I --> J[Deliver a verifiable actionable result]
 ```
 
 图 4.1 Figure 4.1 Technical Chinese processing workflow
@@ -283,6 +284,10 @@ flowchart TD
 The process solves the reader's problem first and then adds formal names and traceable evidence
 
 Technical names remain searchable but no longer carry the explanation by themselves
+
+Decision, status, audit, and project-change content also uses a content-sufficiency check to define what belongs on the first screen, which evidence supports each claim, and which details should remain available by drill-down
+
+If removing a sentence, card, or legend does not change the reader's understanding, decision, action, evidence boundary, or next step, that element is removed, collapsed, or moved to an advanced layer
 
 ## 5. Reference routing
 
@@ -297,6 +302,7 @@ The repository separates materials by purpose so an ordinary answer does not loa
 | Structured-document rules | Sections, procedures, branches, tables, figures, flows, or citations appear | Standardizes hierarchy, numbering, captions, and references |
 | Technical-content rules | Terms, internal names, numbers, formulas, or code appear | Preserves traceable names and adds explanations and provenance |
 | Complex-report rules | Reports, audits, retrospectives, or handoffs are written | Controls long-form narrative, evidence boundaries, and full-text validation |
+| AEMP content-sufficiency rules | First-screen design, change explanation, decisions, status, or audit evidence are required | Defines reader tasks, required content, evidence labels, drill-down layers, and the deletion test |
 | Detailed positive and negative examples | A user reports a problem or rules conflict | Resolves edge cases and disputed styles |
 | Skill-development tests | The Skill, checker, cases, or quality process changes | Verifies rules, complete answers, and repository consistency |
 

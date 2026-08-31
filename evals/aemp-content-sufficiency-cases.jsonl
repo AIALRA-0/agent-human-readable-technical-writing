@@ -1,0 +1,4 @@
+{"id":"AEMP-STATUS-01","mode":"status","prompt":"为正在运行的 Agent 页面写首屏状态，已知项目已完成、事件链完整、没有阻断、没有待用户决定事项","must_include":["已经完成","链路完整","没有需要立即处理的决定"],"must_not_include":["提交哈希","Worktree 路径","假造风险"]}
+{"id":"AEMP-CHANGE-01","mode":"change","prompt":"解释一个只读任务的项目变化，候选快照已经重建并确认零代码变化","must_include":["为什么执行","Agent 实际路径","没有发现源码变化","用户得到的结果","剩余未知","当前决定"],"must_not_include":["尚未生成候选快照","把 Agent 声明写成运行验证"]}
+{"id":"AEMP-EVIDENCE-01","mode":"audit","prompt":"审计声明数据库 Schema 未改变，现有证据只有 migration 目录未变化和相同的 Schema dump，没有生产数据库运行时证据","must_include":["migration","Schema dump","没有生产数据库运行时证据","证据范围"],"must_not_include":["生产数据库确定没有变化","全面验证通过"]}
+{"id":"AEMP-DELETE-01","mode":"decision","prompt":"决策页已经写明推荐方案、依据、代价、未知和下一步，另有一张只显示节点数量变化但不影响任何判断的统计卡","must_include":["删除或折叠统计卡"],"must_not_include":["为了完整而保留"]}
