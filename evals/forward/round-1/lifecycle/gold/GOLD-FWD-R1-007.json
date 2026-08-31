@@ -1,0 +1,97 @@
+{
+  "identity": {
+    "case_id": "GOLD-FWD-R1-007",
+    "origin_case_id": "FWD-R1-007",
+    "status": "gold",
+    "revision": 1,
+    "approved_by_user": true,
+    "reviewed_at": "2026-08-31",
+    "profile_revision_at_review": "round-3-capitalization"
+  },
+  "task": {
+    "audience": "zero_prior_knowledge",
+    "augmentation": "EXPLANATORY",
+    "base_operation": "EXPLAIN",
+    "case_id": "FWD-R1-007",
+    "components": [
+      "IMAGE",
+      "TEXT"
+    ],
+    "genre": "image_explanation",
+    "references": [
+      {
+        "content": "图中的 35% 是控制器比较土壤湿度时使用的阈值；图没有提供传感器误差、水泵流量或实际种植结果",
+        "id": "REF-001"
+      }
+    ],
+    "request": "保留原图，从零解释图中每个有效元素、连接方向、控制结果和图中不能证明的内容",
+    "round": 1,
+    "source": {
+      "content": {
+        "alt": "温室灌溉控制图",
+        "path": "assets/greenhouse-control.svg"
+      },
+      "material_type": "image",
+      "sha256": "02c3bad29204f049147f166189280787d91d17fe292240a6a5cf2b5b534e86f5"
+    }
+  },
+  "source": {
+    "original_request_sha256": "e648df4eea9c968b0f61ce5deb65153a77df3ae78b321cf732e17f88292a7906",
+    "original_answer_sha256": "e65ebbf87ad21347ace29b8e3c20f6b97572d2a4a04988505207816338576f67",
+    "source_units": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003",
+      "SRCU-004",
+      "SRCU-005",
+      "SRCU-006",
+      "SRCU-007",
+      "SRCU-008",
+      "SRCU-009"
+    ],
+    "support_map": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003",
+      "SRCU-004",
+      "SRCU-005",
+      "SRCU-006",
+      "SRCU-007",
+      "SRCU-008",
+      "SRCU-009"
+    ],
+    "background_claims": [
+      {
+        "claim": "35% 是控制器比较土壤湿度时使用的阈值",
+        "source_reference": "REF-001"
+      },
+      {
+        "claim": "图没有提供传感器误差、水泵流量或实际种植结果",
+        "source_reference": "REF-001"
+      }
+    ],
+    "revision_references": []
+  },
+  "artifact": {
+    "answer": "<div align=\"center\">\n\n![温室灌溉控制图](assets/greenhouse-control.svg)\n\n图 1 温室灌溉控制图\n\n</div>\n\n## 1. 图中元素\n\n图中 5 个圆角框分别表示土壤传感器、控制器、水泵、水箱以及阀门与种植区；土壤传感器和水箱使用蓝色，控制器使用黄色，水泵使用绿色，阀门与种植区使用棕色，这些颜色用于区分对象，图中没有提供颜色图例来赋予它们其他含义\n\n土壤传感器负责读取湿度；控制器标有 35% 阈值，这个数值是控制器比较土壤湿度时使用的标准；水泵的控制结果是开启或停止；水箱提供水，阀门与种植区负责分配灌溉水\n\n## 2. 连接方向和控制结果\n\n箭头从土壤传感器指向控制器，传递湿度值；箭头再从控制器指向水泵，传递控制信号；供水箭头从水箱指向水泵，水泵产生的加压水流再流向阀门与种植区\n\n这条连接说明湿度值会进入控制器，控制器据此让水泵开启或停止，水泵开启时把水箱中的水送往阀门与种植区；图中没有说明湿度高于或低于 35% 时分别执行哪种动作，因此不能仅凭这张图确定具体判断规则\n\n## 3. 证据边界\n\n图中没有传感器误差、水泵流量或实际种植结果，因此不能判断湿度读数有多准确、实际供水量是多少，也不能证明这种控制带来了怎样的种植结果；下一步需要分别核对传感器误差记录、水泵流量记录和实际种植结果",
+    "answer_sha256": "e65ebbf87ad21347ace29b8e3c20f6b97572d2a4a04988505207816338576f67",
+    "approved_snapshot_sha256": "e65ebbf87ad21347ace29b8e3c20f6b97572d2a4a04988505207816338576f67",
+    "revision_of": null
+  },
+  "review": {
+    "decision_source": "explicit_user_review",
+    "decision": "accepted",
+    "reasons": [
+      "用户明确表示原始答案可以原样接受"
+    ],
+    "correct_parts": [
+      "原始答案中未被用户否定的事实、数字、条件和证据边界继续保留"
+    ],
+    "regression_requirements": [],
+    "non_blocking_preferences": [],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "只保存脱敏技术反馈，不保存原始对话、账户信息或个人路径"
+    }
+  }
+}

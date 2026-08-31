@@ -46,7 +46,13 @@ flowchart TD
 
 独立阅读单元使用 `reading_context: standalone`，并把 `known_terms` 设为空数组；连续文档只有在前文实际完成术语解释后，才能把对应术语加入 `known_terms`
 
-任务包含图片、表格或代码时，`component_order` 登记原始组件是否先于解释出现；正文存在证据边界时，`boundary_requirements` 分别登记缺失证据、缺失证据的重要性和下一项验证方法
+任务包含图片、表格或代码时，`component_order` 登记原始组件是否先于解释出现；两个以上承担同一作用的内容登记为 `parallel_groups`；代码任务登记 `annotated_code` 或 `line_by_line_explanation` 及每个有效语句的解释位置；正文存在证据边界时，`boundary_requirements` 分别登记缺失证据、缺失证据的重要性和下一项验证方法
+
+独立阅读单元中的专业名词需要登记官方中文、官方英文、缩写、中文定义、名称含义、名称依据、当前作用和实际影响；官方写法无法核对时，编译结果进入 `BLOCKED`，禁止自行创造全称
+
+多轮任务通过 `conversation` 登记已经失效的要求；追加要求替换旧要求后默认只保留当前有效内容，用户要求变更历史、撤销说明、审计或证据核对时才把保留开关设为 `true`
+
+GitHub 图片、表格和 Mermaid 任务需要登记 1280 像素与 390 像素、亮色与暗色四种实际渲染证据；源码中的居中标记不能代替页面结果
 
 Mermaid 默认使用纵向布局；只有横向排列表达并列比较且纵向布局会明显破坏理解时，才在 `layout_exceptions` 登记组件、原因和纵向布局不可用的依据
 

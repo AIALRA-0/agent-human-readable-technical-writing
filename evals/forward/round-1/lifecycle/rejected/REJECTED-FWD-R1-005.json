@@ -1,0 +1,89 @@
+{
+  "identity": {
+    "case_id": "REJECTED-FWD-R1-005",
+    "origin_case_id": "FWD-R1-005",
+    "status": "rejected",
+    "revision": 1,
+    "approved_by_user": false,
+    "reviewed_at": "2026-08-31",
+    "profile_revision_at_review": "round-3-capitalization"
+  },
+  "task": {
+    "audience": "zero_prior_knowledge",
+    "augmentation": "GLOSS",
+    "base_operation": "GENERATE",
+    "case_id": "FWD-R1-005",
+    "components": [
+      "TEXT"
+    ],
+    "genre": "setup_guide",
+    "references": [
+      {
+        "content": "长按设备侧键 3 秒进入配对；指示灯蓝色闪烁；手机系统设置中选择 Thermo Mini；连接成功后指示灯常亮 5 秒；若 60 秒内未连接，设备退出配对",
+        "id": "REF-001"
+      }
+    ],
+    "request": "根据给定事实写一份蓝牙温度计首次配对说明，读者没有使用经验",
+    "round": 1,
+    "source": {
+      "content": "",
+      "material_type": "none",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "source": {
+    "original_request_sha256": "da68d8bbdfde84431e0a514171bd3c744542e0e492eaf93fcf6989956c8252aa",
+    "original_answer_sha256": "84a9c6cca6fd5f6e0be12b232e08009ea5654984a3cf5581667d5afeae3ece9f",
+    "source_units": [],
+    "support_map": [],
+    "background_claims": [
+      {
+        "claim": "长按设备侧键 3 秒进入配对",
+        "source_reference": "REF-001"
+      },
+      {
+        "claim": "进入配对后指示灯蓝色闪烁",
+        "source_reference": "REF-001"
+      },
+      {
+        "claim": "在手机系统设置中选择 Thermo Mini",
+        "source_reference": "REF-001"
+      },
+      {
+        "claim": "连接成功后指示灯常亮 5 秒",
+        "source_reference": "REF-001"
+      },
+      {
+        "claim": "若 60 秒内未连接，设备退出配对",
+        "source_reference": "REF-001"
+      }
+    ],
+    "revision_references": []
+  },
+  "artifact": {
+    "answer": "# Thermo Mini 首次配对\n\n下面的流程同时显示成功和超时两种结果\n\n```mermaid\nflowchart TD\n    A[长按设备侧键 3 秒] --> B[指示灯蓝色闪烁]\n    B --> C[在手机系统设置中选择 Thermo Mini]\n    C --> D{60 秒内是否连接成功}\n    D -- 是 --> E[指示灯常亮 5 秒]\n    D -- 否 --> F[设备退出配对]\n```\n\n图 1 首次配对流程\n\n第一步，长按设备侧键 3 秒，看到指示灯蓝色闪烁后，设备已经进入配对状态\n\n第二步，在手机的系统设置中选择 `Thermo Mini`\n\n第三步，查看指示灯；连接成功时，指示灯会常亮 5 秒，如果 60 秒内没有连接，设备会退出配对，需要重新从第一步开始",
+    "answer_sha256": "84a9c6cca6fd5f6e0be12b232e08009ea5654984a3cf5581667d5afeae3ece9f",
+    "approved_snapshot_sha256": null,
+    "revision_of": null
+  },
+  "review": {
+    "decision_source": "explicit_user_review",
+    "decision": "rejected",
+    "reasons": [
+      "步骤保持缩进编号列表",
+      "GitHub 中的图题必须经过实际渲染确认居中"
+    ],
+    "correct_parts": [
+      "原始答案中未被用户否定的事实、数字、条件和证据边界继续保留"
+    ],
+    "regression_requirements": [
+      "步骤保持缩进编号列表",
+      "GitHub 中的图题必须经过实际渲染确认居中"
+    ],
+    "non_blocking_preferences": [],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "只保存脱敏技术反馈，不保存原始对话、账户信息或个人路径"
+    }
+  }
+}

@@ -1,4 +1,4 @@
-"""Deterministic validators for the 188 auditable vNext minimal fixtures.
+"""Deterministic validators for the 220 auditable vNext minimal fixtures.
 
 Each rule checks an observable structure or exact registered form.  The module
 does not score naturalness or claim semantic equivalence.
@@ -14,7 +14,7 @@ ValidationResult = list[str]
 
 
 TERM_REQUIREMENTS = {
-    "TERM_NPM": ["npm 是 Node.js 生态使用的包管理器（Package Manager）", "JavaScript", "TypeScript"],
+    "TERM_NPM": ["npm 是 Node.js 生态使用的包管理客户端和软件包仓库", "JavaScript", "TypeScript"],
     "TERM_CI": ["CI 持续集成（Continuous Integration）", "自动", "测试"],
     "TERM_HTTP_POST": ["HTTP 超文本传输协议（Hypertext Transfer Protocol）", "`POST /tasks`", "新任务"],
     "TERM_HTTP_202_TASK_ID": ["`202`", "尚未完成", "`task_id`", "查询标识"],
@@ -28,6 +28,73 @@ TERM_REQUIREMENTS = {
     "TERM_STRING": ["`string`", "按顺序", "字符", "字符串类型"],
     "TERM_SHA256": ["SHA-256 安全散列算法（Secure Hash Algorithm 256-bit）", "摘要"],
 }
+
+
+def validate_term_meaning_contract(rule_id: str, payload: dict[str, Any]) -> ValidationResult:
+    """Validate registered professional-term fields without guessing natural-language semantics."""
+
+    checks = {
+        "TERM_CONTRACT_OFFICIAL_ENGLISH": bool(payload.get("official_english")),
+        "TERM_CONTRACT_ABBREVIATION": bool(payload.get("abbreviation")),
+        "TERM_CONTRACT_NAME_RATIONALE": bool(payload.get("name_rationale")) and bool(payload.get("name_rationale_source")),
+        "TERM_INLINE_ABBREVIATION_EXPLAINED": not payload.get("inline_code_abbreviation") or bool(payload.get("adjacent_explanation")),
+    }
+    return [] if checks.get(rule_id, False) else [f"{rule_id} failed"]
+
+
+def validate_parallel_group(rule_id: str, payload: dict[str, Any]) -> ValidationResult:
+    """Validate an Agent-declared parallel group and its observable list structure."""
+
+    item_ids = set(payload.get("item_ids", []))
+    covered = set(payload.get("covered_item_ids", []))
+    checks = {
+        "PARALLEL_GROUP_TWO_ITEMS": len(item_ids) >= 2,
+        "PARALLEL_GROUP_COMPLETE": item_ids <= covered,
+        "PARALLEL_GROUP_LIST": payload.get("rendered_as_list") is True,
+        "PARALLEL_GROUP_NESTING": int(payload.get("nesting_depth", 0)) >= int(payload.get("minimum_depth", 1)),
+    }
+    return [] if checks.get(rule_id, False) else [f"{rule_id} failed"]
+
+
+def validate_render_evidence(rule_id: str, payload: dict[str, Any]) -> ValidationResult:
+    """Validate actual GitHub render observations rather than source-only alignment claims."""
+
+    evidence = payload.get("evidence", [])
+    combinations = {(item.get("viewport_width"), item.get("theme")) for item in evidence}
+    required = {(390, "light"), (390, "dark"), (1280, "light"), (1280, "dark")}
+    checks = {
+        "GITHUB_RENDER_FOUR_CONTEXTS": combinations == required,
+        "GITHUB_RENDER_CENTERED": bool(evidence) and all(item.get("object_centered") and item.get("caption_centered") for item in evidence),
+        "GITHUB_RENDER_NO_OVERFLOW": bool(evidence) and all(not item.get("horizontal_overflow") for item in evidence),
+    }
+    return [] if checks.get(rule_id, False) else [f"{rule_id} failed"]
+
+
+def validate_code_coverage_mode(rule_id: str, payload: dict[str, Any]) -> ValidationResult:
+    """Validate the two accepted code-explanation paths and exact unit mappings."""
+
+    mode = payload.get("coverage_mode")
+    required = set(payload.get("required_units", []))
+    mapped = set(payload.get("mapped_units", []))
+    checks = {
+        "CODE_MODE_ALLOWED": mode in {"annotated_code", "line_by_line_explanation"},
+        "CODE_MODE_ALL_UNITS": required <= mapped,
+        "CODE_MODE_LOCATORS": bool(payload.get("locators_complete")),
+    }
+    return [] if checks.get(rule_id, False) else [f"{rule_id} failed"]
+
+
+def validate_conversation_supersession(rule_id: str, payload: dict[str, Any]) -> ValidationResult:
+    """Validate current-only output unless history retention was explicitly requested."""
+
+    answer = str(payload.get("answer", ""))
+    old_texts = payload.get("superseded_texts", [])
+    preserve = payload.get("preserve_superseded_requirements") is True
+    checks = {
+        "CONVERSATION_CURRENT_ONLY": preserve or all(item not in answer for item in old_texts),
+        "CONVERSATION_HISTORY_ALLOWED": not preserve or bool(payload.get("preservation_reason")),
+    }
+    return [] if checks.get(rule_id, False) else [f"{rule_id} failed"]
 
 
 def _missing_text(text: str, required: list[str]) -> ValidationResult:
@@ -246,6 +313,11 @@ VALIDATORS: dict[str, Callable[[str, dict[str, Any]], ValidationResult]] = {
     "code_explanation": validate_code,
     "privacy_source_retention": validate_privacy,
     "presentation_spacing": validate_presentation,
+    "term_meaning_contract": validate_term_meaning_contract,
+    "parallel_group_layout": validate_parallel_group,
+    "github_render_evidence": validate_render_evidence,
+    "code_coverage_mode": validate_code_coverage_mode,
+    "conversation_supersession": validate_conversation_supersession,
 }
 
 

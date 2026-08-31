@@ -72,8 +72,8 @@ def compile_contract(specification: dict[str, Any]) -> dict[str, Any]:
             renderer_name = "chat"
         else:
             renderer_name = "other"
-    exact_alignment = renderer_name in {"html", "word", "pdf"}
-    exact_caption_alignment = exact_alignment or renderer_name == "github_markdown"
+    exact_alignment = renderer_name in {"github_markdown", "html", "word", "pdf"}
+    exact_caption_alignment = exact_alignment
     has_visual = any(item in {"IMAGE", "TABLE", "FLOWCHART"} for item in specification["components"])
     source_material = dict(specification.get("source_material", {}))
     source_material.setdefault("required", False)
@@ -84,8 +84,8 @@ def compile_contract(specification: dict[str, Any]) -> dict[str, Any]:
     component_alignment.setdefault("caption", "center" if has_visual else "not_applicable")
     component_alignment.setdefault(
         "fallback",
-        "渲染器不能精确控制对象位置时保留原生结构，并在渲染检查中记录限制"
-        if has_visual and not exact_alignment else "当前媒介能够执行登记的对齐方式",
+        "GitHub 输出使用经过实际渲染验证的 HTML 容器或原生 Mermaid 加居中题注"
+        if renderer_name == "github_markdown" and has_visual else "当前媒介能够执行登记的对齐方式",
     )
 
     term_requirements = []
@@ -93,6 +93,10 @@ def compile_contract(specification: dict[str, Any]) -> dict[str, Any]:
         requirement = dict(provided)
         registered = requirement.setdefault("registered", True)
         requirement.setdefault("official_case_verified", registered)
+        requirement.setdefault("official_english", None)
+        requirement.setdefault("abbreviation", None)
+        requirement.setdefault("name_rationale", "术语名称依据登记表或官方来源")
+        requirement.setdefault("name_rationale_source", f"registry:{requirement['term_id']}")
         requirement.setdefault("parenthetical_english_case", "title_case")
         requirement.setdefault("parenthetical_form", None)
         requirement.setdefault("official_case_precedence", True)
@@ -100,7 +104,7 @@ def compile_contract(specification: dict[str, Any]) -> dict[str, Any]:
         term_requirements.append(requirement)
 
     contract = {
-        "identity": {"task_id": specification["task_id"], "contract_version": "1.1", "profile_revision": "round-3-capitalization"},
+        "identity": {"task_id": specification["task_id"], "contract_version": "1.1", "profile_revision": "round-4-generalization"},
         "operation": {"base_operation": base_operation, "augmentation": specification["augmentation"], "source_coverage_target": source_coverage},
         "context": {
             "audience": specification["audience"], "genre": specification["genre"],
@@ -108,7 +112,17 @@ def compile_contract(specification: dict[str, Any]) -> dict[str, Any]:
             "user_profile": specification.get("user_profile", "lucas"), "reading_context": reading_context,
         },
         "terminology": {"known_terms": known_terms, "term_requirements": term_requirements},
+        "structure": {"parallel_groups": list(specification.get("parallel_groups", []))},
         "components": {"component_order": component_order, "layout_exceptions": list(specification.get("layout_exceptions", []))},
+        "code": {
+            "coverage_mode": specification.get("code_coverage_mode", "not_applicable"),
+            "unit_mappings": list(specification.get("code_unit_mappings", [])),
+        },
+        "conversation": {
+            "preserve_superseded_requirements": specification.get("preserve_superseded_requirements", False),
+            "superseded_texts": list(specification.get("superseded_texts", [])),
+            "reason": specification.get("superseded_reason", "当前任务没有要求保留已经撤销或替换的要求"),
+        },
         "presentation": {
             "renderer": {
                 "name": renderer_name,
@@ -117,6 +131,7 @@ def compile_contract(specification: dict[str, Any]) -> dict[str, Any]:
             },
             "source_material": source_material,
             "component_alignment": component_alignment,
+            "render_evidence": list(specification.get("render_evidence", [])),
         },
         "boundaries": {"boundary_requirements": list(specification.get("boundary_requirements", []))},
         "quality": {
@@ -352,6 +367,45 @@ def verify_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
             findings.append(_finding("TERM_FIRST_USE_COVERAGE", requirement["term_id"], "术语首次形式或解释含义覆盖不足", "零先验读者无法完成当前判断或操作", "补齐正式名称和缺失的自然解释"))
         checks += 1
 
+    parallel_coverage = {item["group_id"]: item for item in bundle["parallel_group_coverage"]}
+    for requirement in task["structure"]["parallel_groups"]:
+        actual = parallel_coverage.get(requirement["group_id"])
+        if actual is None:
+            findings.append(_finding(
+                "PARALLEL_GROUP_LEDGER", requirement["group_id"],
+                "任务合同登记了排比组，但验证包没有对应结构记录",
+                "两个以上平行项目可能被压成难以扫描的连续语句",
+                "登记每个项目及其列表位置后重新验证",
+            ))
+        else:
+            required_items = set(requirement["item_ids"])
+            if set(actual["item_ids"]) != required_items or not required_items <= set(actual["covered_item_ids"]):
+                findings.append(_finding(
+                    "PARALLEL_GROUP_COVERAGE", requirement["group_id"],
+                    "排比组没有覆盖合同登记的全部项目",
+                    "平行定义、步骤、比较对象或事实可能发生遗漏",
+                    "恢复缺失项目，并保持原有自然顺序",
+                ))
+            if not actual["rendered_as_list"] or actual["nesting_depth"] < requirement["minimum_depth"]:
+                findings.append(_finding(
+                    "PARALLEL_GROUP_LAYOUT", requirement["group_id"],
+                    "排比组没有使用合同要求的缩进列表层级",
+                    "平行关系被埋在连续文本中，读者难以逐项核对",
+                    "把各项目换行并按层级缩进，不改变项目内容",
+                ))
+        checks += 1
+
+    if not task["conversation"]["preserve_superseded_requirements"]:
+        leaked = [item for item in task["conversation"]["superseded_texts"] if item in rendered["text"]]
+        if leaked:
+            findings.append(_finding(
+                "SUPERSEDED_REQUIREMENT_LEAK", "rendered_document/text",
+                "最终答案仍然包含已经被追加要求替换的旧内容",
+                "读者可能把失效要求误认为当前仍然有效",
+                "删除失效内容；只有历史、审计或撤销说明任务才保留",
+            ))
+        checks += 1
+
     component_orders = {item["component_id"]: item for item in task["components"]["component_order"]}
     layout_exceptions = {item["component_id"] for item in task["components"]["layout_exceptions"]}
     covered_component_ids = {item["component_id"] for item in bundle["component_coverage"]}
@@ -371,6 +425,33 @@ def verify_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
             findings.append(_finding("COMPONENT_UNIT_COVERAGE", component_id, "组件有效单元没有全部覆盖", "图片、表格或代码说明存在理解缺口", "补齐缺失单元的功能和作用说明"))
         if component["component_type"] == "TABLE" and set(component["table_cells"]["all"]) - set(component["table_cells"]["covered"]):
             findings.append(_finding("TABLE_CELL_COVERAGE", component_id, "表格数据格没有全部映射", "结论可能遗漏异常值或关键数据", "使用列定义、值词典、行映射或单格说明补齐覆盖"))
+        code_coverage = component["code"]
+        if component["component_type"] == "CODE":
+            expected_mode = task["code"]["coverage_mode"]
+            if code_coverage is None or expected_mode == "not_applicable" or code_coverage["coverage_mode"] != expected_mode:
+                findings.append(_finding(
+                    "CODE_COVERAGE_MODE", component_id,
+                    "代码组件没有使用任务合同登记的注释或逐行解释路径",
+                    "密集概述可能冒充逐行覆盖，零先验读者无法定位每个有效语句",
+                    "选择 annotated_code 或 line_by_line_explanation，并登记每个有效代码单元",
+                ))
+            elif code_coverage["uncovered_units"]:
+                findings.append(_finding(
+                    "CODE_UNIT_COVERAGE", component_id,
+                    "代码覆盖账本仍有未解释的有效语句",
+                    "读者无法确认这些语句的动作、原因或结果",
+                    "为每个未覆盖单元增加合法注释或独立可定位解释",
+                ))
+            else:
+                task_units = {item["unit_id"] for item in task["code"]["unit_mappings"]}
+                covered_units = {item["unit_id"] for item in code_coverage["unit_mappings"]}
+                if task_units != covered_units:
+                    findings.append(_finding(
+                        "CODE_UNIT_MAPPING", component_id,
+                        "代码组件的单元映射与任务合同不一致",
+                        "部分有效语句可能没有独立解释位置",
+                        "按任务合同补齐每个代码单元的解释映射",
+                    ))
         mermaid = component["mermaid"]
         if mermaid:
             if mermaid["direction"] in {"LR", "RL"} and component_id not in layout_exceptions:
@@ -388,7 +469,19 @@ def verify_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
             findings.append(_finding("CAPTION_ALIGNMENT", component_id, "当前渲染器支持题注居中，但题注没有登记为居中", "题注与对象的视觉关系不一致", "把题注设为居中"))
         if requested["object"] == "center" and not renderer["exact_object_alignment"] and not presentation["limitation"].strip():
             findings.append(_finding("ALIGNMENT_LIMITATION", component_id, "渲染器不能保证对象精确居中，但覆盖记录没有说明限制", "系统可能把无法保证的布局误报为已经实现", "说明渲染限制，并完成实际渲染检查"))
-        checks += 9
+        if renderer["name"] == "github_markdown" and component["component_type"] in {"IMAGE", "TABLE", "FLOWCHART"}:
+            evidence = [item for item in task["presentation"]["render_evidence"] if item["component_id"] == component_id]
+            combinations = {(item["viewport_width"], item["theme"]) for item in evidence}
+            required_combinations = {(390, "light"), (390, "dark"), (1280, "light"), (1280, "dark")}
+            failed_evidence = [item for item in evidence if not item["object_centered"] or not item["caption_centered"] or item["horizontal_overflow"]]
+            if combinations != required_combinations or failed_evidence:
+                findings.append(_finding(
+                    "GITHUB_RENDER_EVIDENCE", component_id,
+                    "GitHub 视觉对象缺少桌面、移动端、亮色或暗色实际渲染证据，或者渲染结果没有居中",
+                    "源码中的居中标记不能证明用户看到的对象和题注已经居中且没有溢出",
+                    "完成四种视口与主题组合的实际渲染检查，并修复失败结果",
+                ))
+        checks += 12
 
     boundary_coverage = {item["claim_id"]: item for item in bundle["boundary_coverage"]}
     for requirement in task["boundaries"]["boundary_requirements"]:

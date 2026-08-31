@@ -1,0 +1,73 @@
+{
+  "identity": {
+    "case_id": "REJECTED-FWD-R1-010",
+    "origin_case_id": "FWD-R1-010",
+    "status": "rejected",
+    "revision": 1,
+    "approved_by_user": false,
+    "reviewed_at": "2026-08-31",
+    "profile_revision_at_review": "round-3-capitalization"
+  },
+  "task": {
+    "audience": "zero_prior_knowledge",
+    "augmentation": "GLOSS",
+    "base_operation": "TRANSFORM",
+    "case_id": "FWD-R1-010",
+    "components": [
+      "TEXT"
+    ],
+    "genre": "multi_turn_instruction",
+    "references": [],
+    "request": "合并追加要求，写成一份连续说明；后来的要求覆盖冲突的旧要求",
+    "round": 1,
+    "source": {
+      "content": [
+        "第一轮：校准前让探头在室温下静置 10 分钟，每次记录 3 个读数",
+        "追加：静置时间改为 15 分钟",
+        "追加：如果 3 个读数的最大差值超过 0.4 摄氏度，就重新连接探头并再次测量"
+      ],
+      "material_type": "multi_turn",
+      "sha256": "647fa8655711937fc7beb0ed7c123606f9185e776353c61ccb3fbb8cf4158407"
+    }
+  },
+  "source": {
+    "original_request_sha256": "29f92f46736efcb422c218148e468ab3d111928f10f974615f9ab5aed6cd0011",
+    "original_answer_sha256": "b858e3fec1a16063fb06e0ddf7571f91398521306b4e5c01405929a3e8823f25",
+    "source_units": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003"
+    ],
+    "support_map": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003"
+    ],
+    "background_claims": [],
+    "revision_references": []
+  },
+  "artifact": {
+    "answer": "# 校准说明\n\n校准前，让探头在室温下静置 15 分钟；原先的 10 分钟要求已由追加要求替换\n\n每次记录 3 个读数，如果 3 个读数的最大差值超过 0.4 摄氏度，重新连接探头并再次测量",
+    "answer_sha256": "b858e3fec1a16063fb06e0ddf7571f91398521306b4e5c01405929a3e8823f25",
+    "approved_snapshot_sha256": null,
+    "revision_of": null
+  },
+  "review": {
+    "decision_source": "explicit_user_review",
+    "decision": "rejected",
+    "reasons": [
+      "已经被追加要求替换的旧要求不得继续出现在最终答案"
+    ],
+    "correct_parts": [
+      "原始答案中未被用户否定的事实、数字、条件和证据边界继续保留"
+    ],
+    "regression_requirements": [
+      "已经被追加要求替换的旧要求不得继续出现在最终答案"
+    ],
+    "non_blocking_preferences": [],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "只保存脱敏技术反馈，不保存原始对话、账户信息或个人路径"
+    }
+  }
+}

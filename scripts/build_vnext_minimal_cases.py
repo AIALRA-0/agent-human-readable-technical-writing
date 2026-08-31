@@ -131,7 +131,7 @@ RULES = {
 
 
 TERM_TEXT = {
-    "TERM_NPM": "npm 是 Node.js 生态使用的包管理器（Package Manager）、命令行工具和软件包仓库；开发者使用它安装、更新和管理 JavaScript 或 TypeScript 依赖",
+    "TERM_NPM": "npm 是 Node.js 生态使用的包管理客户端和软件包仓库；开发者使用它安装、更新和管理 JavaScript 或 TypeScript 依赖",
     "TERM_CI": "CI 持续集成（Continuous Integration）会自动运行构建和测试",
     "TERM_HTTP_POST": "`POST /tasks` 借助 HTTP 超文本传输协议（Hypertext Transfer Protocol）提交新任务",
     "TERM_HTTP_202_TASK_ID": "`202` 表示处理尚未完成；`task_id` 是查询标识",
@@ -202,8 +202,8 @@ def term_payload(rule_id: str, passing: bool) -> dict[str, Any]:
         return {"reading_context": "standalone", "known_terms": [] if passing else ["HTTP"]}
     contextual = {
         "TERM_CASE_PACKAGE_MANAGER": (
-            {"context": "authored_prose", "text": "npm 包管理器（Package Manager）用于管理项目依赖"},
-            {"context": "authored_prose", "text": "npm 包管理器（package manager）用于管理项目依赖"},
+            {"context": "authored_prose", "text": "软件包管理器（Package Manager）用于管理项目依赖"},
+            {"context": "authored_prose", "text": "软件包管理器（package manager）用于管理项目依赖"},
         ),
         "TERM_CASE_CONTINUOUS_INTEGRATION": (
             {"context": "authored_prose", "text": "CI 持续集成（Continuous Integration）会自动运行测试"},

@@ -53,7 +53,7 @@ class VNextRuntimeTests(unittest.TestCase):
                 "support": {"atom_ids": ["ATOM-001"]},
                 "roles": {"values": ["source_restatement"]},
             }],
-            "term_uses": [], "component_coverage": [], "boundary_coverage": [],
+            "term_uses": [], "parallel_group_coverage": [], "component_coverage": [], "boundary_coverage": [],
             "rendered_document": {
                 "text": text, "sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
                 "sentences": [{
@@ -78,16 +78,16 @@ class VNextRuntimeTests(unittest.TestCase):
 
         self.assertEqual("PASS", verify_bundle(self.build_bundle())["status"])
 
-    def test_compile_records_round_three_presentation(self) -> None:
-        """The compiler exposes renderer limits instead of claiming universal centering."""
+    def test_compile_records_round_four_presentation(self) -> None:
+        """The compiler requires verifiable GitHub object and caption alignment."""
 
         contract = compile_contract({
             "task_id": "TASK-TEST-003", "base_operation": "EXPLAIN", "augmentation": "GLOSS",
             "audience": "general_reader", "genre": "readme", "media": ["github_markdown"],
             "components": ["TEXT", "IMAGE"],
         })
-        self.assertEqual("round-3-capitalization", contract["identity"]["profile_revision"])
-        self.assertFalse(contract["presentation"]["renderer"]["exact_object_alignment"])
+        self.assertEqual("round-4-generalization", contract["identity"]["profile_revision"])
+        self.assertTrue(contract["presentation"]["renderer"]["exact_object_alignment"])
         self.assertEqual("center", contract["presentation"]["component_alignment"]["caption"])
 
     def test_missing_source_allocation_fails(self) -> None:
@@ -124,6 +124,7 @@ class VNextRuntimeTests(unittest.TestCase):
             },
             "mermaid": {"direction": "LR", "post_explanation": {"node_relationships": "A 进入 B", "process_result": "流程到达 B", "evidence_boundary": "图中没有运行证据"}},
             "table_cells": {"all": [], "covered": []},
+            "code": None,
         })
         bundle["rendered_document"]["text"] = source + "\n" + bundle["rendered_document"]["text"]
         bundle["rendered_document"]["sha256"] = hashlib.sha256(bundle["rendered_document"]["text"].encode("utf-8")).hexdigest()
@@ -199,24 +200,26 @@ class VNextRuntimeTests(unittest.TestCase):
 
         bundle = self.build_bundle()
         requirement = {
-            "term_id": "npm", "official_form": "npm", "registered": True,
+            "term_id": "CI", "official_form": "CI 持续集成（Continuous Integration）",
+            "official_english": "Continuous Integration", "abbreviation": "CI", "registered": True,
             "official_case_verified": True, "parenthetical_english_case": "title_case",
-            "parenthetical_form": "Package Manager", "official_case_precedence": True,
-            "acronym_expansion_allowed": False, "required_meanings": ["definition"],
+            "parenthetical_form": "Continuous Integration", "official_case_precedence": True,
+            "acronym_expansion_allowed": True, "name_rationale": "持续把改动合入共同代码并自动检查",
+            "name_rationale_source": "registry:CI", "required_meanings": ["definition"],
         }
         use = {
-            "term_id": "npm", "official_form": "npm", "parenthetical_form": "Package Manager",
+            "term_id": "CI", "official_form": "CI 持续集成（Continuous Integration）", "parenthetical_form": "Continuous Integration",
             "claimed_expansion": None, "context": "authored_prose",
             "meanings_covered": ["definition"], "sentence_id": "SENT-001",
         }
-        self.add_term(bundle, requirement, use, "npm 包管理器（Package Manager）")
+        self.add_term(bundle, requirement, use, "CI 持续集成（Continuous Integration）会自动检查代码")
         self.assertEqual("PASS", verify_bundle(bundle)["status"])
         for context in ("code", "inline_code", "url", "path", "verbatim"):
             with self.subTest(context=context):
                 literal_bundle = self.build_bundle()
                 literal_use = dict(use)
-                literal_use.update({"official_form": "NPM", "parenthetical_form": None, "context": context})
-                self.add_term(literal_bundle, requirement, literal_use, "NPM")
+                literal_use.update({"official_form": "ci", "parenthetical_form": None, "context": context})
+                self.add_term(literal_bundle, requirement, literal_use, "ci")
                 self.assertEqual("PASS", verify_bundle(literal_bundle)["status"])
 
     def test_registered_parenthetical_lowercase_fails(self) -> None:
@@ -224,17 +227,19 @@ class VNextRuntimeTests(unittest.TestCase):
 
         bundle = self.build_bundle()
         requirement = {
-            "term_id": "npm", "official_form": "npm", "registered": True,
+            "term_id": "CI", "official_form": "CI 持续集成（Continuous Integration）",
+            "official_english": "Continuous Integration", "abbreviation": "CI", "registered": True,
             "official_case_verified": True, "parenthetical_english_case": "title_case",
-            "parenthetical_form": "Package Manager", "official_case_precedence": True,
-            "acronym_expansion_allowed": False, "required_meanings": ["definition"],
+            "parenthetical_form": "Continuous Integration", "official_case_precedence": True,
+            "acronym_expansion_allowed": True, "name_rationale": "持续把改动合入共同代码并自动检查",
+            "name_rationale_source": "registry:CI", "required_meanings": ["definition"],
         }
         use = {
-            "term_id": "npm", "official_form": "npm", "parenthetical_form": "package manager",
+            "term_id": "CI", "official_form": "CI 持续集成（Continuous Integration）", "parenthetical_form": "continuous integration",
             "claimed_expansion": None, "context": "authored_prose",
             "meanings_covered": ["definition"], "sentence_id": "SENT-001",
         }
-        self.add_term(bundle, requirement, use, "npm 包管理器（package manager）")
+        self.add_term(bundle, requirement, use, "CI 持续集成（continuous integration）会自动检查代码")
         report = verify_bundle(bundle)
         self.assertEqual("FAIL", report["status"])
         self.assertIn("PARENTHETICAL_ENGLISH_CASE", {item["rule_id"] for item in report["findings"]})
@@ -244,17 +249,18 @@ class VNextRuntimeTests(unittest.TestCase):
 
         bundle = self.build_bundle()
         requirement = {
-            "term_id": "npm", "official_form": "npm", "registered": True,
-            "official_case_verified": True, "parenthetical_english_case": "title_case",
-            "parenthetical_form": "Package Manager", "official_case_precedence": True,
-            "acronym_expansion_allowed": False, "required_meanings": ["definition"],
+            "term_id": "npm", "official_form": "npm", "official_english": None, "abbreviation": None,
+            "registered": True, "official_case_verified": True, "parenthetical_english_case": "not_applicable",
+            "parenthetical_form": None, "official_case_precedence": True,
+            "acronym_expansion_allowed": False, "name_rationale": "npm 是官方名称，不按缩写展开",
+            "name_rationale_source": "registry:npm", "required_meanings": ["definition", "name_origin"],
         }
         use = {
-            "term_id": "npm", "official_form": "npm", "parenthetical_form": "Package Manager",
+            "term_id": "npm", "official_form": "npm", "parenthetical_form": None,
             "claimed_expansion": "Node Package Manager", "context": "authored_prose",
-            "meanings_covered": ["definition"], "sentence_id": "SENT-001",
+            "meanings_covered": ["definition", "name_origin"], "sentence_id": "SENT-001",
         }
-        self.add_term(bundle, requirement, use, "npm Node Package Manager（Package Manager）")
+        self.add_term(bundle, requirement, use, "npm Node Package Manager 是包管理工具")
         report = verify_bundle(bundle)
         self.assertEqual("FAIL", report["status"])
         self.assertIn("ACRONYM_EXPANSION", {item["rule_id"] for item in report["findings"]})
@@ -264,10 +270,11 @@ class VNextRuntimeTests(unittest.TestCase):
 
         bundle = self.build_bundle()
         requirement = {
-            "term_id": "UNKNOWN", "official_form": "Unknown Tool", "registered": False,
+            "term_id": "UNKNOWN", "official_form": "Unknown Tool", "official_english": None, "abbreviation": None, "registered": False,
             "official_case_verified": False, "parenthetical_english_case": "title_case",
             "parenthetical_form": None, "official_case_precedence": True,
-            "acronym_expansion_allowed": False, "required_meanings": ["definition"],
+            "acronym_expansion_allowed": False, "name_rationale": "尚未确认",
+            "name_rationale_source": "unverified:UNKNOWN", "required_meanings": ["definition"],
         }
         use = {
             "term_id": "UNKNOWN", "official_form": "Unknown Tool", "parenthetical_form": None,
@@ -278,6 +285,148 @@ class VNextRuntimeTests(unittest.TestCase):
         report = verify_bundle(bundle)
         self.assertEqual("REVIEW_REQUIRED", report["status"])
         self.assertIn("UNVERIFIED_OFFICIAL_CASE", {item["rule_id"] for item in report["findings"]})
+
+    def test_parallel_group_requires_coverage_ledger(self) -> None:
+        """A semantic parallel group cannot disappear into unstructured prose."""
+
+        bundle = self.build_bundle()
+        bundle["task_contract"]["structure"]["parallel_groups"] = [{
+            "group_id": "PGRP-001", "kind": "facts", "item_ids": ["ITEM-A", "ITEM-B"],
+            "required_layout": "indented_list", "minimum_depth": 1,
+        }]
+        report = verify_bundle(bundle)
+        self.assertIn("PARALLEL_GROUP_LEDGER", {item["rule_id"] for item in report["findings"]})
+
+    def test_parallel_group_requires_indented_list(self) -> None:
+        """Registered parallel items must be rendered as a list at the declared depth."""
+
+        bundle = self.build_bundle()
+        bundle["task_contract"]["structure"]["parallel_groups"] = [{
+            "group_id": "PGRP-001", "kind": "comparison", "item_ids": ["ITEM-A", "ITEM-B"],
+            "required_layout": "indented_list", "minimum_depth": 1,
+        }]
+        bundle["parallel_group_coverage"] = [{
+            "group_id": "PGRP-001", "item_ids": ["ITEM-A", "ITEM-B"],
+            "covered_item_ids": ["ITEM-A", "ITEM-B"], "rendered_as_list": False, "nesting_depth": 0,
+        }]
+        report = verify_bundle(bundle)
+        self.assertIn("PARALLEL_GROUP_LAYOUT", {item["rule_id"] for item in report["findings"]})
+
+    def add_code_component(self, bundle: dict, uncovered: list[str]) -> None:
+        """Attach one code component with explicit annotated-code mappings."""
+
+        source = "```python\nvalue = 1  # 初始化数值\n```"
+        mapping = {"unit_id": "CODE-001", "source_locator": "第 1 行", "explanation_locator": "第 1 行注释"}
+        bundle["task_contract"]["context"]["components"].append("CODE")
+        bundle["task_contract"]["components"]["component_order"].append({"component_id": "CODE-1", "source_before_explanation": True})
+        bundle["task_contract"]["code"] = {"coverage_mode": "annotated_code", "unit_mappings": [mapping]}
+        bundle["component_coverage"].append({
+            "component_id": "CODE-1", "component_type": "CODE", "source_text": source,
+            "source_position": 0, "explanation_position": len(source), "required_units": ["CODE-001"],
+            "covered_units": ["CODE-001"],
+            "presentation": {"source_format": "code_fence", "object_alignment": "not_applicable", "caption_alignment": "not_applicable", "renderer": "chat", "limitation": ""},
+            "mermaid": None, "table_cells": {"all": [], "covered": []},
+            "code": {"coverage_mode": "annotated_code", "unit_mappings": [mapping], "uncovered_units": uncovered},
+        })
+        text = source + "\n\n" + bundle["rendered_document"]["text"]
+        bundle["rendered_document"]["text"] = text
+        bundle["rendered_document"]["sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+    def test_annotated_code_mode_passes(self) -> None:
+        """Legal code comments can satisfy per-unit coverage."""
+
+        bundle = self.build_bundle()
+        self.add_code_component(bundle, [])
+        self.assertEqual("PASS", verify_bundle(bundle)["status"])
+
+    def test_uncovered_code_unit_fails(self) -> None:
+        """A dense summary cannot hide an uncovered effective statement."""
+
+        bundle = self.build_bundle()
+        self.add_code_component(bundle, ["CODE-001"])
+        report = verify_bundle(bundle)
+        self.assertIn("CODE_UNIT_COVERAGE", {item["rule_id"] for item in report["findings"]})
+
+    def test_superseded_requirement_is_removed_by_default(self) -> None:
+        """An overridden requirement cannot remain in the current answer by default."""
+
+        bundle = self.build_bundle()
+        bundle["task_contract"]["conversation"]["superseded_texts"] = ["静置 10 分钟"]
+        text = "静置 10 分钟；任务已接收"
+        bundle["rendered_document"]["text"] = text
+        bundle["rendered_document"]["sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        report = verify_bundle(bundle)
+        self.assertIn("SUPERSEDED_REQUIREMENT_LEAK", {item["rule_id"] for item in report["findings"]})
+
+    def test_requested_history_may_keep_superseded_requirement(self) -> None:
+        """Audit and revocation tasks may retain the old requirement when explicitly requested."""
+
+        bundle = self.build_bundle()
+        bundle["task_contract"]["conversation"] = {
+            "preserve_superseded_requirements": True, "superseded_texts": ["静置 10 分钟"],
+            "reason": "用户要求说明已经撤销的旧安排",
+        }
+        text = "静置 10 分钟；任务已接收"
+        bundle["rendered_document"]["text"] = text
+        bundle["rendered_document"]["sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        self.assertEqual("PASS", verify_bundle(bundle)["status"])
+
+    def add_github_image(self, bundle: dict, evidence: list[dict]) -> None:
+        """Attach one centered GitHub image and its renderer evidence."""
+
+        source = '<div align="center"><img src="figure.svg" alt="示意图" /><p>图 1. 示意图</p></div>'
+        bundle["task_contract"] = compile_contract({
+            "task_id": "TASK-TEST-IMG", "base_operation": "EXPLAIN", "augmentation": "GLOSS",
+            "audience": "general_reader", "genre": "readme", "media": ["github_markdown"],
+            "components": ["TEXT", "IMAGE"], "render_evidence": evidence,
+        })
+        bundle["component_coverage"] = [{
+            "component_id": "IMAGE", "component_type": "IMAGE", "source_text": source,
+            "source_position": 0, "explanation_position": len(source), "required_units": ["image"], "covered_units": ["image"],
+            "presentation": {"source_format": "image", "object_alignment": "center", "caption_alignment": "center", "renderer": "github_markdown", "limitation": ""},
+            "mermaid": None, "table_cells": {"all": [], "covered": []}, "code": None,
+        }]
+        text = source + "\n\n" + bundle["rendered_document"]["text"]
+        bundle["rendered_document"]["text"] = text
+        bundle["rendered_document"]["sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+    def test_github_visual_requires_four_render_results(self) -> None:
+        """Source alignment markup alone cannot prove the rendered result."""
+
+        bundle = self.build_bundle()
+        self.add_github_image(bundle, [])
+        report = verify_bundle(bundle)
+        self.assertIn("GITHUB_RENDER_EVIDENCE", {item["rule_id"] for item in report["findings"]})
+
+    def test_github_visual_passes_four_render_results(self) -> None:
+        """Desktop and mobile light and dark render evidence satisfies the layout contract."""
+
+        evidence = [
+            {"component_id": "IMAGE", "renderer": "github_markdown", "viewport_width": width, "theme": theme,
+             "object_centered": True, "caption_centered": True, "horizontal_overflow": False, "evidence_source": f"render-{width}-{theme}.png"}
+            for width in (390, 1280) for theme in ("light", "dark")
+        ]
+        bundle = self.build_bundle()
+        self.add_github_image(bundle, evidence)
+        self.assertEqual("PASS", verify_bundle(bundle)["status"])
+
+    def test_professional_term_requires_name_rationale(self) -> None:
+        """A standalone professional term must explain why its registered name is used."""
+
+        bundle = self.build_bundle()
+        requirement = {
+            "term_id": "TTL", "official_form": "TTL 生存时间（Time to Live）", "official_english": "Time to Live", "abbreviation": "TTL",
+            "registered": True, "official_case_verified": True, "name_rationale": "表示记录能够继续使用的时间",
+            "name_rationale_source": "registry:TTL", "parenthetical_english_case": "title_case", "parenthetical_form": "Time to Live",
+            "official_case_precedence": True, "acronym_expansion_allowed": True, "required_meanings": ["definition", "name_origin"],
+        }
+        use = {
+            "term_id": "TTL", "official_form": "TTL 生存时间（Time to Live）", "parenthetical_form": "Time to Live",
+            "claimed_expansion": "Time to Live", "context": "authored_prose", "meanings_covered": ["definition"], "sentence_id": "SENT-001",
+        }
+        self.add_term(bundle, requirement, use, "TTL 生存时间（Time to Live）规定缓存时长")
+        report = verify_bundle(bundle)
+        self.assertIn("TERM_FIRST_USE_COVERAGE", {item["rule_id"] for item in report["findings"]})
 
 
 if __name__ == "__main__":

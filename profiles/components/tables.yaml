@@ -1,7 +1,7 @@
 profile:
   identity:
     profile_id: table-explanation
-    revision: round-2-feedback
+    revision: round-4-generalization
     description: 表格解释通过列定义、值词典和行映射覆盖全部数据，同时避免机械逐格复述
   source_order:
     original_table:
@@ -10,9 +10,9 @@ profile:
       description: 原表保留在解释前面，读者可以直接核对数据
   presentation:
     alignment:
-      policy: center_if_supported
+      policy: github_render_verified_html
       severity: PROFILE_REQUIRED
-      description: 表格与表题在媒介支持时共同居中，原生 Markdown 无法可靠居中时使用经过渲染验证的可访问 HTML 或登记限制
+      description: GitHub 表格使用可访问 HTML 和居中容器，表题放在表格下方，并在 1280 像素与 390 像素、亮色与暗色主题中核对实际居中和横向溢出
   required_coverage:
     overview:
       description: 说明表格整体回答什么

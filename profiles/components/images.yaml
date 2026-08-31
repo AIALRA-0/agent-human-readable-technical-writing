@@ -1,7 +1,7 @@
 profile:
   identity:
     profile_id: image-explanation
-    revision: round-2-feedback
+    revision: round-4-generalization
     description: 图片按照零先验读者处理，并区分可见事实、背景与推断
   source_order:
     original_image:
@@ -10,9 +10,9 @@ profile:
       description: 原图始终出现在解释前面，读者可以同步核对讲解和图中证据
   presentation:
     alignment:
-      policy: center_if_supported
+      policy: github_render_verified_center
       severity: PROFILE_REQUIRED
-      description: 图片与图题在媒介支持时放入同一居中容器，无法精确控制时登记渲染限制
+      description: GitHub 图片与图题放入同一居中 HTML 容器，并在 1280 像素与 390 像素、亮色与暗色主题中核对实际居中和横向溢出
     asset_quality:
       policy: separate_from_writing_quality
       severity: ADVISORY

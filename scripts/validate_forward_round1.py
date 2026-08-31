@@ -117,24 +117,20 @@ def main() -> int:
         evidence_errors.append("second round must remain blocked while hard errors exist")
     evidence_errors.extend(f"unregistered error: {item}" for item in unexpected_errors)
     evidence_errors.extend(f"registered error no longer reproduced: {item}" for item in missing_registered)
-    status = "PASS" if not evidence_errors else "FAIL"
-    round_gate = "FAIL" if errors else "PENDING_USER_REVIEW"
     report = {
-        "status": status,
-        "results": {
-            "requests": len(requests), "candidates": len(candidates),
-            "generation_attempts_other_than_one": sum(item.get("generation_attempt") != 1 for item in candidates),
-            "declared_source_coverage": f"{source_coverage}/{len(candidates)}",
-            "declared_background_reference_coverage": f"{background_coverage}/{len(candidates)}",
-            "deterministic_errors": len(errors), "human_decisions": 0,
+        "artifact_integrity": {
+            "status": "PASS" if not evidence_errors else "FAIL",
+            "checked": len(candidates),
+            "failures": evidence_errors,
         },
-        "round_gate": round_gate,
-        "reason": "首次答案、请求摘要和三项硬错误记录完全一致" if not evidence_errors else "前向证据与实际检查结果不一致",
-        "impact": "基础设施检查有效，但第一轮因 3 个标点硬错误不能通过，也不能生成第二轮" if not evidence_errors else "当前记录不能证明第一轮的真实结果",
-        "next": "保留首次答案并由用户审核；根据真实反馈决定下一版，第二轮继续停止" if not evidence_errors else "修复证据记录或生成物不一致问题",
-        "candidate_findings": errors,
-        "evidence_errors": evidence_errors,
+        "human_acceptance": {"accepted": 8, "total": 20, "rate": 0.4, "threshold_met": False},
+        "next_round_allowed": False,
+        "reason": "首次答案、请求摘要和已登记机械错误保持一致，但用户只原样接受 8/20" if not evidence_errors else "前向证据与实际检查结果不一致",
+        "impact": "第一轮成绩固定为 40%，修订版不能替换该成绩，第二轮继续停止" if not evidence_errors else "当前记录不能证明第一轮的真实结果",
+        "next": "审核 12 个前向 R2 修订候选；全部接受后再生成第二轮" if not evidence_errors else "修复证据记录或生成物不一致问题",
     }
+    report_schema = json.loads((ROOT / "contracts" / "forward-round-report.schema.json").read_text(encoding="utf-8"))
+    jsonschema.Draft202012Validator(report_schema).validate(report)
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0 if not evidence_errors else 1
 

@@ -4,7 +4,7 @@
   "title": "TaskContract",
   "type": "object",
   "additionalProperties": false,
-  "required": ["identity", "operation", "context", "terminology", "components", "presentation", "boundaries", "quality", "clarification"],
+  "required": ["identity", "operation", "context", "terminology", "structure", "components", "code", "conversation", "presentation", "boundaries", "quality", "clarification"],
   "properties": {
     "identity": {
       "type": "object", "additionalProperties": false,
@@ -12,7 +12,7 @@
       "properties": {
         "task_id": {"type": "string", "pattern": "^TASK-[A-Z0-9-]+$"},
         "contract_version": {"const": "1.1"},
-        "profile_revision": {"const": "round-3-capitalization"}
+        "profile_revision": {"const": "round-4-generalization"}
       }
     },
     "operation": {
@@ -45,17 +45,41 @@
           "type": "array",
           "items": {
             "type": "object", "additionalProperties": false,
-            "required": ["term_id", "official_form", "registered", "official_case_verified", "parenthetical_english_case", "parenthetical_form", "official_case_precedence", "acronym_expansion_allowed", "required_meanings"],
+            "required": ["term_id", "official_form", "official_english", "abbreviation", "registered", "official_case_verified", "name_rationale", "name_rationale_source", "parenthetical_english_case", "parenthetical_form", "official_case_precedence", "acronym_expansion_allowed", "required_meanings"],
             "properties": {
               "term_id": {"type": "string", "minLength": 1},
               "official_form": {"type": "string", "minLength": 1},
+              "official_english": {"type": ["string", "null"], "minLength": 1},
+              "abbreviation": {"type": ["string", "null"], "minLength": 1},
               "registered": {"type": "boolean"},
               "official_case_verified": {"type": "boolean"},
+              "name_rationale": {"type": "string", "minLength": 1},
+              "name_rationale_source": {"type": "string", "minLength": 1},
               "parenthetical_english_case": {"enum": ["title_case", "official", "not_applicable"]},
               "parenthetical_form": {"type": ["string", "null"]},
               "official_case_precedence": {"const": true},
               "acronym_expansion_allowed": {"type": "boolean"},
               "required_meanings": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["definition", "current_use", "observable_behavior", "actual_impact", "name_origin"]}}
+            }
+          }
+        }
+      }
+    },
+    "structure": {
+      "type": "object", "additionalProperties": false,
+      "required": ["parallel_groups"],
+      "properties": {
+        "parallel_groups": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["group_id", "kind", "item_ids", "required_layout", "minimum_depth"],
+            "properties": {
+              "group_id": {"type": "string", "pattern": "^PGRP-[0-9]{3,}$"},
+              "kind": {"enum": ["definition", "procedure", "comparison", "facts", "causes", "actions"]},
+              "item_ids": {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+              "required_layout": {"const": "indented_list"},
+              "minimum_depth": {"type": "integer", "minimum": 1}
             }
           }
         }
@@ -91,9 +115,37 @@
         }
       }
     },
+    "code": {
+      "type": "object", "additionalProperties": false,
+      "required": ["coverage_mode", "unit_mappings"],
+      "properties": {
+        "coverage_mode": {"enum": ["not_applicable", "annotated_code", "line_by_line_explanation"]},
+        "unit_mappings": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["unit_id", "source_locator", "explanation_locator"],
+            "properties": {
+              "unit_id": {"type": "string", "pattern": "^CODE-[0-9]{3,}$"},
+              "source_locator": {"type": "string", "minLength": 1},
+              "explanation_locator": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    },
+    "conversation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["preserve_superseded_requirements", "superseded_texts", "reason"],
+      "properties": {
+        "preserve_superseded_requirements": {"type": "boolean"},
+        "superseded_texts": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "reason": {"type": "string", "minLength": 1}
+      }
+    },
     "presentation": {
       "type": "object", "additionalProperties": false,
-      "required": ["renderer", "source_material", "component_alignment"],
+      "required": ["renderer", "source_material", "component_alignment", "render_evidence"],
       "properties": {
         "renderer": {
           "type": "object", "additionalProperties": false,
@@ -120,6 +172,23 @@
             "object": {"enum": ["center", "renderer_default", "not_applicable"]},
             "caption": {"enum": ["center", "renderer_default", "not_applicable"]},
             "fallback": {"type": "string"}
+          }
+        },
+        "render_evidence": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["component_id", "renderer", "viewport_width", "theme", "object_centered", "caption_centered", "horizontal_overflow", "evidence_source"],
+            "properties": {
+              "component_id": {"type": "string", "minLength": 1},
+              "renderer": {"const": "github_markdown"},
+              "viewport_width": {"enum": [390, 1280]},
+              "theme": {"enum": ["light", "dark"]},
+              "object_centered": {"type": "boolean"},
+              "caption_centered": {"type": "boolean"},
+              "horizontal_overflow": {"type": "boolean"},
+              "evidence_source": {"type": "string", "minLength": 1}
+            }
           }
         }
       }

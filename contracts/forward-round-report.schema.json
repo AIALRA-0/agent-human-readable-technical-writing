@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AIALRA-0/agent-human-readable-technical-writing/contracts/forward-round-report.schema.json",
+  "title": "ForwardRoundReport",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["artifact_integrity", "human_acceptance", "next_round_allowed", "reason", "impact", "next"],
+  "properties": {
+    "artifact_integrity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "checked", "failures"],
+      "properties": {
+        "status": {"enum": ["PASS", "FAIL"]},
+        "checked": {"type": "integer", "minimum": 0},
+        "failures": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "human_acceptance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["accepted", "total", "rate", "threshold_met"],
+      "properties": {
+        "accepted": {"type": "integer", "minimum": 0},
+        "total": {"type": "integer", "minimum": 1},
+        "rate": {"type": "number", "minimum": 0, "maximum": 1},
+        "threshold_met": {"type": "boolean"}
+      }
+    },
+    "next_round_allowed": {"type": "boolean"},
+    "reason": {"type": "string", "minLength": 1},
+    "impact": {"type": "string", "minLength": 1},
+    "next": {"type": "string", "minLength": 1}
+  }
+}

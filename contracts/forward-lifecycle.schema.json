@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AIALRA-0/agent-human-readable-technical-writing/contracts/forward-lifecycle.schema.json",
+  "title": "ForwardEvaluationLifecycle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["identity", "task", "source", "artifact", "review"],
+  "properties": {
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "origin_case_id", "status", "revision", "approved_by_user", "reviewed_at", "profile_revision_at_review"],
+      "properties": {
+        "case_id": {"type": "string", "pattern": "^(?:GOLD|REJECTED)-FWD-R1-[0-9]{3}$|^CANDIDATE-FWD-R1-[0-9]{3}-R2$"},
+        "origin_case_id": {"type": "string", "pattern": "^FWD-R1-[0-9]{3}$"},
+        "status": {"enum": ["gold", "rejected", "candidate"]},
+        "revision": {"type": "integer", "minimum": 1},
+        "approved_by_user": {"type": "boolean"},
+        "reviewed_at": {"type": ["string", "null"], "format": "date"},
+        "profile_revision_at_review": {"type": ["string", "null"], "minLength": 1}
+      }
+    },
+    "task": {"$ref": "forward-request.schema.json"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["original_request_sha256", "original_answer_sha256", "source_units", "support_map", "background_claims", "revision_references"],
+      "properties": {
+        "original_request_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "original_answer_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "source_units": {"type": "array", "items": {"type": "string", "pattern": "^SRCU-[0-9]{3}$"}},
+        "support_map": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^SRCU-[0-9]{3}$"}},
+        "background_claims": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["claim", "source_reference"],
+            "properties": {
+              "claim": {"type": "string", "minLength": 1},
+              "source_reference": {"type": "string", "minLength": 1}
+            }
+          }
+        },
+        "revision_references": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["id", "kind", "content"],
+            "properties": {
+              "id": {"type": "string", "minLength": 1},
+              "kind": {"enum": ["explicit_user_review", "term_registry", "official_documentation"]},
+              "content": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["answer", "answer_sha256", "approved_snapshot_sha256", "revision_of"],
+      "properties": {
+        "answer": {"type": "string", "minLength": 1},
+        "answer_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "approved_snapshot_sha256": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+        "revision_of": {"type": ["string", "null"], "pattern": "^(?:FWD-R1-[0-9]{3}|REJECTED-FWD-R1-[0-9]{3})$"}
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision_source", "decision", "reasons", "correct_parts", "regression_requirements", "non_blocking_preferences", "privacy"],
+      "properties": {
+        "decision_source": {"enum": ["explicit_user_review", "pending_user_review"]},
+        "decision": {"enum": ["accepted", "rejected", "pending"]},
+        "reasons": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "correct_parts": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "regression_requirements": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "non_blocking_preferences": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "privacy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "basis"],
+          "properties": {
+            "status": {"const": "public_safe"},
+            "basis": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"identity": {"properties": {"status": {"const": "gold"}}}}},
+      "then": {"properties": {
+        "identity": {"properties": {"case_id": {"pattern": "^GOLD-FWD-R1-[0-9]{3}$"}, "approved_by_user": {"const": true}, "reviewed_at": {"type": "string"}, "profile_revision_at_review": {"type": "string"}}},
+        "artifact": {"properties": {"approved_snapshot_sha256": {"type": "string"}, "revision_of": {"type": "null"}}},
+        "review": {"properties": {"decision_source": {"const": "explicit_user_review"}, "decision": {"const": "accepted"}}}
+      }}
+    },
+    {
+      "if": {"properties": {"identity": {"properties": {"status": {"const": "rejected"}}}}},
+      "then": {"properties": {
+        "identity": {"properties": {"case_id": {"pattern": "^REJECTED-FWD-R1-[0-9]{3}$"}, "approved_by_user": {"const": false}, "reviewed_at": {"type": "string"}, "profile_revision_at_review": {"type": "string"}}},
+        "artifact": {"properties": {"approved_snapshot_sha256": {"type": "null"}, "revision_of": {"type": "null"}}},
+        "review": {"properties": {"decision_source": {"const": "explicit_user_review"}, "decision": {"const": "rejected"}, "reasons": {"minItems": 1}, "regression_requirements": {"minItems": 1}}}
+      }}
+    },
+    {
+      "if": {"properties": {"identity": {"properties": {"status": {"const": "candidate"}}}}},
+      "then": {"properties": {
+        "identity": {"properties": {"case_id": {"pattern": "^CANDIDATE-FWD-R1-[0-9]{3}-R2$"}, "approved_by_user": {"const": false}, "reviewed_at": {"type": "null"}, "profile_revision_at_review": {"type": "null"}}},
+        "artifact": {"properties": {"approved_snapshot_sha256": {"type": "null"}, "revision_of": {"type": "string"}}},
+        "review": {"properties": {"decision_source": {"const": "pending_user_review"}, "decision": {"const": "pending"}}}
+      }}
+    }
+  ]
+}

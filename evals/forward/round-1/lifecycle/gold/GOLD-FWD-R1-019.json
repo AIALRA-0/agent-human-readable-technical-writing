@@ -1,0 +1,88 @@
+{
+  "identity": {
+    "case_id": "GOLD-FWD-R1-019",
+    "origin_case_id": "FWD-R1-019",
+    "status": "gold",
+    "revision": 1,
+    "approved_by_user": true,
+    "reviewed_at": "2026-08-31",
+    "profile_revision_at_review": "round-3-capitalization"
+  },
+  "task": {
+    "audience": "zero_prior_knowledge",
+    "augmentation": "TEACHING",
+    "base_operation": "EXPLAIN",
+    "case_id": "FWD-R1-019",
+    "components": [
+      "CODE",
+      "TEXT"
+    ],
+    "genre": "code_explanation",
+    "references": [
+      {
+        "content": "loans 表保存借阅记录；returned_at 为空表示尚未归还；查询只读取 title 和 due_date，不修改数据",
+        "id": "REF-001"
+      }
+    ],
+    "request": "保留原始 SQL，解释查询目标、每一行、筛选条件、排序结果、执行方式和副作用",
+    "round": 1,
+    "source": {
+      "content": "SELECT title, due_date\nFROM loans\nWHERE returned_at IS NULL\nORDER BY due_date ASC;",
+      "material_type": "code",
+      "sha256": "690fcc0d41f3aeaeaec7a3add8a6f24ec49f6c051c8ef0152614b5447cbc9974"
+    }
+  },
+  "source": {
+    "original_request_sha256": "0db48f26da341da46d4b8712edcc73a89e902cb6d630a4e0d345b24be2286b00",
+    "original_answer_sha256": "5612e904791610cfc21f14aac6e63e71fa987a50a29a7c86e702de76aa27c3c1",
+    "source_units": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003",
+      "SRCU-004"
+    ],
+    "support_map": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003",
+      "SRCU-004"
+    ],
+    "background_claims": [
+      {
+        "claim": "loans 表保存借阅记录",
+        "source_reference": "REF-001"
+      },
+      {
+        "claim": "returned_at 为空表示尚未归还",
+        "source_reference": "REF-001"
+      },
+      {
+        "claim": "查询只读取 title 和 due_date，不修改数据",
+        "source_reference": "REF-001"
+      }
+    ],
+    "revision_references": []
+  },
+  "artifact": {
+    "answer": "```sql\nSELECT title, due_date\nFROM loans\nWHERE returned_at IS NULL\nORDER BY due_date ASC;\n```\n\n## 1. 查询目标\n\n这条 SQL 查询从保存借阅记录的 `loans` 表中，找出尚未归还的记录，只读取每条记录的 `title` 和 `due_date`，并按照到期日期升序排列\n\n## 2. 每一行的作用\n\n- `SELECT title, due_date` 指定结果只包含标题和到期日期两列\n- `FROM loans` 指定数据来自 `loans` 表\n- `WHERE returned_at IS NULL` 只保留 `returned_at` 为空的记录，这表示记录尚未归还\n- `ORDER BY due_date ASC` 按 `due_date` 从早到晚排列结果\n\n## 3. 执行方式、结果和副作用\n\n在能够连接目标数据库并执行 SQL 的环境中运行原始查询；执行后会得到尚未归还记录的标题和到期日期，较早的到期日期排在前面\n\n这条查询只读取数据，不包含新增、修改或删除语句，因此不会修改 `loans` 表；原始材料没有提供表内数据、数据库权限或实际执行结果，所以不能据此确定会返回多少行，也不能证明查询已经成功运行",
+    "answer_sha256": "5612e904791610cfc21f14aac6e63e71fa987a50a29a7c86e702de76aa27c3c1",
+    "approved_snapshot_sha256": "5612e904791610cfc21f14aac6e63e71fa987a50a29a7c86e702de76aa27c3c1",
+    "revision_of": null
+  },
+  "review": {
+    "decision_source": "explicit_user_review",
+    "decision": "accepted",
+    "reasons": [
+      "用户明确表示原始答案可以原样接受"
+    ],
+    "correct_parts": [
+      "原始答案中未被用户否定的事实、数字、条件和证据边界继续保留"
+    ],
+    "regression_requirements": [],
+    "non_blocking_preferences": [],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "只保存脱敏技术反馈，不保存原始对话、账户信息或个人路径"
+    }
+  }
+}

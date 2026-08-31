@@ -1,0 +1,94 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-FWD-R1-002-R2",
+    "origin_case_id": "FWD-R1-002",
+    "status": "candidate",
+    "revision": 2,
+    "approved_by_user": false,
+    "reviewed_at": null,
+    "profile_revision_at_review": null
+  },
+  "task": {
+    "audience": "zero_prior_knowledge",
+    "augmentation": "GLOSS",
+    "base_operation": "TRANSLATE",
+    "case_id": "FWD-R1-002",
+    "components": [
+      "TEXT"
+    ],
+    "genre": "safety_notice",
+    "references": [
+      {
+        "content": "mains power 指建筑供电线路提供的市电；capacitor 是能够暂时储存电荷的电容器",
+        "id": "REF-001"
+      }
+    ],
+    "request": "翻译成零基础读者能直接执行的中文，并就近解释陌生术语",
+    "round": 1,
+    "source": {
+      "content": "Disconnect the appliance from mains power before removing the rear panel. The capacitor may retain a hazardous charge for five minutes after disconnection.",
+      "material_type": "text",
+      "sha256": "de7a65b373d464f2fb7fd2576a895f7984162a9be7874bb634e5e9861c013755"
+    }
+  },
+  "source": {
+    "original_request_sha256": "f59dfce556caf9917a03adca9802961349199bd8369583778a7eccab661e9365",
+    "original_answer_sha256": "91b1a97e736c0a60e7c43e7924e9f9ca2092c51748aa6c4737332082775a58b9",
+    "source_units": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003"
+    ],
+    "support_map": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003"
+    ],
+    "background_claims": [
+      {
+        "claim": "市电是建筑供电线路提供的电源",
+        "source_reference": "REF-001"
+      },
+      {
+        "claim": "电容器是能暂时储存电荷的部件",
+        "source_reference": "REF-001"
+      },
+      {
+        "claim": "市电是市政电网通过建筑供电线路引入的交流电源",
+        "source_reference": "USER-ROUND-3"
+      }
+    ],
+    "revision_references": [
+      {
+        "id": "USER-ROUND-3",
+        "kind": "explicit_user_review",
+        "content": "市电来自市政电网，专业名词保留英文名称；电容器是能够暂时储存电荷的部件"
+      }
+    ]
+  },
+  "artifact": {
+    "answer": "拆下设备后面板以前，先断开设备与市电（Mains Power）的连接；市电是市政电网通过建筑供电线路引入的交流电源，这个名称强调设备使用的是建筑外部电网提供的电力\n\n断开电源后的 5 分钟内不要拆下后面板；电容器（Capacitor）是能够暂时储存电荷的电子部件，它在设备断电后仍可能保留危险电荷，因此等待 5 分钟是为了让残留电荷有时间释放",
+    "answer_sha256": "7bed7469d9a7edf4e6c857fb8e4c30c6140b060a0086ff63eccc5c5663dd2621",
+    "approved_snapshot_sha256": null,
+    "revision_of": "REJECTED-FWD-R1-002"
+  },
+  "review": {
+    "decision_source": "pending_user_review",
+    "decision": "pending",
+    "reasons": [
+      "根据第一轮用户反馈完成修订，等待用户逐项审核"
+    ],
+    "correct_parts": [
+      "原始答案中未被用户否定的事实、数字、条件和证据边界继续保留"
+    ],
+    "regression_requirements": [
+      "翻译任务中的专业名词需要保留官方英文名称",
+      "市电需要说明来自市政电网，电容器需要说明能够暂时储存电荷"
+    ],
+    "non_blocking_preferences": [],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "只保存脱敏技术反馈，不保存原始对话、账户信息或个人路径"
+    }
+  }
+}

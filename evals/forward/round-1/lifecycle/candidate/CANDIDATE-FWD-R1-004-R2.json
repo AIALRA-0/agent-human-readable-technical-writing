@@ -1,0 +1,107 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-FWD-R1-004-R2",
+    "origin_case_id": "FWD-R1-004",
+    "status": "candidate",
+    "revision": 2,
+    "approved_by_user": false,
+    "reviewed_at": null,
+    "profile_revision_at_review": null
+  },
+  "task": {
+    "audience": "zero_prior_knowledge",
+    "augmentation": "TEACHING",
+    "base_operation": "EXPLAIN",
+    "case_id": "FWD-R1-004",
+    "components": [
+      "TEXT"
+    ],
+    "genre": "science_tutorial",
+    "references": [
+      {
+        "content": "热传导通过物质内部接触传递能量；对流依靠流体运动传递能量；热辐射以电磁波形式传递能量",
+        "id": "REF-001"
+      }
+    ],
+    "request": "从零开始解释为什么保温杯不能让热水永远保持原温，并说明三种热量传递方式",
+    "round": 1,
+    "source": {
+      "content": "保温杯通过真空夹层减少传导和对流，通过反射层减少辐射；杯盖、杯口和密封结构仍会让热量逐渐散失。",
+      "material_type": "text",
+      "sha256": "b80afffd3c4d1a11fbe86cf0d93c5a808793b31151299b3ee03a77d414bf56db"
+    }
+  },
+  "source": {
+    "original_request_sha256": "53755e66f464b704e08dccd39ac2435eb87cb9723beee6dddd6321277ff77858",
+    "original_answer_sha256": "0b26db2349c642ac3d24203ea204dbbca0a79834641a7db907090b5553a544b2",
+    "source_units": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003",
+      "SRCU-004"
+    ],
+    "support_map": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003",
+      "SRCU-004"
+    ],
+    "background_claims": [
+      {
+        "claim": "热传导通过物质内部接触传递能量",
+        "source_reference": "REF-001"
+      },
+      {
+        "claim": "对流依靠流体运动传递能量",
+        "source_reference": "REF-001"
+      },
+      {
+        "claim": "热辐射以电磁波形式传递能量",
+        "source_reference": "REF-001"
+      },
+      {
+        "claim": "热传导的官方英文名称是 Thermal Conduction",
+        "source_reference": "TERM-REGISTRY-ROUND4"
+      },
+      {
+        "claim": "对流的官方英文名称是 Convection",
+        "source_reference": "TERM-REGISTRY-ROUND4"
+      },
+      {
+        "claim": "热辐射的官方英文名称是 Thermal Radiation",
+        "source_reference": "TERM-REGISTRY-ROUND4"
+      }
+    ],
+    "revision_references": [
+      {
+        "id": "TERM-REGISTRY-ROUND4",
+        "kind": "term_registry",
+        "content": "热传导、对流和热辐射的官方英文形式与名称含义登记"
+      }
+    ]
+  },
+  "artifact": {
+    "answer": "# 保温杯为什么不能让热水永远保持原温\n\n热量会通过 3 种方式传递：\n\n* 热传导（Thermal Conduction）：能量通过物质内部相邻粒子的接触传递；名称中的传导表示热量沿着直接接触的材料向外传递\n* 对流（Convection）：能量随着液体或气体的流动传递；这个名称表示流体在循环运动中把热量带到其他位置\n* 热辐射（Thermal Radiation）：能量以电磁波形式传递；它不要求物体直接接触，因此真空中仍然会发生\n\n保温杯的真空夹层会减少热传导和对流，反射层会减少热辐射；这些结构只能减慢热量传递，杯盖、杯口和密封结构仍会让热量逐渐散失，因此热水不能永远保持原来的温度",
+    "answer_sha256": "3b42f884e5462d5b2ed07a11dfece0c28b0e2e4d940e96562cd73c8f767749f8",
+    "approved_snapshot_sha256": null,
+    "revision_of": "REJECTED-FWD-R1-004"
+  },
+  "review": {
+    "decision_source": "pending_user_review",
+    "decision": "pending",
+    "reasons": [
+      "根据第一轮用户反馈完成修订，等待用户逐项审核"
+    ],
+    "correct_parts": [
+      "原始答案中未被用户否定的事实、数字、条件和证据边界继续保留"
+    ],
+    "regression_requirements": [
+      "单行术语定义统一使用术语、英文名称和冒号解释结构"
+    ],
+    "non_blocking_preferences": [],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "只保存脱敏技术反馈，不保存原始对话、账户信息或个人路径"
+    }
+  }
+}

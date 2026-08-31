@@ -1,7 +1,7 @@
 profile:
   identity:
     profile_id: lucas
-    revision: round-3-capitalization
+    revision: round-4-generalization
     description: Lucas 已明确确认的个人写作要求
   punctuation:
     chinese_full_stop:
@@ -30,9 +30,9 @@ profile:
       severity: PROFILE_REQUIRED
       description: 表格、图片和 Mermaid 题注默认放在对象下方，用户指定出版规范时采用对应规则
     visual_alignment:
-      policy: center_if_supported
+      policy: verified_center
       severity: PROFILE_REQUIRED
-      description: 图片、表格、Mermaid 和题注在媒介支持时共同居中，无法可靠控制时登记渲染限制
+      description: GitHub 中的图片和表格使用居中 HTML，Mermaid 使用原生代码块加居中题注，并以桌面、移动端、亮色和暗色实际渲染结果作为通过依据
     blank_lines:
       policy: one_between_semantic_blocks
       severity: PROFILE_REQUIRED
@@ -40,7 +40,7 @@ profile:
     parallel_items:
       policy: indented_list
       severity: PROFILE_REQUIRED
-      description: 冒号或同等引导语后出现两个以上独立项目时换行并缩进，项目内部的并列内容继续缩进一级
+      description: 两个以上承担相同作用的定义、步骤、比较对象、事实、原因或动作都换行并缩进，不以是否出现冒号作为判断条件，项目内部还有并列内容时继续缩进一级
     topic_boundary:
       policy: separate_paragraph
       severity: PROFILE_REQUIRED
@@ -66,6 +66,19 @@ profile:
       policy: formal_name_then_natural_prose
       severity: PROFILE_REQUIRED
       description: 括号只放正式英文全称、通用英文类别或缩写；普通英文名称和类别使用标题式大小写，官方品牌和正式名称保持官方大小写；定义、用途、表现和影响写在括号外的自然正文中
+    professional_first_use:
+      policy: complete_first_use_contract
+      severity: PROFILE_REQUIRED
+      description: 独立阅读单元中的专业名词首次出现时登记正式中文、官方英文、正式缩写、中文定义、名称含义、当前作用和实际影响；无法核对官方写法时停止并要求复核
+    translation_english_name:
+      policy: retain_official_english
+      severity: PROFILE_REQUIRED
+      description: 翻译任务默认在专业名词首次出现时保留官方英文名称，连续文档只有在前文已经完成解释后才能使用简称
+  conversation:
+    superseded_requirements:
+      policy: current_effective_only
+      severity: PROFILE_REQUIRED
+      description: 追加要求替换旧要求后，最终答案只保留当前有效内容；只有用户要求历史、审计、证据核对或撤销说明时才保留旧要求
   explanation:
     actor_clarity:
       policy: explicit_on_start_change_or_ambiguity

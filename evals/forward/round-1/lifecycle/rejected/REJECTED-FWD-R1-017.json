@@ -1,0 +1,101 @@
+{
+  "identity": {
+    "case_id": "REJECTED-FWD-R1-017",
+    "origin_case_id": "FWD-R1-017",
+    "status": "rejected",
+    "revision": 1,
+    "approved_by_user": false,
+    "reviewed_at": "2026-08-31",
+    "profile_revision_at_review": "round-3-capitalization"
+  },
+  "task": {
+    "audience": "zero_prior_knowledge",
+    "augmentation": "EXPLANATORY",
+    "base_operation": "EXPLAIN",
+    "case_id": "FWD-R1-017",
+    "components": [
+      "IMAGE",
+      "TEXT"
+    ],
+    "genre": "image_explanation",
+    "references": [
+      {
+        "content": "警戒线表示需要加强监测的阈值，不等于必然发生洪水；图中没有降雨量、流速、堤防状态或预测模型",
+        "id": "REF-001"
+      }
+    ],
+    "request": "保留原图，解释坐标、警戒线、每个数据点、趋势、异常、实际影响和证据边界",
+    "round": 1,
+    "source": {
+      "content": {
+        "alt": "河流水位变化图",
+        "path": "assets/river-gauge.svg"
+      },
+      "material_type": "image",
+      "sha256": "7392d2fa9d7753855a7fe7cada0e7529c9409fd7b983bd28d20d9c32f7017124"
+    }
+  },
+  "source": {
+    "original_request_sha256": "3a109364ad76c30cc2e37059066491c991d4bd44fcf5a0e68f45f0b70111323c",
+    "original_answer_sha256": "23c50c1273599ee710ad86195c30db748a7fd99556c3d4f96923f05dda1be85e",
+    "source_units": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003",
+      "SRCU-004",
+      "SRCU-005",
+      "SRCU-006",
+      "SRCU-007",
+      "SRCU-008",
+      "SRCU-009"
+    ],
+    "support_map": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003",
+      "SRCU-004",
+      "SRCU-005",
+      "SRCU-006",
+      "SRCU-007",
+      "SRCU-008",
+      "SRCU-009"
+    ],
+    "background_claims": [
+      {
+        "claim": "警戒线表示需要加强监测的阈值，不等于必然发生洪水",
+        "source_reference": "REF-001"
+      },
+      {
+        "claim": "图中没有降雨量、流速、堤防状态或预测模型",
+        "source_reference": "REF-001"
+      }
+    ],
+    "revision_references": []
+  },
+  "artifact": {
+    "answer": "<div align=\"center\">\n\n![河流水位变化图](assets/river-gauge.svg)\n\n图 1 河流水位变化图\n\n</div>\n\n## 1. 坐标和警戒线\n\n横轴表示时间，依次标出 06:00、09:00、12:00、15:00、17:00 和 18:00；纵轴表示水位，单位是米，标尺从 2.0 米到 4.0 米\n\n红色虚线是 3.5 米警戒线；它表示需要加强监测的阈值，不等于水位达到或超过这条线时必然发生洪水\n\n## 2. 数据点和趋势\n\n按图中位置读取，6 个蓝色数据点分别表示：\n\n- 06:00，水位约 2.2 米\n- 09:00，水位 2.5 米\n- 12:00，水位约 3.0 米\n- 15:00，水位达到 3.8 米\n- 17:00，水位约 3.3 米\n- 18:00，水位约 2.8 米\n\n水位从 06:00 到 15:00 持续上升，在 15:00 达到最高点 3.8 米，比警戒线高 0.3 米；随后水位回落，17:00 和 18:00 的数据点都位于警戒线下方。图中的突出异常是 15:00 这一点超过警戒线，实际影响是该时段需要加强监测，不能直接据此认定发生洪水\n\n## 3. 证据边界\n\n图中没有降雨量、流速、堤防状态或预测模型，因此不能判断水位变化的原因、堤防能否承受，也不能据此预测洪水是否会发生；下一步需要核对同期降雨量、流速、堤防状态和所用预测模型",
+    "answer_sha256": "23c50c1273599ee710ad86195c30db748a7fd99556c3d4f96923f05dda1be85e",
+    "approved_snapshot_sha256": null,
+    "revision_of": null
+  },
+  "review": {
+    "decision_source": "explicit_user_review",
+    "decision": "rejected",
+    "reasons": [
+      "删除中文句号",
+      "数据点和趋势属于自然联合标题，可以保留"
+    ],
+    "correct_parts": [
+      "原始答案中未被用户否定的事实、数字、条件和证据边界继续保留"
+    ],
+    "regression_requirements": [
+      "删除中文句号",
+      "数据点和趋势属于自然联合标题，可以保留"
+    ],
+    "non_blocking_preferences": [],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "只保存脱敏技术反馈，不保存原始对话、账户信息或个人路径"
+    }
+  }
+}

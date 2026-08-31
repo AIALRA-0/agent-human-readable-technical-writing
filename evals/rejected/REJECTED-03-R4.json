@@ -1,13 +1,13 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-03-R4",
+    "case_id": "REJECTED-03-R4",
     "origin_case_id": "CANDIDATE-03",
-    "status": "candidate",
+    "status": "rejected",
     "revision": 4,
     "approved_by_user": false,
     "category": "glossed_transform",
-    "reviewed_at": null,
-    "profile_revision_at_review": null
+    "reviewed_at": "2026-08-31",
+    "profile_revision_at_review": "round-3-capitalization"
   },
   "task": {
     "base_operation": "TRANSFORM",
@@ -126,42 +126,58 @@
     "support_map": [
       {
         "rendered_scope": "候选答案全文",
-        "supports": ["ATOM-001"],
+        "supports": [
+          "ATOM-001"
+        ],
         "role": "source_restatement"
       },
       {
         "rendered_scope": "候选答案全文",
-        "supports": ["ATOM-002"],
+        "supports": [
+          "ATOM-002"
+        ],
         "role": "source_restatement"
       },
       {
         "rendered_scope": "候选答案全文",
-        "supports": ["ATOM-003"],
+        "supports": [
+          "ATOM-003"
+        ],
         "role": "source_restatement"
       },
       {
         "rendered_scope": "候选答案全文",
-        "supports": ["BG-001"],
+        "supports": [
+          "BG-001"
+        ],
         "role": "explanatory_background"
       },
       {
         "rendered_scope": "候选答案全文",
-        "supports": ["BG-002"],
+        "supports": [
+          "BG-002"
+        ],
         "role": "explanatory_background"
       },
       {
         "rendered_scope": "候选答案全文",
-        "supports": ["BG-003"],
+        "supports": [
+          "BG-003"
+        ],
         "role": "explanatory_background"
       },
       {
         "rendered_scope": "候选答案全文",
-        "supports": ["BG-004"],
+        "supports": [
+          "BG-004"
+        ],
         "role": "explanatory_background"
       },
       {
         "rendered_scope": "候选答案全文",
-        "supports": ["BG-005"],
+        "supports": [
+          "BG-005"
+        ],
         "role": "explanatory_background"
       }
     ],
@@ -171,24 +187,27 @@
   },
   "review": {
     "decision_source": "explicit_user_review",
-    "decision": "pending",
+    "decision": "rejected",
     "reasons": [
-      "R4 只把括号内英文类别从 package manager 修复为 Package Manager，等待用户审核"
+      "把 npm 写成包管理器并追加括号英文类别，解释结构仍然令人迷惑",
+      "npm 不应被伪造成 Node.js Package Manager 的首字母缩写"
     ],
     "correct_parts": [
-      "R3 已经正确说明命令主体、npm 官方形式、退出码、CI 和证据边界"
+      "命令注释已经明确执行主体",
+      "退出码、CI 和未启用边界解释可以保留"
     ],
     "regression_requirements": [
-      "明确 npm 调用脚本，系统显示结果",
-      "npm 保持官方小写，不伪造英文全称",
-      "括号内通用英文类别使用 Package Manager",
-      "解释 npm 的三种当前作用",
-      "独立主题使用一个空行分隔"
+      "npm 保持官方小写",
+      "不得把 npm 展开为 Node.js Package Manager",
+      "首次出现时自然说明 npm 的客户端和软件包仓库作用",
+      "命令注释明确执行主体",
+      "保留退出码、CI 和证据边界"
     ],
     "privacy": {
       "status": "public_safe",
       "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
     },
-    "non_blocking_preferences": []
+    "non_blocking_preferences": [],
+    "reviewed_snapshot_sha256": "db24b21ce602a6409f8be0a2604e2371ae19d9ec89b6f4fa2b2f9e6c63a66e21"
   }
 }

@@ -1,0 +1,46 @@
+{
+  "review_round": {
+    "review_id": "vnext-1.1-round-3",
+    "reviewed_at": "2026-08-31",
+    "decision_source": "explicit_user_review",
+    "profile_revision_at_review": "round-3-capitalization",
+    "privacy": "deidentified_technical_feedback_only",
+    "c03": {
+      "reviewed_candidate_id": "CANDIDATE-03-R4",
+      "decision": "rejected",
+      "reasons": [
+        "把 npm 写成包管理器并追加括号英文类别，解释结构仍然令人迷惑",
+        "npm 不应被伪造成 Node.js Package Manager 的首字母缩写"
+      ],
+      "correct_parts": [
+        "命令注释已经明确执行主体",
+        "退出码、CI 和未启用边界解释可以保留"
+      ],
+      "next_candidate_id": "CANDIDATE-03-R5"
+    },
+    "forward": {
+      "accepted": [1, 6, 7, 11, 14, 16, 19, 20],
+      "rejected": [2, 3, 4, 5, 8, 9, 10, 12, 13, 15, 17, 18],
+      "feedback": {
+        "002": ["翻译任务中的专业名词需要保留官方英文名称", "市电需要说明来自市政电网，电容器需要说明能够暂时储存电荷"],
+        "003": ["压缩减少重复文字，不应删除主题之间的必要换行"],
+        "004": ["单行术语定义统一使用术语、英文名称和冒号解释结构"],
+        "005": ["步骤保持缩进编号列表", "GitHub 中的图题必须经过实际渲染确认居中"],
+        "008": ["表题必须经过 GitHub 实际渲染确认居中", "并列的列定义必须换行并缩进"],
+        "009": ["代码说明必须加入合法注释，或者逐行映射每个有效语句"],
+        "010": ["已经被追加要求替换的旧要求不得继续出现在最终答案"],
+        "012": ["删除中文句号", "降低单段信息密度", "解释专业名词及其名称含义"],
+        "013": ["行内代码中的 TTL 仍需按照专业缩写解释", "图题必须经过实际渲染确认居中"],
+        "015": ["流程图和图题需要实际居中", "并列步骤必须使用缩进列表"],
+        "017": ["删除中文句号", "数据点和趋势属于自然联合标题，可以保留"],
+        "018": ["表题必须居中", "A、B、C 三组平行数据必须换行", "删除中文句号"]
+      }
+    },
+    "first_round_result": {
+      "human_acceptance": "8/20",
+      "acceptance_rate": 0.4,
+      "next_round_allowed": false,
+      "reason": "第一轮只有 8 个答案可以原样接受，其余 12 个答案需要修订"
+    }
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "identity": {
+    "case_id": "GOLD-FWD-R1-006",
+    "origin_case_id": "FWD-R1-006",
+    "status": "gold",
+    "revision": 1,
+    "approved_by_user": true,
+    "reviewed_at": "2026-08-31",
+    "profile_revision_at_review": "round-3-capitalization"
+  },
+  "task": {
+    "audience": "zero_prior_knowledge",
+    "augmentation": "NONE",
+    "base_operation": "FORMAT_ONLY",
+    "case_id": "FWD-R1-006",
+    "components": [
+      "TEXT"
+    ],
+    "genre": "maintenance_schedule",
+    "references": [],
+    "request": "只整理层级和版式，不改变任何文字、日期或负责人",
+    "round": 1,
+    "source": {
+      "content": "设备维护 9月2日 清洁滤网 负责人林青 9月4日 检查皮带 负责人周川 9月6日 记录噪声 负责人林青 注意 停机后才能打开护罩",
+      "material_type": "text",
+      "sha256": "8b32629db2de8ef603efc04cd7dde048240efe7c4d71f1a61210ef871b7f5044"
+    }
+  },
+  "source": {
+    "original_request_sha256": "4e70a6d0eb7bebdd8fe1736b8983de5f7fecdd98f6c616463d43d2ee25ce7e0a",
+    "original_answer_sha256": "bccdd1aa0ae9d133fac4eddfd798e455948fdc519f267345519df910d022cd39",
+    "source_units": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003",
+      "SRCU-004",
+      "SRCU-005"
+    ],
+    "support_map": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003",
+      "SRCU-004",
+      "SRCU-005"
+    ],
+    "background_claims": [],
+    "revision_references": []
+  },
+  "artifact": {
+    "answer": "# 设备维护\n\n## 9月2日\n\n清洁滤网\n\n负责人林青\n\n## 9月4日\n\n检查皮带\n\n负责人周川\n\n## 9月6日\n\n记录噪声\n\n负责人林青\n\n## 注意\n\n停机后才能打开护罩",
+    "answer_sha256": "bccdd1aa0ae9d133fac4eddfd798e455948fdc519f267345519df910d022cd39",
+    "approved_snapshot_sha256": "bccdd1aa0ae9d133fac4eddfd798e455948fdc519f267345519df910d022cd39",
+    "revision_of": null
+  },
+  "review": {
+    "decision_source": "explicit_user_review",
+    "decision": "accepted",
+    "reasons": [
+      "用户明确表示原始答案可以原样接受"
+    ],
+    "correct_parts": [
+      "原始答案中未被用户否定的事实、数字、条件和证据边界继续保留"
+    ],
+    "regression_requirements": [],
+    "non_blocking_preferences": [],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "只保存脱敏技术反馈，不保存原始对话、账户信息或个人路径"
+    }
+  }
+}

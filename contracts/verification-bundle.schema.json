@@ -4,7 +4,7 @@
   "title": "VerificationBundle",
   "type": "object",
   "additionalProperties": false,
-  "required": ["task_contract", "source_spans", "source_presentations", "source_atoms", "background_atoms", "inference_atoms", "segment_contracts", "support_maps", "term_uses", "component_coverage", "boundary_coverage", "rendered_document"],
+  "required": ["task_contract", "source_spans", "source_presentations", "source_atoms", "background_atoms", "inference_atoms", "segment_contracts", "support_maps", "term_uses", "parallel_group_coverage", "component_coverage", "boundary_coverage", "rendered_document"],
   "properties": {
     "task_contract": {"$ref": "task-contract.schema.json"},
     "source_spans": {"type": "array", "items": {"$ref": "source-span.schema.json"}},
@@ -43,11 +43,25 @@
         }
       }
     },
+    "parallel_group_coverage": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["group_id", "item_ids", "covered_item_ids", "rendered_as_list", "nesting_depth"],
+        "properties": {
+          "group_id": {"type": "string", "pattern": "^PGRP-[0-9]{3,}$"},
+          "item_ids": {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "covered_item_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "rendered_as_list": {"type": "boolean"},
+          "nesting_depth": {"type": "integer", "minimum": 0}
+        }
+      }
+    },
     "component_coverage": {
       "type": "array",
       "items": {
         "type": "object", "additionalProperties": false,
-        "required": ["component_id", "component_type", "source_text", "source_position", "explanation_position", "required_units", "covered_units", "presentation", "mermaid", "table_cells"],
+        "required": ["component_id", "component_type", "source_text", "source_position", "explanation_position", "required_units", "covered_units", "presentation", "mermaid", "table_cells", "code"],
         "properties": {
           "component_id": {"type": "string", "minLength": 1},
           "component_type": {"enum": ["IMAGE", "TABLE", "CODE", "FLOWCHART"]},
@@ -90,6 +104,27 @@
             "properties": {
               "all": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
               "covered": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+            }
+          },
+          "code": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["coverage_mode", "unit_mappings", "uncovered_units"],
+            "properties": {
+              "coverage_mode": {"enum": ["annotated_code", "line_by_line_explanation"]},
+              "unit_mappings": {
+                "type": "array",
+                "items": {
+                  "type": "object", "additionalProperties": false,
+                  "required": ["unit_id", "source_locator", "explanation_locator"],
+                  "properties": {
+                    "unit_id": {"type": "string", "pattern": "^CODE-[0-9]{3,}$"},
+                    "source_locator": {"type": "string", "minLength": 1},
+                    "explanation_locator": {"type": "string", "minLength": 1}
+                  }
+                }
+              },
+              "uncovered_units": {"type": "array", "items": {"type": "string", "pattern": "^CODE-[0-9]{3,}$"}}
             }
           }
         }
