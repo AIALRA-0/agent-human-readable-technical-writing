@@ -38,8 +38,8 @@ jobs: # 定义相互独立的自动检查任务
       - name: Validate 32 contextual cases # 检查术语、排比、代码、内容充分性、多轮、主语、标点和段落的职责边界
         run: python scripts/validate_context_cases.py # 已登记结构允许确定性判断，语义边界继续由 Agent 或用户决定
 
-      - name: Validate 72-case trigger matrix design # 核对三类任务各自的显式、隐式、负向和规则遵守案例槽位
-        run: python scripts/validate_trigger_matrix.py # 只证明公开案例清单为 3 x 4 x 6，不冒充 72 次真实隔离执行结果
+      - name: Validate 72-case trigger matrix evidence # 核对三类任务各自的显式、隐式、负向和规则遵守案例及脱敏执行摘要
+        run: python scripts/validate_trigger_matrix.py --require-results # 要求固定模型 72/72 通过、同行辅助器事件齐全且公开结果不含原始正文
 
       - name: Validate first forward round # 核对 20 个首次生成答案的摘要、来源映射、组件保留和隐私
         run: python scripts/validate_forward_round1.py # 只检查确定性事实，人工接受结果继续保持为空

@@ -19,6 +19,15 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CASES = ROOT / "evals" / "trigger-matrix" / "vnext-1.1-72-cases.jsonl"
 DEFAULT_PUBLIC_REPORT = ROOT / "evals" / "trigger-matrix" / "vnext-1.1-public-results.json"
 RUNTIME_ITEMS = ["SKILL.md", "constitution", "runtime", "contracts", "profiles", "registries", "validators", "patcher", "references"]
+ACTIVATION_MARKERS = [
+    "human-readable-technical-writing/skill.md",
+    "constitution/principles.md",
+    "runtime/task-compiler.md",
+    "profiles/components/code.yaml",
+    "profiles/components/images.yaml",
+    "profiles/components/tables.yaml",
+    "references/aemp-content-sufficiency.md",
+]
 
 
 def digest(text: str) -> str:
@@ -40,6 +49,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--reasoning-effort", default="medium")
     parser.add_argument("--codex", default="codex")
     parser.add_argument("--timeout-seconds", type=int, default=240)
+    parser.add_argument("--case-id", action="append", help="run only named cases for harness debugging")
+    parser.add_argument("--resume", action="store_true", help="re-evaluate saved prefix and continue remaining cases")
     return parser.parse_args()
 
 
@@ -188,13 +199,21 @@ def run_case(case: dict[str, Any], args: argparse.Namespace, run_root: Path) -> 
             event_lines.append(line)
     messages = [event for event in events if event.get("type") == "item.completed" and isinstance(event.get("item"), dict) and event["item"].get("type") == "agent_message"]
     body = str(messages[-1]["item"].get("text", "")) if messages else ""
-    serialized = json.dumps(events, ensure_ascii=False)
-    skill_read = bool(re.search(r"human-readable-technical-writing.*SKILL\.md|SKILL\.md.*human-readable-technical-writing", serialized, re.IGNORECASE))
+    command_text = "\n".join(
+        str(event.get("item", {}).get("command", ""))
+        for event in events
+        if isinstance(event.get("item"), dict) and event["item"].get("type") == "command_execution"
+    )
+    normalized_commands = command_text.replace("\\\\", "/").replace("\\", "/").lower()
+    skill_read = any(marker in normalized_commands for marker in ACTIVATION_MARKERS)
+    alignment_helper_invoked = "runtime/align_inline_comments.py" in normalized_commands
     activation_matches = skill_read == case["expected_activation"]
     findings = [] if exit_code == 0 else [f"Codex exit code {exit_code}"]
     if not activation_matches:
         findings.append(f"activation was {skill_read}, expected {case['expected_activation']}")
     findings.extend(evaluate_body(body, case["evaluator"]))
+    if case["evaluator"]["kind"] == "inline_alignment" and not alignment_helper_invoked:
+        findings.append("deterministic alignment helper was not invoked")
     public = {
         "case_id": case["case_id"],
         "family": case["family"],
@@ -202,6 +221,7 @@ def run_case(case: dict[str, Any], args: argparse.Namespace, run_root: Path) -> 
         "model": args.model,
         "activated": skill_read,
         "expected_activation": case["expected_activation"],
+        "alignment_helper_invoked": alignment_helper_invoked,
         "passed": not findings,
         "violations": findings,
         "body_sha256": digest(body),
@@ -210,6 +230,65 @@ def run_case(case: dict[str, Any], args: argparse.Namespace, run_root: Path) -> 
     }
     private = {"case": case, "command": command[:-1] + ["<prompt-in-case>"], "exit_code": exit_code, "body": body, "stdout": stdout, "stderr": stderr}
     return public, private
+
+
+def write_reports(args: argparse.Namespace, public_records: list[dict[str, Any]], private_records: list[dict[str, Any]], planned_total: int) -> dict[str, Any]:
+    """Persist every completed case so interruption cannot erase diagnostic evidence."""
+
+    args.private_report.parent.mkdir(parents=True, exist_ok=True)
+    args.public_report.parent.mkdir(parents=True, exist_ok=True)
+    private_payload = {"model": args.model, "planned_total": planned_total, "completed": len(private_records), "cases": private_records}
+    public_payload = {
+        "matrix_version": "vnext-1.1-round-5",
+        "model": args.model,
+        "raw_bodies_location": "local_private_report",
+        "planned_total": planned_total,
+        "total": len(public_records),
+        "passed": sum(record["passed"] for record in public_records),
+        "failed": sum(not record["passed"] for record in public_records),
+        "results": public_records,
+    }
+    args.private_report.write_text(json.dumps(private_payload, ensure_ascii=False, indent=2), encoding="utf-8", newline="\n")
+    args.public_report.write_text(json.dumps(public_payload, ensure_ascii=False, indent=2), encoding="utf-8", newline="\n")
+    return public_payload
+
+
+def resume_records(args: argparse.Namespace, cases: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Re-evaluate a saved prefix with current case declarations before continuing."""
+
+    if not args.private_report.is_file() or not args.public_report.is_file():
+        raise SystemExit("resume requires existing private and public reports")
+    saved_private = json.loads(args.private_report.read_text(encoding="utf-8"))
+    saved_public = json.loads(args.public_report.read_text(encoding="utf-8"))
+    if saved_private.get("model") != args.model or saved_public.get("model") != args.model:
+        raise SystemExit("resume model differs from saved evidence")
+    private_records = list(saved_private.get("cases", []))
+    public_by_id = {record["case_id"]: record for record in saved_public.get("results", [])}
+    completed_ids = [record.get("case", {}).get("case_id") for record in private_records]
+    expected_prefix = [case["case_id"] for case in cases[:len(completed_ids)]]
+    if completed_ids != expected_prefix or set(completed_ids) != set(public_by_id):
+        raise SystemExit("saved evidence is not an exact prefix of the current matrix")
+    public_records: list[dict[str, Any]] = []
+    for case, private in zip(cases, private_records):
+        record = dict(public_by_id[case["case_id"]])
+        body = str(private.get("body", ""))
+        normalized_output = (str(private.get("stdout", "")) + "\n" + str(private.get("stderr", ""))).replace("\\\\", "/").replace("\\", "/").lower()
+        helper_invoked = "runtime/align_inline_comments.py" in normalized_output
+        findings = [] if private.get("exit_code") == 0 else [f"Codex exit code {private.get('exit_code')}"]
+        if record.get("activated") != case["expected_activation"]:
+            findings.append(f"activation was {record.get('activated')}, expected {case['expected_activation']}")
+        findings.extend(evaluate_body(body, case["evaluator"]))
+        if case["evaluator"]["kind"] == "inline_alignment" and not helper_invoked:
+            findings.append("deterministic alignment helper was not invoked")
+        record.update({
+            "expected_activation": case["expected_activation"],
+            "alignment_helper_invoked": helper_invoked,
+            "passed": not findings,
+            "violations": findings,
+        })
+        private["case"] = case
+        public_records.append(record)
+    return public_records, private_records
 
 
 def main() -> int:
@@ -232,29 +311,32 @@ def main() -> int:
     cases = [json.loads(line) for line in args.cases.read_text(encoding="utf-8").splitlines() if line.strip()]
     if len(cases) != 72:
         raise SystemExit(f"expected 72 cases, found {len(cases)}")
-    public_records: list[dict[str, Any]] = []
-    private_records: list[dict[str, Any]] = []
+    if args.case_id:
+        requested = set(args.case_id)
+        available = {case["case_id"] for case in cases}
+        missing = requested - available
+        if missing:
+            raise SystemExit(f"unknown case identifiers: {sorted(missing)}")
+        cases = [case for case in cases if case["case_id"] in requested]
+    planned_total = len(cases)
+    if args.resume:
+        public_records, private_records = resume_records(args, cases)
+        if any(not record["passed"] for record in public_records):
+            write_reports(args, public_records, private_records, planned_total)
+            raise SystemExit("saved prefix still contains failures after re-evaluation")
+    else:
+        public_records = []
+        private_records = []
+    remaining_cases = cases[len(private_records):]
     with tempfile.TemporaryDirectory(prefix="vnext-trigger-matrix-") as temporary:
         run_root = Path(temporary)
-        for index, case in enumerate(cases, start=1):
+        for index, case in enumerate(remaining_cases, start=len(private_records) + 1):
             public, private = run_case(case, args, run_root)
             public_records.append(public)
             private_records.append(private)
-            print(json.dumps({"progress": f"{index}/72", "case_id": case["case_id"], "passed": public["passed"]}, ensure_ascii=False), flush=True)
-    args.private_report.parent.mkdir(parents=True, exist_ok=True)
-    args.public_report.parent.mkdir(parents=True, exist_ok=True)
-    private_payload = {"model": args.model, "cases": private_records}
-    public_payload = {
-        "matrix_version": "vnext-1.1-round-5",
-        "model": args.model,
-        "raw_bodies_location": "local_private_report",
-        "total": len(public_records),
-        "passed": sum(record["passed"] for record in public_records),
-        "failed": sum(not record["passed"] for record in public_records),
-        "results": public_records,
-    }
-    args.private_report.write_text(json.dumps(private_payload, ensure_ascii=False, indent=2), encoding="utf-8", newline="\n")
-    args.public_report.write_text(json.dumps(public_payload, ensure_ascii=False, indent=2), encoding="utf-8", newline="\n")
+            public_payload = write_reports(args, public_records, private_records, planned_total)
+            print(json.dumps({"progress": f"{index}/{planned_total}", "case_id": case["case_id"], "passed": public["passed"]}, ensure_ascii=False), flush=True)
+    public_payload = write_reports(args, public_records, private_records, planned_total)
     print(json.dumps({key: public_payload[key] for key in ("matrix_version", "model", "total", "passed", "failed")}, ensure_ascii=False, indent=2))
     return 0 if public_payload["failed"] == 0 else 1
 

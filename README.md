@@ -135,7 +135,7 @@ python scripts/validate_vnext_lifecycle.py # 核对 62 个生命周期记录、�
 
 python scripts/validate_context_cases.py # 核对 32 个术语、排比、代码、内容充分性、多轮、主语、标点和段落语境案例
 
-python scripts/validate_trigger_matrix.py # 核对 72 个真实触发案例槽位；不把清单结构通过冒充隔离任务已经运行
+python scripts/validate_trigger_matrix.py --require-results # 核对 72 个真实触发案例、固定模型、脱敏摘要和全部通过结果
 
 python scripts/validate_forward_round1.py # 分别报告原始文件完整性、人工接受率和是否允许生成下一轮
 
@@ -156,9 +156,10 @@ python -m unittest discover -s tests -p "test_vnext_runtime.py" -v # 执行 30 �
   * 摘要、位置、出现次数、冲突和事务回滚均有正反测试
 * 运行时测试：30/30
   * 任务编译、排比账本、代码单元、同行对齐、多轮替换和渲染证据均有可执行测试
-* 真实触发矩阵定义：72/72
+* 真实触发矩阵：72/72
   * 三类任务各含 6 个显式触发、6 个隐式触发、6 个负向不触发和 6 个规则遵守案例
-  * 72 次隔离 Codex 任务尚未执行；原始正文只允许写入仓库外私有报告，清单通过不属于发布通过证据
+  * 固定 `gpt-5.6-sol` 在隔离 Codex 任务中全部符合预期；5 个同行对齐案例均登记确定性辅助器调用事件
+  * 原始正文只保存在仓库外私有报告；仓库仅保存正文与事件摘要、分组计数和脱敏结论
 * 第一轮前向人工接受：8/20
   * 实际接受率为 40%，原因是 12 个首次答案仍存在术语、结构、居中、代码和内容充分性问题
 

@@ -82,7 +82,7 @@ The current local evidence is:
 * Lifecycle records: 62/62, comprising 27 Gold, 30 Rejected, and 5 Candidate records
 * Exact patch tests: 18/18
 * Runtime tests: 30/30
-* Trigger-matrix manifest: 72/72 case slots across three families and four expectation classes; the 72 isolated Codex tasks have not yet run
+* Trigger matrix: 72/72 isolated tasks passed on fixed `gpt-5.6-sol`; raw bodies remain in a local private report and the repository stores only digests, event summaries, counts, and deidentified conclusions
 * Original forward-round acceptance: 8/20, or 40%
 
 The 8/20 result is permanent evidence from the first unseen round; revised answers do not replace that score

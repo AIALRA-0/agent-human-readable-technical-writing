@@ -25,7 +25,7 @@ profile:
     closing_syntax:
       description: 纯括号和闭合符继承所在块说明，不添加机械废注释
     non_commentable_format:
-      description: JSON 等格式保留原始版本，再提供可注释等价版本
+      description: JSON 等不能合法添加注释的格式保留原始版本，再为每个有效语句或字段提供可定位的逐行解释；不得用伪注释或等价改写冒充原格式覆盖
   comment_alignment:
     mode:
       policy: longest_commentable_line
@@ -39,6 +39,12 @@ profile:
     exemptions:
       policy: structural_only
       description: 空行、纯闭合符和只承担结构作用的括号不添加机械注释，也不参与最长行计算
+    construction:
+      policy: exact_padding
+      description: 可注释行显示宽度为 W、同块最长宽度为 L 时，在代码后补 L-W+1 个空格再写注释标记；最长行也必须保留一个分隔空格，注释标记的 1 基列号因此固定为 L+2
+    preflight:
+      policy: deterministic_helper_required
+      description: 两个以上可注释语句必须先把代码块正文通过标准输入交给 runtime/align_inline_comments.py 对齐，再对最终正文运行 --check；只有检查返回 PASS 才能输出，不能凭视觉估计或声称已经对齐
   coverage_modes:
     annotated_code:
       description: 在代码中加入目标语言允许的合法同行注释，覆盖每个有效语句或功能块，并始终按最长可注释代码行对齐

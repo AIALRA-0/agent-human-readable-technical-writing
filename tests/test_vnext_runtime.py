@@ -11,6 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from runtime.align_inline_comments import align_text, check_alignment  # noqa: E402
 from runtime.engine import compile_contract, verify_bundle  # noqa: E402
 
 
@@ -378,6 +379,14 @@ class VNextRuntimeTests(unittest.TestCase):
         })
         self.assertEqual("longest_commentable_line", contract["code"]["comment_alignment"]["mode"])
         self.assertEqual("per_code_block", contract["code"]["comment_alignment"]["scope"])
+        aligned = align_text("x = 1  # short\nlong_name = x + 2 # long\n")
+        alignment = check_alignment(aligned)
+        self.assertEqual("PASS", alignment["status"])
+        self.assertEqual({19}, {unit["comment_column"] for unit in alignment["units"]})
+        tabbed = align_text("\tx = 1 // short\nlong_name = 2 // long\n", marker="//")
+        tabbed_alignment = check_alignment(tabbed, marker="//")
+        self.assertEqual("PASS", tabbed_alignment["status"])
+        self.assertEqual({15}, {unit["comment_column"] for unit in tabbed_alignment["units"]})
 
     def test_compile_line_by_line_marks_alignment_not_applicable(self) -> None:
         """Non-commentable formats do not fabricate inline-comment evidence."""

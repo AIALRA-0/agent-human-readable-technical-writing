@@ -105,6 +105,14 @@ profile:
       policy: per_code_block
       severity: MACHINE_FINAL
       description: 不跨代码块计算最长行；空行、纯闭合符和结构性括号不参与计算
+    alignment_padding:
+      policy: exact_l_minus_w_plus_one
+      severity: MACHINE_FINAL
+      description: 同块最长显示宽度为 L、当前行宽度为 W 时精确补 L-W+1 个空格，输出前复算每个注释标记的 1 基列号必须等于 L+2
+    alignment_preflight:
+      policy: deterministic_helper_required
+      severity: MACHINE_FINAL
+      description: 两个以上可注释语句使用 runtime/align_inline_comments.py 对齐并以 --check 复验；检查未返回 PASS 时不得输出
     non_commentable_fallback:
       policy: line_by_line_explanation
       severity: PROFILE_REQUIRED
