@@ -53,6 +53,8 @@ AEMP 能力手工迁移自旧 `main` 的提交 `1c6bc9afe0eeebd1367e9fcf030f013b
 
 矩阵于 2026-09-01 完成；它属于发布行为证据，不属于用户接受证据，也没有改变 5 个 Candidate 的待审状态
 
+候选提交 `fb0fab62f6878c5929dacc99f3ffed8b49ca2516` 已正常推送；对应 [GitHub Actions 运行 33481197474](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/runs/33481197474) 全部成功，包括 72 次证据校验和生成物零差异检查
+
 ## 6. 当前人工入口
 
 第五轮审核包为 [`evals/reviews/vnext-1.1-round-5-REVIEW-PACKET.md`](../../../evals/reviews/vnext-1.1-round-5-REVIEW-PACKET.md)，只含 5 个当前 Candidate
@@ -63,7 +65,7 @@ AEMP 能力手工迁移自旧 `main` 的提交 `1c6bc9afe0eeebd1367e9fcf030f013b
 
 * 当前 5 个 Candidate 尚未获得用户明确接受
 * 连续两轮全新未见首稿 20/20 尚未开始
-* 候选分支和最终 `main` 的远端 Actions 尚未形成最终证据
+* 候选分支 Actions 已形成成功证据；最终 `main` 的远端 Actions 仍须等人工与连续完美轮次门槛满足后执行
 * 可恢复归档、`main` 晋升、正式安装、安装后冒烟和非 `main` 分支清理尚未执行
 
 任何人工拒绝都会永久保留该轮成绩，并把连续完美轮次归零；事实、条件、范围、数值、来源和源内容完整性错误始终必须为 0
