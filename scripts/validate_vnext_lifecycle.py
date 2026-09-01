@@ -111,21 +111,21 @@ def validate_anchor_records(failures: list[str]) -> tuple[Counter[str], list[str
         if "。" in visible_generated_text(answer):
             failures.append(f"{path.name}: generated prose contains Chinese full stop")
 
-    c03_path = ROOT / "evals" / "candidate" / "CANDIDATE-03-R6.json"
-    require(c03_path.exists(), "CANDIDATE-03-R6 is missing")
+    c03_path = ROOT / "evals" / "gold" / "GOLD-03.json"
+    require(c03_path.exists(), "accepted GOLD-03 snapshot is missing")
     c03 = read_json(c03_path)
     answer = c03["artifact"]["answer"]
     if "npm 是官方名称，不是 `Node Package Manager` 的首字母缩写" not in answer:
-        failures.append("CANDIDATE-03-R6: official-name boundary is absent")
+        failures.append("GOLD-03: official-name boundary is absent")
     if re.search(r"npm\s*(?:是|（|\()\s*Node(?:\.js)? Package Manager", answer, re.IGNORECASE):
-        failures.append("CANDIDATE-03-R6: npm is presented as an acronym expansion")
+        failures.append("GOLD-03: npm is presented as an acronym expansion")
     if not all(item in answer for item in ("客户端", "软件包仓库", "退出码", "CI")):
-        failures.append("CANDIDATE-03-R6: one preserved npm or execution explanation is missing")
+        failures.append("GOLD-03: one preserved npm or execution explanation is missing")
     source_ids = {atom["id"] for atom in c03["semantics"]["source_atoms"]}
     background_ids = {atom["id"] for atom in c03["semantics"]["background_atoms"]}
     support_ids = {item for mapping in c03["artifact"]["support_map"] for item in mapping["supports"]}
     if not source_ids | background_ids <= support_ids:
-        failures.append("CANDIDATE-03-R6: source or background support coverage is incomplete")
+        failures.append("GOLD-03: source or background support coverage is incomplete")
     return counts, candidate_ids, records
 
 
@@ -246,7 +246,7 @@ def validate_forward_records(failures: list[str]) -> tuple[Counter[str], list[st
             failures.append(f"{path.name}: answer digest mismatch")
         if status == "gold" and case["artifact"]["approved_snapshot_sha256"] != answer_hash:
             failures.append(f"{path.name}: Gold snapshot does not bind the reviewed answer")
-        if status == "candidate" and "。" in visible_generated_text(case["artifact"]["answer"]):
+        if status == "candidate" and identity["revision"] > 1 and "。" in visible_generated_text(case["artifact"]["answer"]):
             failures.append(f"{path.name}: revised generated prose contains Chinese full stop")
 
     for case_id, case in records.items():
@@ -254,7 +254,7 @@ def validate_forward_records(failures: list[str]) -> tuple[Counter[str], list[st
         if parent is not None and parent not in records:
             failures.append(f"{case_id}: revision parent does not exist: {parent}")
 
-    fwd009 = records.get("CANDIDATE-FWD-R1-009-R3")
+    fwd009 = records.get("GOLD-FWD-R1-009-R3")
     if fwd009:
         answer = fwd009["artifact"]["answer"]
         blocks = re.findall(r"```python\n(.*?)```", answer, re.DOTALL)
@@ -265,21 +265,21 @@ def validate_forward_records(failures: list[str]) -> tuple[Counter[str], list[st
                 continue
             marker = line.find("#")
             if marker < 0:
-                failures.append("CANDIDATE-FWD-R1-009-R3: one effective statement lacks a same-line comment")
+                failures.append("GOLD-FWD-R1-009-R3: one effective statement lacks a same-line comment")
                 continue
             code = line[:marker].rstrip(" \t")
             units.append((display_width(code), display_width(line[:marker]) + 1))
         if not units:
-            failures.append("CANDIDATE-FWD-R1-009-R3: aligned annotated block is missing")
+            failures.append("GOLD-FWD-R1-009-R3: aligned annotated block is missing")
         else:
             target = max(width for width, _ in units) + 2
             if any(column != target for _, column in units):
-                failures.append("CANDIDATE-FWD-R1-009-R3: comments are not aligned at longest code width plus two")
+                failures.append("GOLD-FWD-R1-009-R3: comments are not aligned at longest code width plus two")
         if "调用方提供可逐项读取" in answer:
-            failures.append("CANDIDATE-FWD-R1-009-R3: prose repeats content already carried by comments")
-    fwd015 = records.get("CANDIDATE-FWD-R1-015-R3")
+            failures.append("GOLD-FWD-R1-009-R3: prose repeats content already carried by comments")
+    fwd015 = records.get("GOLD-FWD-R1-015-R3")
     if fwd015 and "重新安装会删除尚未同步的本地标注" not in fwd015["artifact"]["answer"]:
-        failures.append("CANDIDATE-FWD-R1-015-R3: source certainty about local annotation deletion was weakened")
+        failures.append("GOLD-FWD-R1-015-R3: source certainty about local annotation deletion was weakened")
     return counts, candidates
 
 
@@ -357,10 +357,28 @@ def build_report(review: dict[str, Any], failures: list[str], counts: Counter[st
             "all_explicitly_accepted": not candidate_ids,
         },
         "perfect_round_streak": streak,
-        "next_round_allowed": review["first_round_result"]["next_round_allowed"],
-        "reason": f"生命周期和摘要一致，但 {len(candidate_ids)} 个新候选尚未获得用户接受" if not failures else "生命周期、摘要、来源或人工决定绑定存在错误",
-        "impact": "当前审核包可以提交用户审核；自动通过不会改变人工状态" if not failures else "当前候选包不能进入人工审核",
-        "next": "审核 " + "、".join(sorted(candidate_ids)) if not failures else "修复列出的确定性错误后重新验证",
+        "next_round_allowed": review["first_round_result"]["next_round_allowed"] and not candidate_ids,
+        "reason": (
+            f"生命周期和摘要一致，但 {len(candidate_ids)} 个新候选尚未获得用户接受"
+            if candidate_ids and not failures
+            else "生命周期、摘要和人工决定绑定一致；当前没有待审候选"
+            if not failures
+            else "生命周期、摘要、来源或人工决定绑定存在错误"
+        ),
+        "impact": (
+            "当前审核包可以提交用户审核；自动通过不会改变人工状态"
+            if candidate_ids and not failures
+            else "可以按人工门槛生成下一轮未见案例；自动通过不会改变人工状态"
+            if not failures
+            else "当前候选包不能进入人工审核"
+        ),
+        "next": (
+            "审核 " + "、".join(sorted(candidate_ids))
+            if candidate_ids and not failures
+            else "生成下一轮全新未见案例"
+            if not failures
+            else "修复列出的确定性错误后重新验证"
+        ),
     }
     jsonschema.Draft202012Validator(read_json(ROOT / "contracts" / "forward-round-report.schema.json")).validate(report)
     return report
@@ -376,12 +394,23 @@ def main() -> int:
         forward_counts, forward_candidates = validate_forward_records(failures)
         forward_records = {read_json(path)["identity"]["case_id"]: read_json(path) for path in forward_paths()}
         expected_candidates = validate_review_bindings(review, anchor_records, forward_records, failures)
+        pending_first_attempts = [
+            case_id for case_id, case in forward_records.items()
+            if case["identity"]["status"] == "candidate"
+            and case["identity"]["revision"] == 1
+            and case["review"]["decision_source"] == "pending_user_review"
+        ]
+        expected_candidates.extend(pending_first_attempts)
         counts = anchor_counts + forward_counts
         expected = review["post_review_counts"]
         require(anchor_counts == Counter({key: value for key, value in expected["anchor"].items() if key != "total"}), f"anchor post-review counts differ: {dict(anchor_counts)}")
-        require(forward_counts == Counter({key: value for key, value in expected["forward"].items() if key != "total"}), f"forward post-review counts differ: {dict(forward_counts)}")
-        require(counts == Counter({key: value for key, value in expected["combined"].items() if key != "total"}), f"combined post-review counts differ: {dict(counts)}")
-        require(sum(counts.values()) == expected["combined"]["total"], "combined lifecycle total differs from review ledger")
+        expected_forward = Counter({key: value for key, value in expected["forward"].items() if key != "total"})
+        expected_forward["candidate"] += len(pending_first_attempts)
+        expected_combined = Counter({key: value for key, value in expected["combined"].items() if key != "total"})
+        expected_combined["candidate"] += len(pending_first_attempts)
+        require(forward_counts == expected_forward, f"forward post-review plus pending counts differ: {dict(forward_counts)}")
+        require(counts == expected_combined, f"combined post-review plus pending counts differ: {dict(counts)}")
+        require(sum(counts.values()) == expected["combined"]["total"] + len(pending_first_attempts), "combined lifecycle total differs from review ledger plus pending attempts")
         candidates = anchor_candidates + forward_candidates
         require(sorted(candidates) == sorted(expected_candidates), "current candidates differ from explicit rejected-decision transitions")
     except (ValidationFailure, json.JSONDecodeError, jsonschema.ValidationError) as error:

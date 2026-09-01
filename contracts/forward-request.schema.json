@@ -11,7 +11,17 @@
     "base_operation": {"enum": ["TRANSFORM", "TRANSLATE", "COMPRESS", "EXPLAIN", "GENERATE", "FORMAT_ONLY"]},
     "augmentation": {"enum": ["NONE", "GLOSS", "EXPLANATORY", "TEACHING"]},
     "genre": {"type": "string", "minLength": 1},
-    "audience": {"const": "zero_prior_knowledge"},
+    "audience": {"enum": ["zero_prior_knowledge", "operator", "technical_practitioner", "decision_maker", "auditor"]},
+    "content_task": {"enum": ["tutorial", "operation", "reference", "explanation", "decision", "status", "audit"]},
+    "length_class": {"enum": ["very_short", "short", "medium", "long", "extended"]},
+    "input_char_count": {"type": "integer", "minimum": 1, "maximum": 3000},
+    "topic_id": {"type": "string", "pattern": "^TOPIC-R[2-9][0-9]*-[0-9]{3}$"},
+    "core_terms": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "variation_tags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"enum": ["distributed_condition", "conflicting_sources", "noisy_input", "mixed_format", "correction_turn", "numeric_scope", "negation_exception", "urgency_or_emotion"]}
+    },
     "components": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["TEXT", "IMAGE", "TABLE", "CODE"]}},
     "request": {"type": "string", "minLength": 1},
     "source": {
@@ -33,5 +43,11 @@
         "properties": {"id": {"type": "string", "minLength": 1}, "content": {"type": "string", "minLength": 1}}
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"round": {"minimum": 2}}},
+      "then": {"required": ["content_task", "length_class", "input_char_count", "topic_id", "core_terms", "variation_tags"]}
+    }
+  ]
 }

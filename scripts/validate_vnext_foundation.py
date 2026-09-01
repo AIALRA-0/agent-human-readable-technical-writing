@@ -74,7 +74,7 @@ def validate_yaml_grouping() -> int:
 
 
 def validate_reviewed_cases() -> int:
-    """Validate the exact 11 accepted and 14 rejected anchor lifecycle records."""
+    """Validate the exact 12 accepted and 14 rejected anchor lifecycle records."""
 
     schema = json.loads((ROOT / "contracts" / "evaluation-case.schema.json").read_text(encoding="utf-8"))
     candidate_schema = json.loads((ROOT / "contracts" / "candidate-case.schema.json").read_text(encoding="utf-8"))
@@ -83,7 +83,7 @@ def validate_reviewed_cases() -> int:
     gold_paths = sorted((ROOT / "evals" / "gold").glob("GOLD-??.json"))
     rejected_paths = sorted((ROOT / "evals" / "rejected").glob("REJECTED-??*.json"))
     paths = gold_paths + rejected_paths
-    require(len(gold_paths) == 11, f"expected 11 gold cases, found {len(gold_paths)}")
+    require(len(gold_paths) == 12, f"expected 12 gold cases, found {len(gold_paths)}")
     require(len(rejected_paths) == 14, f"expected 14 rejected cases, found {len(rejected_paths)}")
     require(not list((ROOT / "evals" / "candidate").glob("CANDIDATE-??.json")), "reviewed round-1 files must not remain candidate")
 
@@ -174,7 +174,7 @@ def validate_svg_assets() -> int:
     """Reject active, remote, or inaccessible SVG content in candidate assets."""
 
     paths = sorted((ROOT / "evals").rglob("*.svg"))
-    require(len(paths) == 3, f"expected three reviewed or forward SVG assets, found {len(paths)}")
+    require(len(paths) == 5, f"expected five reviewed or forward SVG assets, found {len(paths)}")
     for path in paths:
         text = path.read_text(encoding="utf-8")
         lowered = text.lower()
@@ -237,7 +237,7 @@ def main() -> int:
         print(json.dumps({"status": "FAIL", "completed": results, "reason": str(error), "impact": "candidate branch must not be published", "next": "repair the reported deterministic defect and rerun"}, ensure_ascii=False, indent=2))
         return 1
 
-    print(json.dumps({"status": "PASS", "results": results, "reason": "all vNext foundation checks completed without deterministic defects", "impact": "the authority document, contracts, reviewed records, links, assets, and public-file privacy patterns are internally consistent", "next": "run the 236 fixtures, lifecycle validation, contextual cases, and forward-candidate checks"}, ensure_ascii=False, indent=2))
+    print(json.dumps({"status": "PASS", "results": results, "reason": "all vNext foundation checks completed without deterministic defects", "impact": "the authority document, contracts, reviewed records, links, assets, and public-file privacy patterns are internally consistent", "next": "run the 252 fixtures, lifecycle validation, contextual cases, long-context evidence, and forward-candidate checks"}, ensure_ascii=False, indent=2))
     return 0
 
 

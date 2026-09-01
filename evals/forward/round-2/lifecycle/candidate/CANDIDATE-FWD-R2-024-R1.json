@@ -1,0 +1,79 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-FWD-R2-024-R1",
+    "origin_case_id": "FWD-R2-024",
+    "status": "candidate",
+    "revision": 1,
+    "approved_by_user": false,
+    "reviewed_at": null,
+    "profile_revision_at_review": null
+  },
+  "task": {
+    "audience": "decision_maker",
+    "augmentation": "TEACHING",
+    "base_operation": "EXPLAIN",
+    "case_id": "FWD-R2-024",
+    "components": [
+      "TEXT"
+    ],
+    "content_task": "tutorial",
+    "core_terms": [
+      "开路电压",
+      "负载电压"
+    ],
+    "genre": "electrical_tutorial",
+    "input_char_count": 54,
+    "length_class": "very_short",
+    "references": [
+      {
+        "content": "复核编号 B24，须保留",
+        "id": "REF-RESTART"
+      }
+    ],
+    "request": "从零解释两种电压为什么可能不同",
+    "round": 2,
+    "source": {
+      "content": "无负载读数 12.6 V；接入负载后为 11.9 V。",
+      "material_type": "text",
+      "sha256": "c0c59f545800c663aaa4b51b69c0d13ae65d2056ed3af27dd55386a8da62995e"
+    },
+    "topic_id": "TOPIC-R2-024",
+    "variation_tags": [
+      "numeric_scope"
+    ]
+  },
+  "source": {
+    "original_request_sha256": "a98e91bc13b7e7cdd78b46c21d8a559cf1be656c0a3b3c3f351f611b1246a609",
+    "original_answer_sha256": "e9285f3cc7b919975de365796fcb698a637f654e7079e70f82dd75a29dad0b2d",
+    "source_units": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003"
+    ],
+    "support_map": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003"
+    ],
+    "background_claims": [],
+    "revision_references": []
+  },
+  "artifact": {
+    "answer": "原始读数：\n\n> 无负载读数 12.6 V；接入负载后为 11.9 V。\n\n- 开路电压：电源没有接入负载、几乎不输出电流时测得的电压，本例为 12.6 V\n- 负载电压：电源接入负载并输出电流时测得的电压，本例为 11.9 V\n\n两者相差 0.7 V。可以把实际供电系统理解为“理想电源加上等效内阻”：无负载时电流很小，内部和线路上的压降也很小；接入负载后产生电流，电源内阻、导线、接头等位置会出现压降，所以端子处测得的负载电压可能低于开路电压\n\n因此，这组数据说明系统带载后出现了电压下降，但仅凭两个读数还不能判断压降来自电源内部、连接线路还是负载过重\n\n复核编号 B24，须保留",
+    "answer_sha256": "e9285f3cc7b919975de365796fcb698a637f654e7079e70f82dd75a29dad0b2d",
+    "approved_snapshot_sha256": null,
+    "revision_of": null
+  },
+  "review": {
+    "decision_source": "pending_user_review",
+    "decision": "pending",
+    "reasons": [],
+    "correct_parts": [],
+    "regression_requirements": [],
+    "non_blocking_preferences": [],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "全新合成评测主题，不含用户、服务器、私有项目或凭据数据"
+    }
+  }
+}

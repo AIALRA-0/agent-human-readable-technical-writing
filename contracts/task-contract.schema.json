@@ -4,7 +4,7 @@
   "title": "TaskContract",
   "type": "object",
   "additionalProperties": false,
-  "required": ["identity", "operation", "context", "terminology", "structure", "components", "code", "conversation", "presentation", "boundaries", "quality", "clarification"],
+  "required": ["identity", "operation", "context", "long_context", "terminology", "structure", "components", "code", "conversation", "presentation", "boundaries", "quality", "clarification"],
   "properties": {
     "identity": {
       "type": "object", "additionalProperties": false,
@@ -35,6 +35,62 @@
         "user_profile": {"type": "string", "minLength": 1},
         "reading_context": {"enum": ["standalone", "continuous_document"]}
       }
+    },
+    "long_context": {
+      "type": "object", "additionalProperties": false,
+      "required": ["content_task", "input_char_count", "length_class", "section_count", "global_recheck_required", "anchor_requirements", "term_scope_requirements", "source_priority_requirements"],
+      "properties": {
+        "content_task": {"enum": ["tutorial", "operation", "reference", "explanation", "decision", "status", "audit"]},
+        "input_char_count": {"type": "integer", "minimum": 1},
+        "length_class": {"enum": ["very_short", "short", "medium", "long", "extended"]},
+        "section_count": {"type": "integer", "minimum": 1},
+        "global_recheck_required": {"type": "boolean"},
+        "anchor_requirements": {
+          "type": "array", "uniqueItems": true,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["anchor_id", "kind", "source_locator", "expected_value"],
+            "properties": {
+              "anchor_id": {"type": "string", "pattern": "^LC-A[0-9]{3,}$"},
+              "kind": {"enum": ["CONDITION", "NEGATION", "EXCEPTION", "NUMBER", "RANGE", "CLAIM"]},
+              "source_locator": {"type": "string", "minLength": 1},
+              "expected_value": {"type": "string", "minLength": 1}
+            }
+          }
+        },
+        "term_scope_requirements": {
+          "type": "array", "uniqueItems": true,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["term", "scope_id", "expected_meaning"],
+            "properties": {
+              "term": {"type": "string", "minLength": 1},
+              "scope_id": {"type": "string", "pattern": "^LC-SCOPE-[0-9]{3,}$"},
+              "expected_meaning": {"type": "string", "minLength": 1}
+            }
+          }
+        },
+        "source_priority_requirements": {
+          "type": "array", "uniqueItems": true,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["conflict_id", "claim", "source_ids", "priority_source_id", "must_surface"],
+            "properties": {
+              "conflict_id": {"type": "string", "pattern": "^LC-CONFLICT-[0-9]{3,}$"},
+              "claim": {"type": "string", "minLength": 1},
+              "source_ids": {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+              "priority_source_id": {"type": "string", "minLength": 1},
+              "must_surface": {"type": "boolean"}
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"length_class": {"enum": ["long", "extended"]}}},
+          "then": {"properties": {"global_recheck_required": {"const": true}, "anchor_requirements": {"minItems": 1}}}
+        }
+      ]
     },
     "terminology": {
       "type": "object", "additionalProperties": false,

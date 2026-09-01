@@ -1,0 +1,219 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-FWD-R2-039-R1",
+    "origin_case_id": "FWD-R2-039",
+    "status": "candidate",
+    "revision": 1,
+    "approved_by_user": false,
+    "reviewed_at": null,
+    "profile_revision_at_review": null
+  },
+  "task": {
+    "audience": "decision_maker",
+    "augmentation": "TEACHING",
+    "base_operation": "EXPLAIN",
+    "case_id": "FWD-R2-039",
+    "components": [
+      "CODE",
+      "TEXT"
+    ],
+    "content_task": "decision",
+    "core_terms": [
+      "软配额",
+      "突发额度"
+    ],
+    "genre": "code_decision",
+    "input_char_count": 1776,
+    "length_class": "extended",
+    "references": [
+      {
+        "content": "soft_limit 是租户常规额度；burst 是只供管理员请求临时使用的附加额度。used 等于 soft_limit 时普通请求被拒绝。used 等于 ceiling 时管理员请求也被拒绝。代码没有检查负数、整数溢出或租户身份，调用方负责这些校验。产品文档旧版称所有用户都可使用突发额度，新版变更单明确只允许管理员；变更单优先。监控按返回标签 normal、burst、blocked 计数，不记录输入值。",
+        "id": "REF-POLICY"
+      },
+      {
+        "content": "复核编号 B39，须保留",
+        "id": "REF-RESTART"
+      },
+      {
+        "content": "核对段1（事实归属）：ceiling 等于常规额度加突发额度；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段2（条件边界）：普通路径使用严格小于 soft_limit；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段3（数值范围）：管理员突发路径使用严格小于 ceiling；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段4（例外处理）：等于边界时会拒绝；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段5（来源状态）：调用方负责输入合法性；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段6（可验证结论）：新版变更单优先于旧产品文档；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段7（不可外推内容）：监控只记录结果标签；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段8（复核提示）：代码本身不识别租户；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段9（事实归属）：ceiling 等于常规额度加突发额度；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段10（条件边界）：普通路径使用严格小于 soft_limit；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段11（数值范围）：管理员突发路径使用严格小于 ceiling；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段12（例外处理）：等于边界时会拒绝；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段13（来源状态）：调用方负责输入合法性；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段14（可验证结论）：新版变更单优先于旧产品文档；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段15（不可外推内容）：监控只记录结果标签；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段16（复核提示）：代码本身不识别租户；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段17（事实归属）：ceiling 等于常规额度加突发额度；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段18（条件边界）：普通路径使用严格小于 soft_limit；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段19（数值范围）：管理员突发路径使用严格小于 ceiling；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段20（例外处理）：等于边界时会拒绝；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段21（来源状态）：调用方负责输入合法性；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段22（可验证结论）：新版变更单优先于旧产品文档；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段23（不可外推内容）：监控只记录结果标签；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段24（复核提示）：代码本身不识别租户；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段25（事实归属）：ceiling 等于常规额度加突发额度；本段只支持这项陈述，不能替代其他段落的条件或证据。",
+        "id": "REF-COVERAGE"
+      }
+    ],
+    "request": "保留代码并同行对齐注释，为决策者解释行为、边界、风险和可选修改",
+    "round": 2,
+    "source": {
+      "content": "def permit(used, soft_limit, burst, is_admin):\n    ceiling = soft_limit + burst\n    if used < soft_limit:\n        return True, 'normal'\n    if is_admin and used < ceiling:\n        return True, 'burst'\n    return False, 'blocked'",
+      "material_type": "code",
+      "sha256": "24e4f46f15dd262ba94f132489b7541222304b58ea118303d58deeed8b468360"
+    },
+    "topic_id": "TOPIC-R2-039",
+    "variation_tags": [
+      "conflicting_sources",
+      "mixed_format",
+      "distributed_condition",
+      "numeric_scope",
+      "negation_exception"
+    ]
+  },
+  "source": {
+    "original_request_sha256": "962b138f51d16f7d12ade244ee82855a312aa8e5cb069e6fb7ed5fd15fbb51a4",
+    "original_answer_sha256": "910eb04b5e71fd9b47655cb76fcf8eb29710dd6bc8160eebc179d8037dd2f3f1",
+    "source_units": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003",
+      "SRCU-004",
+      "SRCU-005",
+      "SRCU-006",
+      "SRCU-007",
+      "SRCU-008",
+      "SRCU-009",
+      "SRCU-010",
+      "SRCU-011",
+      "SRCU-012",
+      "SRCU-013",
+      "SRCU-014",
+      "SRCU-015",
+      "SRCU-016",
+      "SRCU-017",
+      "SRCU-018",
+      "SRCU-019",
+      "SRCU-020",
+      "SRCU-021",
+      "SRCU-022",
+      "SRCU-023",
+      "SRCU-024",
+      "SRCU-025",
+      "SRCU-026",
+      "SRCU-027",
+      "SRCU-028",
+      "SRCU-029",
+      "SRCU-030",
+      "SRCU-031",
+      "SRCU-032",
+      "SRCU-033",
+      "SRCU-034",
+      "SRCU-035",
+      "SRCU-036",
+      "SRCU-037",
+      "SRCU-038",
+      "SRCU-039",
+      "SRCU-040",
+      "SRCU-041",
+      "SRCU-042",
+      "SRCU-043",
+      "SRCU-044",
+      "SRCU-045",
+      "SRCU-046",
+      "SRCU-047",
+      "SRCU-048",
+      "SRCU-049",
+      "SRCU-050",
+      "SRCU-051",
+      "SRCU-052"
+    ],
+    "support_map": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003",
+      "SRCU-004",
+      "SRCU-005",
+      "SRCU-006",
+      "SRCU-007",
+      "SRCU-008",
+      "SRCU-009",
+      "SRCU-010",
+      "SRCU-011",
+      "SRCU-012",
+      "SRCU-013",
+      "SRCU-014",
+      "SRCU-015",
+      "SRCU-016",
+      "SRCU-017",
+      "SRCU-018",
+      "SRCU-019",
+      "SRCU-020",
+      "SRCU-021",
+      "SRCU-022",
+      "SRCU-023",
+      "SRCU-024",
+      "SRCU-025",
+      "SRCU-026",
+      "SRCU-027",
+      "SRCU-028",
+      "SRCU-029",
+      "SRCU-030",
+      "SRCU-031",
+      "SRCU-032",
+      "SRCU-033",
+      "SRCU-034",
+      "SRCU-035",
+      "SRCU-036",
+      "SRCU-037",
+      "SRCU-038",
+      "SRCU-039",
+      "SRCU-040",
+      "SRCU-041",
+      "SRCU-042",
+      "SRCU-043",
+      "SRCU-044",
+      "SRCU-045",
+      "SRCU-046",
+      "SRCU-047",
+      "SRCU-048",
+      "SRCU-049",
+      "SRCU-050",
+      "SRCU-051",
+      "SRCU-052"
+    ],
+    "background_claims": [
+      {
+        "claim": "soft_limit 是租户常规额度，burst 是仅供管理员请求临时使用的附加额度。",
+        "source_reference": "REF-POLICY"
+      },
+      {
+        "claim": "ceiling 等于 soft_limit 加 burst；普通路径和管理员突发路径均使用严格小于比较，等于相应边界时拒绝该路径。",
+        "source_reference": "REF-COVERAGE"
+      },
+      {
+        "claim": "代码不检查负数、整数溢出或租户身份，输入合法性由调用方负责。",
+        "source_reference": "REF-POLICY"
+      },
+      {
+        "claim": "新版变更单将突发额度限定为管理员，并优先于称所有用户均可使用突发额度的旧版产品文档。",
+        "source_reference": "REF-POLICY"
+      },
+      {
+        "claim": "监控只记录 normal、burst、blocked 结果标签，不记录输入值。",
+        "source_reference": "REF-POLICY"
+      },
+      {
+        "claim": "代码本身不识别租户。",
+        "source_reference": "REF-COVERAGE"
+      },
+      {
+        "claim": "复核编号为 B39，必须保留。",
+        "source_reference": "REF-RESTART"
+      }
+    ],
+    "revision_references": []
+  },
+  "artifact": {
+    "answer": "决策建议：保留“普通用户只能使用软配额、管理员可临时使用突发额度”的现有分配规则，但把输入合法性、租户身份和管理员权限校验列为上线前置条件，并同步修订旧产品文档。新版变更单明确将突发额度限定为管理员，应优先于旧版“所有用户可用”的表述。\n\n复核编号：B39\n\n以下保留全部有效语句，并加入经机械校验、统一从第 48 列开始的同行注释：\n\n```python\ndef permit(used, soft_limit, burst, is_admin): # 定义配额判断函数，接收已用量、软配额、突发额度和管理员标志\n    ceiling = soft_limit + burst               # 计算管理员可用的总上限，即软配额加突发额度\n    if used < soft_limit:                      # 普通路径只在已用量严格小于软配额时放行\n        return True, 'normal'                  # 返回放行结果，并标记为 normal\n    if is_admin and used < ceiling:            # 只有管理员且已用量严格小于总上限时进入突发路径\n        return True, 'burst'                   # 返回放行结果，并标记为 burst\n    return False, 'blocked'                    # 其余情况拒绝，并标记为 blocked\n```\n\n行为与边界\n\n- 软配额 `soft_limit` 是租户的常规额度；突发额度 `burst` 是仅供管理员请求临时使用的附加额度；总上限 `ceiling = soft_limit + burst`\n- 当 `used < soft_limit` 时，任何请求都返回 `(True, 'normal')`\n- 当普通路径未放行、`is_admin` 为真且 `used < ceiling` 时，管理员请求返回 `(True, 'burst')`；因此在合法输入前提下，突发区间实际是 `soft_limit <= used < ceiling`\n- 当 `used == soft_limit` 时，严格小于条件不成立；普通请求返回 `(False, 'blocked')`，管理员只有在仍满足 `used < ceiling` 时才能以 `burst` 放行\n- 当 `used == ceiling` 时，管理员突发路径的严格小于条件也不成立，请求返回 `(False, 'blocked')`\n- 其他未命中路径均返回 `(False, 'blocked')`；这里的“失败”是业务拒绝结果，不是异常\n\n输入、结果与副作用\n\n- `permit` 是一个 Python 函数，由调用方传入 `used`、`soft_limit`、`burst` 和 `is_admin`；材料没有规定这些参数的具体数据类型或 Python 版本\n- 返回值是二元组：第一个元素表示是否放行，第二个元素是 `normal`、`burst` 或 `blocked` 标签\n- 可见函数体只进行加法、比较和返回，没有读写文件、联网或修改外部对象\n- 单独这段函数不能直接作为完整程序运行，也不能证明上游调用方已经完成身份、类型和数值校验\n\n主要风险\n\n- 输入风险：代码没有检查负数或整数溢出，调用方必须负责；如果调用方漏检，额度顺序和边界行为可能偏离产品规则\n- 权限风险：代码不接收或识别租户身份，只信任调用方提供的 `is_admin`；因此它不能独立证明请求属于正确租户，也不能证明管理员身份真实有效\n- 文档风险：旧版产品文档称所有用户都能使用突发额度，与新版变更单冲突；若不修订，实施、客服和用户预期可能继续分叉\n- 可观测性风险：监控只按 `normal`、`burst`、`blocked` 标签计数，不记录输入值；它能显示结果数量，但不能仅凭现有记录还原某次判断使用了什么额度、用量或身份标志\n\n可选修改\n\n1. 保留算法，强化调用边界——推荐\n   - 在调用 `permit` 前校验负数、整数溢出、租户身份和管理员权限\n   - 确保 `is_admin` 来自可信的鉴权结果，而不是请求方可自行填写的值\n   - 修订旧产品文档，并为三个返回标签建立边界测试\n   - 优点是保持现有配额语义和返回标签；代价是正确性仍依赖所有调用入口一致执行校验\n\n2. 把防护移入配额函数\n   - 扩展函数接口，使其能够验证输入合法性，并接收可信的租户与权限上下文\n   - 对非法输入采用明确的异常或错误结果，避免与正常的 `blocked` 混为一类\n   - 优点是约束集中；代价是需要修改接口、调用方、测试和可能依赖现有返回格式的监控\n\n3. 修改产品政策或边界\n   - 若要恢复“所有用户均可使用突发额度”，必须明确撤销新版变更单并修改管理员条件\n   - 若要让等于边界时仍可放行，必须把相应的 `<` 改为 `<=`，同时更新政策、测试和容量评估\n   - 这两类修改都会改变当前已给定的政策，不应作为纯代码修复直接实施\n\n批准前应验证两项证据：审计所有调用入口是否确实完成负数、整数溢出和租户校验；追踪 `is_admin` 的产生路径，确认它来自可信鉴权。现有代码和监控标签本身不能证明这两项已经满足。",
+    "answer_sha256": "910eb04b5e71fd9b47655cb76fcf8eb29710dd6bc8160eebc179d8037dd2f3f1",
+    "approved_snapshot_sha256": null,
+    "revision_of": null
+  },
+  "review": {
+    "decision_source": "pending_user_review",
+    "decision": "pending",
+    "reasons": [],
+    "correct_parts": [],
+    "regression_requirements": [],
+    "non_blocking_preferences": [],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "全新合成评测主题，不含用户、服务器、私有项目或凭据数据"
+    }
+  }
+}

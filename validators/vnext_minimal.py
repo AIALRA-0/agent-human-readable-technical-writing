@@ -134,6 +134,43 @@ def validate_content_sufficiency(rule_id: str, payload: dict[str, Any]) -> Valid
     return [] if checks.get(rule_id, False) else [f"{rule_id} failed"]
 
 
+def validate_long_context(rule_id: str, payload: dict[str, Any]) -> ValidationResult:
+    """Validate declared whole-document evidence without guessing prose quality."""
+
+    expected_metadata = payload.get("expected_metadata", {})
+    actual_metadata = payload.get("actual_metadata", {})
+    requirements = {item.get("anchor_id"): item for item in payload.get("anchor_requirements", [])}
+    anchors = {item.get("anchor_id"): item for item in payload.get("anchors", [])}
+    term_requirements = {(item.get("term"), item.get("scope_id")): item for item in payload.get("term_requirements", [])}
+    term_scopes = {(item.get("term"), item.get("scope_id")): item for item in payload.get("term_scopes", [])}
+    priority_requirements = {item.get("conflict_id"): item for item in payload.get("priority_requirements", [])}
+    priorities = {item.get("conflict_id"): item for item in payload.get("priorities", [])}
+    checks = {
+        "LONG_METADATA_MATCH": expected_metadata == actual_metadata,
+        "LONG_FULL_DOCUMENT_CHECK": not payload.get("global_recheck_required") or payload.get("full_document_check") is True,
+        "LONG_ANCHOR_COVERAGE": set(requirements) <= set(anchors),
+        "LONG_ANCHOR_VALUE": bool(requirements) and all(
+            anchors.get(anchor_id, {}).get("status") == "preserved"
+            and anchors.get(anchor_id, {}).get("observed_value") == requirement.get("expected_value")
+            for anchor_id, requirement in requirements.items()
+        ),
+        "LONG_TERM_SCOPE": bool(term_requirements) and all(
+            term_scopes.get(key, {}).get("observed_meaning") == requirement.get("expected_meaning")
+            for key, requirement in term_requirements.items()
+        ),
+        "LONG_SOURCE_PRIORITY": bool(priority_requirements) and all(
+            priorities.get(conflict_id, {}).get("selected_source_id") == requirement.get("priority_source_id")
+            for conflict_id, requirement in priority_requirements.items()
+        ),
+        "LONG_CONFLICT_SURFACED": bool(priority_requirements) and all(
+            not requirement.get("must_surface") or priorities.get(conflict_id, {}).get("surfaced") is True
+            for conflict_id, requirement in priority_requirements.items()
+        ),
+        "LONG_UNIQUE_ANCHORS": len(payload.get("anchors", [])) == len({item.get("anchor_id") for item in payload.get("anchors", [])}),
+    }
+    return [] if checks.get(rule_id, False) else [f"{rule_id} failed"]
+
+
 def validate_conversation_supersession(rule_id: str, payload: dict[str, Any]) -> ValidationResult:
     """Validate current-only output unless history retention was explicitly requested."""
 
@@ -369,6 +406,7 @@ VALIDATORS: dict[str, Callable[[str, dict[str, Any]], ValidationResult]] = {
     "code_coverage_mode": validate_code_coverage_mode,
     "code_comment_alignment": validate_code_comment_alignment,
     "content_sufficiency": validate_content_sufficiency,
+    "long_context_coverage": validate_long_context,
     "conversation_supersession": validate_conversation_supersession,
 }
 

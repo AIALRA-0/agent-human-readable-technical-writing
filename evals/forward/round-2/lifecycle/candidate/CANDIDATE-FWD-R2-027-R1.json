@@ -1,0 +1,109 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-FWD-R2-027-R1",
+    "origin_case_id": "FWD-R2-027",
+    "status": "candidate",
+    "revision": 1,
+    "approved_by_user": false,
+    "reviewed_at": null,
+    "profile_revision_at_review": null
+  },
+  "task": {
+    "audience": "operator",
+    "augmentation": "EXPLANATORY",
+    "base_operation": "EXPLAIN",
+    "case_id": "FWD-R2-027",
+    "components": [
+      "IMAGE",
+      "TEXT"
+    ],
+    "content_task": "explanation",
+    "core_terms": [
+      "压差箭头",
+      "回风口"
+    ],
+    "genre": "image_explanation",
+    "input_char_count": 176,
+    "length_class": "short",
+    "references": [
+      {
+        "content": "箭头表示设计气流方向；+15 Pa 是设定压差，不是本次实测值。图未给出颗粒计数。",
+        "id": "REF-001"
+      },
+      {
+        "content": "复核编号 B27，须保留",
+        "id": "REF-RESTART"
+      },
+      {
+        "content": "核对段1（事实归属）：送风从顶部进入洁净区；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段2（条件边界）：回风口位于低处；本段只支持这项陈述，不能替代其他段落的条件或证据。",
+        "id": "REF-COVERAGE"
+      }
+    ],
+    "request": "保留图，解释箭头、区域和图中不能证明的内容",
+    "round": 2,
+    "source": {
+      "content": {
+        "alt": "洁净室气流与压差示意图",
+        "path": "assets/cleanroom-airflow.svg"
+      },
+      "material_type": "image",
+      "sha256": "2e52d6a367cdf10e9948107552d8bbeb9aa3597c67f53712d7e7be186a0b2b17"
+    },
+    "topic_id": "TOPIC-R2-027",
+    "variation_tags": [
+      "mixed_format",
+      "numeric_scope",
+      "negation_exception"
+    ]
+  },
+  "source": {
+    "original_request_sha256": "d71f8d51b5553955e688c4d5f177725387506552c1825855acd2b8464d72acd9",
+    "original_answer_sha256": "09354d4036f570a0120d3ff47bff7080c43383dca4b1b05e2e1c3fdef886ff1f",
+    "source_units": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003",
+      "SRCU-004",
+      "SRCU-005",
+      "SRCU-006",
+      "SRCU-007",
+      "SRCU-008",
+      "SRCU-009",
+      "SRCU-010",
+      "SRCU-011"
+    ],
+    "support_map": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003",
+      "SRCU-004",
+      "SRCU-005",
+      "SRCU-006",
+      "SRCU-007",
+      "SRCU-008",
+      "SRCU-009",
+      "SRCU-010",
+      "SRCU-011"
+    ],
+    "background_claims": [],
+    "revision_references": []
+  },
+  "artifact": {
+    "answer": "![洁净室气流与压差示意图](assets/cleanroom-airflow.svg)\n\n这张图说明洁净区的设计气流与压差关系：\n\n- 送风从顶部进入洁净区，低处设置回风口\n- 压差箭头表示设计气流方向\n- 图中的 +15 Pa 是设定压差，不是本次实测值\n\n因此，这张示意图不能证明本次实际压差达到 +15 Pa，也不能提供颗粒计数结果；核实这两项内容需要另查相应的实测记录\n\n复核编号：B27",
+    "answer_sha256": "09354d4036f570a0120d3ff47bff7080c43383dca4b1b05e2e1c3fdef886ff1f",
+    "approved_snapshot_sha256": null,
+    "revision_of": null
+  },
+  "review": {
+    "decision_source": "pending_user_review",
+    "decision": "pending",
+    "reasons": [],
+    "correct_parts": [],
+    "regression_requirements": [],
+    "non_blocking_preferences": [],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "全新合成评测主题，不含用户、服务器、私有项目或凭据数据"
+    }
+  }
+}

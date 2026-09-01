@@ -1,4 +1,4 @@
-"""Validate 32 context fixtures while preserving the deterministic or semantic boundary."""
+"""Validate 40 context fixtures while preserving the deterministic or semantic boundary."""
 
 from __future__ import annotations
 
@@ -25,6 +25,7 @@ EXPECTED = {
     "comment_alignment": 2,
     "content_sufficiency": 2,
     "supersession": 2,
+    "long_context": 8,
 }
 
 
@@ -36,8 +37,8 @@ def main() -> int:
     cases = [json.loads(line) for line in CASES.read_text(encoding="utf-8").splitlines() if line.strip()]
     errors: list[str] = []
     identifiers = [case.get("case_id") for case in cases]
-    if len(cases) != 32:
-        errors.append(f"expected 32 cases, found {len(cases)}")
+    if len(cases) != 40:
+        errors.append(f"expected 40 cases, found {len(cases)}")
     if len(identifiers) != len(set(identifiers)):
         errors.append("context case identifiers are not unique")
     counts = Counter(case.get("dimension") for case in cases)
@@ -58,7 +59,7 @@ def main() -> int:
     report = {
         "status": status,
         "results": {"cases": len(cases), "contract_valid": len(cases) - len(errors), "dimension_counts": dict(counts)},
-        "reason": "32 个语境案例具有完整结构；已登记的机器形式允许确定性判断，专业名词边界、排比识别、代码覆盖、内容充分性和多轮保留条件继续由 Agent 或用户判断" if not errors else "语境案例的结构或职责边界存在错误",
+        "reason": "40 个语境案例具有完整结构；已登记的机器形式允许确定性判断，专业名词边界、排比识别、代码覆盖、内容充分性、多轮保留和长上下文语义继续由 Agent 或用户判断" if not errors else "语境案例的结构或职责边界存在错误",
         "impact": "检查器能够区分已登记大小写、原文豁免和未知官方写法，不会把未登记名称当成确定答案" if not errors else "当前语境集合不能用于回归校准",
         "next": "在真实生成中使用这些案例检查泛化表现" if not errors else "修复列出的结构错误后重试",
         "errors": errors,

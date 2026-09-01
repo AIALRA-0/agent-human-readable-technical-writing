@@ -1,0 +1,21 @@
+{
+  "run_id": "round-2-infrastructure-abort-2026-09-01",
+  "status": "retired_not_reviewable",
+  "reason": "local_storage_exhausted_before_atomic_result_persistence",
+  "submitted_case_ids": [
+    "FWD-R2-001", "FWD-R2-002", "FWD-R2-003", "FWD-R2-004", "FWD-R2-005",
+    "FWD-R2-006", "FWD-R2-007", "FWD-R2-008", "FWD-R2-009", "FWD-R2-010",
+    "FWD-R2-011", "FWD-R2-012", "FWD-R2-013", "FWD-R2-014", "FWD-R2-015",
+    "FWD-R2-016", "FWD-R2-017", "FWD-R2-018", "FWD-R2-019", "FWD-R2-020"
+  ],
+  "submitted": 20,
+  "persisted_outputs": 1,
+  "unrecoverable_output_state": 19,
+  "counts_as_human_round": false,
+  "counts_as_user_acceptance": false,
+  "may_be_regenerated": false,
+  "replacement_policy": "use new case identifiers and materially changed source inputs",
+  "replacement_case_range": "FWD-R2-021..040",
+  "raw_evidence_location": "local_private_archive",
+  "privacy": "public_safe_metadata_only"
+}

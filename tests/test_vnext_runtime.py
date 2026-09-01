@@ -28,6 +28,10 @@ class VNextRuntimeTests(unittest.TestCase):
         })
         return {
             "task_contract": contract,
+            "long_context_coverage": {
+                "input_char_count": 1, "length_class": "very_short", "section_count": 1,
+                "full_document_check": False, "anchors": [], "term_scopes": [], "source_priorities": [],
+            },
             "source_spans": [{
                 "identity": {"source_span_id": "SRC-001", "source_id": "SOURCE-1"},
                 "location": {"locator": "第 1 句"},
@@ -459,6 +463,117 @@ class VNextRuntimeTests(unittest.TestCase):
         text = "静置 10 分钟；任务已接收"
         bundle["rendered_document"]["text"] = text
         bundle["rendered_document"]["sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        self.assertEqual("PASS", verify_bundle(bundle)["status"])
+
+    def configure_long_context(self, bundle: dict) -> None:
+        """Attach one fully covered six-section extended-input contract."""
+
+        anchors = [
+            {"anchor_id": "LC-A001", "kind": "CONDITION", "source_locator": "第 1 节", "expected_value": "仅在温度低于 5°C 时启动"},
+            {"anchor_id": "LC-A002", "kind": "NUMBER", "source_locator": "第 6 节", "expected_value": "保留 30 天"},
+        ]
+        term_scopes = [
+            {"term": "窗口", "scope_id": "LC-SCOPE-001", "expected_meaning": "数据采集时间范围"},
+        ]
+        source_priorities = [{
+            "conflict_id": "LC-CONFLICT-001", "claim": "保存期限", "source_ids": ["POLICY-OLD", "POLICY-NEW"],
+            "priority_source_id": "POLICY-NEW", "must_surface": True,
+        }]
+        bundle["task_contract"] = compile_contract({
+            "task_id": "TASK-LONG-001", "base_operation": "EXPLAIN", "augmentation": "EXPLANATORY",
+            "audience": "auditor", "genre": "audit", "media": ["chat"], "components": ["TEXT"],
+            "content_task": "audit", "input_char_count": 1800, "length_class": "extended", "section_count": 6,
+            "long_context_anchors": anchors, "term_scope_requirements": term_scopes,
+            "source_priority_requirements": source_priorities,
+        })
+        bundle["long_context_coverage"] = {
+            "input_char_count": 1800, "length_class": "extended", "section_count": 6,
+            "full_document_check": True,
+            "anchors": [
+                {**item, "observed_value": item["expected_value"], "output_locator": f"输出-{item['anchor_id']}", "status": "preserved"}
+                for item in anchors
+            ],
+            "term_scopes": [
+                {**item, "observed_meaning": item["expected_meaning"], "output_locator": "输出-术语窗口"}
+                for item in term_scopes
+            ],
+            "source_priorities": [{"conflict_id": "LC-CONFLICT-001", "selected_source_id": "POLICY-NEW", "surfaced": True}],
+        }
+
+    def test_compile_classifies_five_length_ranges(self) -> None:
+        """The compiler binds the agreed low-token Unicode ranges exactly."""
+
+        expected = {1: "very_short", 81: "short", 251: "medium", 701: "long", 1501: "extended"}
+        for count, length_class in expected.items():
+            contract = compile_contract({
+                "task_id": f"TASK-LENGTH-{count}", "base_operation": "EXPLAIN", "augmentation": "NONE",
+                "audience": "operator", "genre": "operation", "media": ["chat"], "components": ["TEXT"],
+                "input_char_count": count,
+                "long_context_anchors": [{"anchor_id": "LC-A001", "kind": "CLAIM", "source_locator": "输入", "expected_value": "保留事实"}]
+                if count >= 701 else [],
+            })
+            self.assertEqual(length_class, contract["long_context"]["length_class"])
+
+    def test_long_context_metadata_mismatch_fails(self) -> None:
+        """Evidence for a different input size cannot certify the current task."""
+
+        bundle = self.build_bundle()
+        self.configure_long_context(bundle)
+        bundle["long_context_coverage"]["input_char_count"] = 1799
+        report = verify_bundle(bundle)
+        self.assertIn("LONG_CONTEXT_METADATA", {item["rule_id"] for item in report["findings"]})
+
+    def test_long_context_requires_full_document_recheck(self) -> None:
+        """Passing individual sections cannot replace a final whole-document pass."""
+
+        bundle = self.build_bundle()
+        self.configure_long_context(bundle)
+        bundle["long_context_coverage"]["full_document_check"] = False
+        report = verify_bundle(bundle)
+        self.assertIn("FULL_DOCUMENT_RECHECK", {item["rule_id"] for item in report["findings"]})
+
+    def test_long_context_missing_anchor_fails(self) -> None:
+        """A distant condition must remain represented in the output ledger."""
+
+        bundle = self.build_bundle()
+        self.configure_long_context(bundle)
+        bundle["long_context_coverage"]["anchors"] = bundle["long_context_coverage"]["anchors"][1:]
+        report = verify_bundle(bundle)
+        self.assertIn("LONG_CONTEXT_ANCHOR_MISSING", {item["rule_id"] for item in report["findings"]})
+
+    def test_long_context_changed_number_fails(self) -> None:
+        """A cross-section number cannot silently change while remaining locatable."""
+
+        bundle = self.build_bundle()
+        self.configure_long_context(bundle)
+        bundle["long_context_coverage"]["anchors"][1]["observed_value"] = "保留 7 天"
+        bundle["long_context_coverage"]["anchors"][1]["status"] = "changed"
+        report = verify_bundle(bundle)
+        self.assertIn("LONG_CONTEXT_ANCHOR_VALUE", {item["rule_id"] for item in report["findings"]})
+
+    def test_long_context_term_scope_drift_fails(self) -> None:
+        """The same visible term keeps its registered meaning inside each scope."""
+
+        bundle = self.build_bundle()
+        self.configure_long_context(bundle)
+        bundle["long_context_coverage"]["term_scopes"][0]["observed_meaning"] = "桌面窗口"
+        report = verify_bundle(bundle)
+        self.assertIn("LONG_CONTEXT_TERM_SCOPE", {item["rule_id"] for item in report["findings"]})
+
+    def test_long_context_source_priority_fails(self) -> None:
+        """A conflict cannot be hidden or resolved with the lower-priority source."""
+
+        bundle = self.build_bundle()
+        self.configure_long_context(bundle)
+        bundle["long_context_coverage"]["source_priorities"][0].update({"selected_source_id": "POLICY-OLD", "surfaced": False})
+        report = verify_bundle(bundle)
+        self.assertIn("LONG_CONTEXT_SOURCE_PRIORITY", {item["rule_id"] for item in report["findings"]})
+
+    def test_complete_long_context_evidence_passes(self) -> None:
+        """Exact anchors, scoped terms, conflict handling, and full review can pass together."""
+
+        bundle = self.build_bundle()
+        self.configure_long_context(bundle)
         self.assertEqual("PASS", verify_bundle(bundle)["status"])
 
     def add_github_image(self, bundle: dict, evidence: list[dict]) -> None:

@@ -15,6 +15,13 @@ from referencing import Registry, Resource
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACTS = ROOT / "contracts"
 RULE_LEVELS = ["MACHINE_FINAL", "MACHINE_CANDIDATE", "PROFILE_REQUIRED", "ADVISORY"]
+LENGTH_CLASSES = (
+    (80, "very_short"),
+    (250, "short"),
+    (700, "medium"),
+    (1500, "long"),
+    (None, "extended"),
+)
 
 
 def _schema_registry() -> Registry:
@@ -35,6 +42,17 @@ def _validate(instance: Any, schema_name: str) -> None:
         schema, registry=_schema_registry(), format_checker=jsonschema.FormatChecker()
     )
     validator.validate(instance)
+
+
+def classify_length(input_char_count: int) -> str:
+    """Classify one Unicode-character count using the vNext low-token ranges."""
+
+    if input_char_count < 1:
+        raise ValueError("input_char_count must be at least 1")
+    for upper, name in LENGTH_CLASSES:
+        if upper is None or input_char_count <= upper:
+            return name
+    raise AssertionError("length classification is not exhaustive")
 
 
 def compile_contract(specification: dict[str, Any]) -> dict[str, Any]:
@@ -88,6 +106,12 @@ def compile_contract(specification: dict[str, Any]) -> dict[str, Any]:
         if renderer_name == "github_markdown" and has_visual else "当前媒介能够执行登记的对齐方式",
     )
 
+    input_char_count = int(specification.get("input_char_count", 1))
+    length_class = specification.get("length_class", classify_length(input_char_count))
+    if length_class != classify_length(input_char_count):
+        raise ValueError("length_class differs from input_char_count")
+    global_recheck_required = length_class in {"long", "extended"}
+
     term_requirements = []
     for provided in specification.get("term_requirements", []):
         requirement = dict(provided)
@@ -110,6 +134,16 @@ def compile_contract(specification: dict[str, Any]) -> dict[str, Any]:
             "audience": specification["audience"], "genre": specification["genre"],
             "media": media, "components": list(specification["components"]),
             "user_profile": specification.get("user_profile", "lucas"), "reading_context": reading_context,
+        },
+        "long_context": {
+            "content_task": specification.get("content_task", "explanation"),
+            "input_char_count": input_char_count,
+            "length_class": length_class,
+            "section_count": int(specification.get("section_count", 1)),
+            "global_recheck_required": specification.get("global_recheck_required", global_recheck_required),
+            "anchor_requirements": list(specification.get("long_context_anchors", [])),
+            "term_scope_requirements": list(specification.get("term_scope_requirements", [])),
+            "source_priority_requirements": list(specification.get("source_priority_requirements", [])),
         },
         "terminology": {"known_terms": known_terms, "term_requirements": term_requirements},
         "structure": {"parallel_groups": list(specification.get("parallel_groups", []))},
@@ -185,6 +219,95 @@ def verify_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
     if task["clarification"]["status"] == "BLOCKED":
         findings.append(_finding("BLOCKING_CLARIFICATION", "task_contract/clarification", "任务合同仍有会改变结果的歧义", "继续成文可能改变事实、范围或输出规模", "取得用户决定后重新编译", "REVIEW_REQUIRED"))
     checks += 1
+
+    long_task = task["long_context"]
+    long_coverage = bundle["long_context_coverage"]
+    expected_metadata = (
+        long_task["input_char_count"], long_task["length_class"], long_task["section_count"]
+    )
+    actual_metadata = (
+        long_coverage["input_char_count"], long_coverage["length_class"], long_coverage["section_count"]
+    )
+    if actual_metadata != expected_metadata:
+        findings.append(_finding(
+            "LONG_CONTEXT_METADATA", "long_context_coverage",
+            "验证包登记的字符数、篇幅档或章节数与任务合同不一致",
+            "全文检查可能针对错误版本或错误范围执行",
+            "按任务合同重新登记长上下文元数据",
+        ))
+    checks += 1
+    if long_task["global_recheck_required"] and not long_coverage["full_document_check"]:
+        findings.append(_finding(
+            "FULL_DOCUMENT_RECHECK", "long_context_coverage/full_document_check",
+            "长篇任务只完成了局部检查，没有登记拼接后的全文复核",
+            "远距离条件、例外、数字或术语漂移可能未被发现",
+            "完成全文复核并重新生成验证包",
+        ))
+    checks += 1
+
+    anchor_coverage = {item["anchor_id"]: item for item in long_coverage["anchors"]}
+    for requirement in long_task["anchor_requirements"]:
+        actual = anchor_coverage.get(requirement["anchor_id"])
+        if actual is None:
+            findings.append(_finding(
+                "LONG_CONTEXT_ANCHOR_MISSING", requirement["anchor_id"],
+                "任务合同登记的远距离事实、条件或例外没有覆盖记录",
+                "长文中的关键约束可能在后续章节丢失",
+                "定位对应输出并登记原值与输出位置",
+            ))
+        elif any(actual[field] != requirement[field] for field in ("kind", "source_locator", "expected_value")):
+            findings.append(_finding(
+                "LONG_CONTEXT_ANCHOR_BINDING", requirement["anchor_id"],
+                "覆盖记录绑定了不同的锚点种类、来源位置或预期值",
+                "验证结果不能证明当前任务合同中的原始约束",
+                "恢复任务合同中的精确锚点声明",
+            ))
+        elif (
+            actual["status"] != "preserved"
+            or actual["observed_value"] != requirement["expected_value"]
+            or not actual["output_locator"]
+        ):
+            findings.append(_finding(
+                "LONG_CONTEXT_ANCHOR_VALUE", requirement["anchor_id"],
+                "远距离锚点在输出中缺失、改变或无法定位",
+                "事实、条件、否定、例外、数字或范围发生漂移",
+                "恢复精确值并登记可核对的输出位置",
+            ))
+        checks += 1
+
+    term_coverage = {(item["term"], item["scope_id"]): item for item in long_coverage["term_scopes"]}
+    for requirement in long_task["term_scope_requirements"]:
+        key = (requirement["term"], requirement["scope_id"])
+        actual = term_coverage.get(key)
+        if (
+            actual is None
+            or actual["expected_meaning"] != requirement["expected_meaning"]
+            or actual["observed_meaning"] != requirement["expected_meaning"]
+            or not actual["output_locator"]
+        ):
+            findings.append(_finding(
+                "LONG_CONTEXT_TERM_SCOPE", requirement["scope_id"],
+                "术语在指定章节作用域中缺失或改变含义",
+                "同词跨章节可能被错误合并，或者同一含义发生漂移",
+                "按作用域恢复术语含义并登记输出位置",
+            ))
+        checks += 1
+
+    priority_coverage = {item["conflict_id"]: item for item in long_coverage["source_priorities"]}
+    for requirement in long_task["source_priority_requirements"]:
+        actual = priority_coverage.get(requirement["conflict_id"])
+        if (
+            actual is None
+            or actual["selected_source_id"] != requirement["priority_source_id"]
+            or (requirement["must_surface"] and not actual["surfaced"])
+        ):
+            findings.append(_finding(
+                "LONG_CONTEXT_SOURCE_PRIORITY", requirement["conflict_id"],
+                "冲突来源没有采用声明的优先来源，或没有向读者暴露冲突",
+                "输出可能静默选择过期或低优先级事实",
+                "采用登记的优先来源，并在要求时明确说明冲突",
+            ))
+        checks += 1
 
     id_groups = {
         "source_spans": [item["identity"]["source_span_id"] for item in bundle["source_spans"]],

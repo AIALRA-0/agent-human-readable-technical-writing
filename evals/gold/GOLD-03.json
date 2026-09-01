@@ -1,13 +1,13 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-03-R6",
+    "case_id": "GOLD-03",
     "origin_case_id": "CANDIDATE-03",
-    "status": "candidate",
+    "status": "gold",
     "revision": 6,
-    "approved_by_user": false,
+    "approved_by_user": true,
     "category": "glossed_transform",
-    "reviewed_at": null,
-    "profile_revision_at_review": null
+    "reviewed_at": "2026-09-01",
+    "profile_revision_at_review": "round-5-inline-alignment-aemp"
   },
   "task": {
     "base_operation": "TRANSFORM",
@@ -188,13 +188,13 @@
     ],
     "self_claims": [],
     "original_case_sha256": "42c29960e24e5d90d76590c46f6e21ee19d41ba2e5a70dad7c25220c2d73f237",
-    "approved_snapshot_sha256": null
+    "approved_snapshot_sha256": "2ce36cf7e6377a5a45c546283cacc2439216a92e91b4019c5c1c078ac16f007a"
   },
   "review": {
     "decision_source": "explicit_user_review",
-    "decision": "pending",
+    "decision": "accepted",
     "reasons": [
-      "R6 已增加 npm 官方名称边界，等待人工审核"
+      "CANDIDATE-03-R6 可以，没问题"
     ],
     "correct_parts": [
       "npm 的客户端和软件包仓库作用可以保留",
@@ -209,6 +209,7 @@
       "status": "public_safe",
       "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
     },
-    "non_blocking_preferences": []
+    "non_blocking_preferences": [],
+    "reviewed_snapshot_sha256": "2ce36cf7e6377a5a45c546283cacc2439216a92e91b4019c5c1c078ac16f007a"
   }
 }

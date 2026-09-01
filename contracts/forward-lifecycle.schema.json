@@ -11,7 +11,7 @@
       "additionalProperties": false,
       "required": ["case_id", "origin_case_id", "status", "revision", "approved_by_user", "reviewed_at", "profile_revision_at_review"],
       "properties": {
-        "case_id": {"type": "string", "pattern": "^(?:(?:GOLD|REJECTED)-FWD-R[1-9][0-9]*-[0-9]{3}(?:-R[2-9][0-9]*)?|CANDIDATE-FWD-R[1-9][0-9]*-[0-9]{3}-R[2-9][0-9]*)$"},
+        "case_id": {"type": "string", "pattern": "^(?:(?:GOLD|REJECTED)-FWD-R[1-9][0-9]*-[0-9]{3}(?:-R[2-9][0-9]*)?|CANDIDATE-FWD-R[1-9][0-9]*-[0-9]{3}-R[1-9][0-9]*)$"},
         "origin_case_id": {"type": "string", "pattern": "^FWD-R[1-9][0-9]*-[0-9]{3}$"},
         "status": {"enum": ["gold", "rejected", "candidate"]},
         "revision": {"type": "integer", "minimum": 1},
@@ -109,8 +109,8 @@
     {
       "if": {"properties": {"identity": {"properties": {"status": {"const": "candidate"}}}}},
       "then": {"properties": {
-        "identity": {"properties": {"case_id": {"pattern": "^CANDIDATE-FWD-R[1-9][0-9]*-[0-9]{3}-R[2-9][0-9]*$"}, "approved_by_user": {"const": false}, "reviewed_at": {"type": "null"}, "profile_revision_at_review": {"type": "null"}}},
-        "artifact": {"properties": {"approved_snapshot_sha256": {"type": "null"}, "revision_of": {"type": "string"}}},
+        "identity": {"properties": {"case_id": {"pattern": "^CANDIDATE-FWD-R[1-9][0-9]*-[0-9]{3}-R[1-9][0-9]*$"}, "approved_by_user": {"const": false}, "reviewed_at": {"type": "null"}, "profile_revision_at_review": {"type": "null"}}},
+        "artifact": {"properties": {"approved_snapshot_sha256": {"type": "null"}}},
         "review": {"properties": {"decision_source": {"const": "pending_user_review"}, "decision": {"const": "pending"}}}
       }}
     }

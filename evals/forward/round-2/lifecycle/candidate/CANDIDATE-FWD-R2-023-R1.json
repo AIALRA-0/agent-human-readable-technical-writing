@@ -1,0 +1,83 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-FWD-R2-023-R1",
+    "origin_case_id": "FWD-R2-023",
+    "status": "candidate",
+    "revision": 1,
+    "approved_by_user": false,
+    "reviewed_at": null,
+    "profile_revision_at_review": null
+  },
+  "task": {
+    "audience": "technical_practitioner",
+    "augmentation": "NONE",
+    "base_operation": "COMPRESS",
+    "case_id": "FWD-R2-023",
+    "components": [
+      "TEXT"
+    ],
+    "content_task": "audit",
+    "core_terms": [
+      "抽样发票",
+      "税额差异"
+    ],
+    "genre": "finance_audit",
+    "input_char_count": 65,
+    "length_class": "very_short",
+    "references": [
+      {
+        "content": "复核编号 B23，须保留",
+        "id": "REF-RESTART"
+      }
+    ],
+    "request": "压缩审计发现，数字和限制都要保留",
+    "round": 2,
+    "source": {
+      "content": "抽查 18 张；17 张一致，1 张税额差 3 元；未检查其余 62 张。",
+      "material_type": "text",
+      "sha256": "bcc064fa121d21c0773d8e7944425cfd76cf15ae29c80072898c13e227bc4996"
+    },
+    "topic_id": "TOPIC-R2-023",
+    "variation_tags": [
+      "numeric_scope"
+    ]
+  },
+  "source": {
+    "original_request_sha256": "b7254cf6791e955c3633425be61fd676fb76a815f1a4bed67869de0685611187",
+    "original_answer_sha256": "bc8618b3e9e684b78d24ac65df78c178c19834437c2321d19ce694cf2d5550c3",
+    "source_units": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003",
+      "SRCU-004",
+      "SRCU-005"
+    ],
+    "support_map": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003",
+      "SRCU-004",
+      "SRCU-005"
+    ],
+    "background_claims": [],
+    "revision_references": []
+  },
+  "artifact": {
+    "answer": "复核编号 B23：抽样发票 18 张，17 张一致，1 张税额差异 3 元；其余 62 张未检查。",
+    "answer_sha256": "bc8618b3e9e684b78d24ac65df78c178c19834437c2321d19ce694cf2d5550c3",
+    "approved_snapshot_sha256": null,
+    "revision_of": null
+  },
+  "review": {
+    "decision_source": "pending_user_review",
+    "decision": "pending",
+    "reasons": [],
+    "correct_parts": [],
+    "regression_requirements": [],
+    "non_blocking_preferences": [],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "全新合成评测主题，不含用户、服务器、私有项目或凭据数据"
+    }
+  }
+}

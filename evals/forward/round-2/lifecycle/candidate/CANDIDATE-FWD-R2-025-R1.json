@@ -1,0 +1,98 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-FWD-R2-025-R1",
+    "origin_case_id": "FWD-R2-025",
+    "status": "candidate",
+    "revision": 1,
+    "approved_by_user": false,
+    "reviewed_at": null,
+    "profile_revision_at_review": null
+  },
+  "task": {
+    "audience": "auditor",
+    "augmentation": "GLOSS",
+    "base_operation": "GENERATE",
+    "case_id": "FWD-R2-025",
+    "components": [
+      "TEXT"
+    ],
+    "content_task": "operation",
+    "core_terms": [
+      "配对窗口",
+      "校准偏移"
+    ],
+    "genre": "device_setup",
+    "input_char_count": 168,
+    "length_class": "short",
+    "references": [
+      {
+        "content": "按住圆键 4 秒进入 45 秒配对窗口；白灯慢闪。连接后先不要改校准偏移。",
+        "id": "REF-001"
+      },
+      {
+        "content": "复核编号 B25，须保留",
+        "id": "REF-RESTART"
+      },
+      {
+        "content": "核对段1（事实归属）：圆键需要持续按住 4 秒；本段只支持这项陈述，不能替代其他段落的条件或证据。核对段2（条件边界）：白灯慢闪表示配对窗口开启；本段只支持这项陈述，不能替代其他段落的条件或证据。",
+        "id": "REF-COVERAGE"
+      }
+    ],
+    "request": "依据给定事实写首次配对步骤，并就近解释术语",
+    "round": 2,
+    "source": {
+      "content": "",
+      "material_type": "none",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "topic_id": "TOPIC-R2-025",
+    "variation_tags": [
+      "distributed_condition",
+      "negation_exception"
+    ]
+  },
+  "source": {
+    "original_request_sha256": "428ab3a1c56426fa96f216ca658a32f06166237f043a4d2ddafcaab9c317fef8",
+    "original_answer_sha256": "d88e7c3ce00adad9aca0546471a7558e135525af4a4ebdfff5a4393a3c90c2f4",
+    "source_units": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003",
+      "SRCU-004",
+      "SRCU-005",
+      "SRCU-006",
+      "SRCU-007",
+      "SRCU-008"
+    ],
+    "support_map": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003",
+      "SRCU-004",
+      "SRCU-005",
+      "SRCU-006",
+      "SRCU-007",
+      "SRCU-008"
+    ],
+    "background_claims": [],
+    "revision_references": []
+  },
+  "artifact": {
+    "answer": "首次配对步骤\n\n1. 复核并保留编号 B25\n2. 持续按住圆键 4 秒，设备进入 45 秒配对窗口，即可用于本次连接的 45 秒时段\n3. 确认白灯慢闪，这表示配对窗口已经开启；在窗口内进行连接\n4. 连接后，先不要更改校准偏移，即本步骤中暂不调整的校准设置\n\n证据边界：圆键持续按住 4 秒与“白灯慢闪表示配对窗口开启”分别由对应核对段支持；每个核对段只支持其对应陈述，不能替代 45 秒窗口或连接后暂不更改校准偏移的其他依据",
+    "answer_sha256": "d88e7c3ce00adad9aca0546471a7558e135525af4a4ebdfff5a4393a3c90c2f4",
+    "approved_snapshot_sha256": null,
+    "revision_of": null
+  },
+  "review": {
+    "decision_source": "pending_user_review",
+    "decision": "pending",
+    "reasons": [],
+    "correct_parts": [],
+    "regression_requirements": [],
+    "non_blocking_preferences": [],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "全新合成评测主题，不含用户、服务器、私有项目或凭据数据"
+    }
+  }
+}

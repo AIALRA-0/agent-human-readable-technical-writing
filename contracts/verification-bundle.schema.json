@@ -4,9 +4,61 @@
   "title": "VerificationBundle",
   "type": "object",
   "additionalProperties": false,
-  "required": ["task_contract", "source_spans", "source_presentations", "source_atoms", "background_atoms", "inference_atoms", "segment_contracts", "support_maps", "term_uses", "parallel_group_coverage", "component_coverage", "boundary_coverage", "rendered_document"],
+  "required": ["task_contract", "long_context_coverage", "source_spans", "source_presentations", "source_atoms", "background_atoms", "inference_atoms", "segment_contracts", "support_maps", "term_uses", "parallel_group_coverage", "component_coverage", "boundary_coverage", "rendered_document"],
   "properties": {
     "task_contract": {"$ref": "task-contract.schema.json"},
+    "long_context_coverage": {
+      "type": "object", "additionalProperties": false,
+      "required": ["input_char_count", "length_class", "section_count", "full_document_check", "anchors", "term_scopes", "source_priorities"],
+      "properties": {
+        "input_char_count": {"type": "integer", "minimum": 1},
+        "length_class": {"enum": ["very_short", "short", "medium", "long", "extended"]},
+        "section_count": {"type": "integer", "minimum": 1},
+        "full_document_check": {"type": "boolean"},
+        "anchors": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["anchor_id", "kind", "source_locator", "expected_value", "observed_value", "output_locator", "status"],
+            "properties": {
+              "anchor_id": {"type": "string", "pattern": "^LC-A[0-9]{3,}$"},
+              "kind": {"enum": ["CONDITION", "NEGATION", "EXCEPTION", "NUMBER", "RANGE", "CLAIM"]},
+              "source_locator": {"type": "string", "minLength": 1},
+              "expected_value": {"type": "string", "minLength": 1},
+              "observed_value": {"type": ["string", "null"]},
+              "output_locator": {"type": ["string", "null"]},
+              "status": {"enum": ["preserved", "missing", "changed"]}
+            }
+          }
+        },
+        "term_scopes": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["term", "scope_id", "expected_meaning", "observed_meaning", "output_locator"],
+            "properties": {
+              "term": {"type": "string", "minLength": 1},
+              "scope_id": {"type": "string", "pattern": "^LC-SCOPE-[0-9]{3,}$"},
+              "expected_meaning": {"type": "string", "minLength": 1},
+              "observed_meaning": {"type": "string", "minLength": 1},
+              "output_locator": {"type": "string", "minLength": 1}
+            }
+          }
+        },
+        "source_priorities": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["conflict_id", "selected_source_id", "surfaced"],
+            "properties": {
+              "conflict_id": {"type": "string", "pattern": "^LC-CONFLICT-[0-9]{3,}$"},
+              "selected_source_id": {"type": "string", "minLength": 1},
+              "surfaced": {"type": "boolean"}
+            }
+          }
+        }
+      }
+    },
     "source_spans": {"type": "array", "items": {"$ref": "source-span.schema.json"}},
     "source_presentations": {
       "type": "array",

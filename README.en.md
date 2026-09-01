@@ -77,21 +77,23 @@ The official lowercase `npm` form is preserved; authored prose explains it as th
 
 The current local evidence is:
 
-* Deterministic fixtures: 236/236
-* Context fixtures: 32/32
-* Lifecycle records: 62/62, comprising 27 Gold, 30 Rejected, and 5 Candidate records
+* Deterministic fixtures: 252/252
+* Context fixtures: 40/40
+* Lifecycle records: 82/82, comprising 32 Gold, 30 Rejected, and 20 pending round-two Candidate records
 * Exact patch tests: 18/18
-* Runtime tests: 30/30
+* Runtime tests: 38/38
 * Trigger matrix: 72/72 isolated tasks passed on fixed `gpt-5.6-sol`; raw bodies remain in a local private report and the repository stores only digests, event summaries, counts, and deidentified conclusions
+* Long-context stress matrix: 8/8 frozen isolated tasks over 1,312–1,585-character inputs; the public evidence preserves two evaluator false-positive corrections and no model rerun
 * Original forward-round acceptance: 8/20, or 40%
+* Round-two forward drafts: 20 pending manual review; deterministic checks found 14 issues across 12 punctuation-profile cases and two source-code-preservation cases
 
 The 8/20 result is permanent evidence from the first unseen round; revised answers do not replace that score
 
 ## 6. Manual Review
 
-The [round-five review packet](evals/reviews/vnext-1.1-round-5-REVIEW-PACKET.md) contains `CANDIDATE-03-R6` and four `CANDIDATE-FWD-R1-*-R3` answers
+The [round-two broad-coverage review packet](evals/forward/round-2/REVIEW-PACKET.md) contains 20 once-generated, digest-frozen first drafts; all five round-five revision candidates have already received explicit user acceptance
 
-No new forward round will be generated until all five revised candidates are explicitly accepted; release then requires two consecutive unseen rounds at 20/20 unchanged user acceptance with zero hard factual, scope, provenance, quantity, or source-coverage errors
+Round three remains blocked until every round-two first draft receives explicit user review and the round scores 20/20; release still requires two consecutive unseen rounds at 20/20 unchanged user acceptance with zero hard factual, scope, provenance, quantity, or source-coverage errors
 
 The [round-four implementation audit](docs/audits/2026-08-31-vnext-1.1-round-4/audit.md) records migration provenance, explicit decisions, counts, and the remaining release gates
 

@@ -1,0 +1,71 @@
+{
+  "review_round": {
+    "review_id": "vnext-1.1-round-5",
+    "reviewed_at": "2026-09-01",
+    "decision_source": "explicit_user_review",
+    "profile_revision_at_review": "round-5-inline-alignment-aemp",
+    "privacy": "deidentified_technical_feedback_only",
+    "decisions": [
+      {
+        "reviewed_candidate_id": "CANDIDATE-03-R6",
+        "reviewed_answer_sha256": "2ce36cf7e6377a5a45c546283cacc2439216a92e91b4019c5c1c078ac16f007a",
+        "decision": "accepted",
+        "user_instruction": "CANDIDATE-03-R6 可以，没问题",
+        "resulting_record_id": "GOLD-03",
+        "next_candidate_id": null
+      },
+      {
+        "reviewed_candidate_id": "CANDIDATE-FWD-R1-005-R3",
+        "reviewed_answer_sha256": "986c428625922fdcc07fda0d452c0114d166d3471a766e2360f2f01bfaaef342",
+        "decision": "accepted",
+        "user_instruction": "CANDIDATE-FWD-R1-005-R3 可以，没问题",
+        "resulting_record_id": "GOLD-FWD-R1-005-R3",
+        "next_candidate_id": null
+      },
+      {
+        "reviewed_candidate_id": "CANDIDATE-FWD-R1-009-R3",
+        "reviewed_answer_sha256": "d24e653ef483eef41f3d7d5180476ce37b29adb2733b563a167ce609e71031d5",
+        "decision": "accepted",
+        "user_instruction": "CANDIDATE-FWD-R1-009-R3 可以，没问题",
+        "resulting_record_id": "GOLD-FWD-R1-009-R3",
+        "next_candidate_id": null
+      },
+      {
+        "reviewed_candidate_id": "CANDIDATE-FWD-R1-012-R3",
+        "reviewed_answer_sha256": "b5212c278ea35905313b2c11d62bf5f827e82f9fbd53d55749d22d5a03e785f6",
+        "decision": "accepted",
+        "user_instruction": "CANDIDATE-FWD-R1-012-R3 可以，没问题",
+        "resulting_record_id": "GOLD-FWD-R1-012-R3",
+        "next_candidate_id": null
+      },
+      {
+        "reviewed_candidate_id": "CANDIDATE-FWD-R1-015-R3",
+        "reviewed_answer_sha256": "6444876cf2d9aad0cf42c801c6d9affcc9c94efbcb0fb445075ed69aadbc6f4a",
+        "decision": "accepted",
+        "user_instruction": "CANDIDATE-FWD-R1-015-R3 可以，没问题",
+        "resulting_record_id": "GOLD-FWD-R1-015-R3",
+        "next_candidate_id": null
+      }
+    ],
+    "review_result": {
+      "reviewed": 5,
+      "accepted": 5,
+      "rejected": 0,
+      "new_candidates": 0,
+      "automated_checks_are_user_acceptance": false
+    },
+    "post_review_counts": {
+      "anchor": {"gold": 12, "rejected": 14, "candidate": 0, "total": 26},
+      "forward": {"gold": 20, "rejected": 16, "candidate": 0, "total": 36},
+      "combined": {"gold": 32, "rejected": 30, "candidate": 0, "total": 62}
+    },
+    "perfect_round_streak": {"current": 0, "required": 2, "release_gate_met": false},
+    "first_round_result": {
+      "human_acceptance": "8/20",
+      "acceptance_rate": 0.4,
+      "immutable": true,
+      "next_round_allowed": true,
+      "reason": "第一轮首次成绩永久保持 8/20；五个修订候选已经全部获得用户明确接受，可以生成第二轮全新未见案例"
+    }
+  }
+}

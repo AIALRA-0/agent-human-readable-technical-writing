@@ -1,0 +1,109 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-FWD-R2-026-R1",
+    "origin_case_id": "FWD-R2-026",
+    "status": "candidate",
+    "revision": 1,
+    "approved_by_user": false,
+    "reviewed_at": null,
+    "profile_revision_at_review": null
+  },
+  "task": {
+    "audience": "zero_prior_knowledge",
+    "augmentation": "NONE",
+    "base_operation": "FORMAT_ONLY",
+    "case_id": "FWD-R2-026",
+    "components": [
+      "TEXT"
+    ],
+    "content_task": "reference",
+    "core_terms": [
+      "dry-run",
+      "清单文件"
+    ],
+    "genre": "command_reference",
+    "input_char_count": 155,
+    "length_class": "short",
+    "references": [
+      {
+        "content": "复核编号 B26，须保留",
+        "id": "REF-RESTART"
+      },
+      {
+        "content": "核对段1（事实归属）：scan 子命令用于检查；本段只支持这项陈述，不能替代其他段落的条件或证据。",
+        "id": "REF-COVERAGE"
+      }
+    ],
+    "request": "只整理为命令参考版式，不改原词和参数",
+    "round": 2,
+    "source": {
+      "content": "archive scan --dry-run 只检查 archive pack --list manifest.txt 按清单打包 注意 不要删除源目录",
+      "material_type": "text",
+      "sha256": "2554217130aa72e90707f04115533aad789f44a2d90ef4fbaa24cad6f8d260c6"
+    },
+    "topic_id": "TOPIC-R2-026",
+    "variation_tags": [
+      "mixed_format",
+      "negation_exception"
+    ]
+  },
+  "source": {
+    "original_request_sha256": "ee1023d68d57dabda431992f400ef1b83f7bd857dbb7e74666a5bc91d2f3f00b",
+    "original_answer_sha256": "f7a8aad47ea7011d62f851432f84f6eaed448cdded17c446d78b2b59f2ca0d51",
+    "source_units": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003",
+      "SRCU-004",
+      "SRCU-005",
+      "SRCU-006",
+      "SRCU-007",
+      "SRCU-008",
+      "SRCU-009"
+    ],
+    "support_map": [
+      "SRCU-001",
+      "SRCU-002",
+      "SRCU-003",
+      "SRCU-004",
+      "SRCU-005",
+      "SRCU-006",
+      "SRCU-007",
+      "SRCU-008",
+      "SRCU-009"
+    ],
+    "background_claims": [
+      {
+        "claim": "复核编号 B26，须保留",
+        "source_reference": "REF-RESTART"
+      },
+      {
+        "claim": "scan 子命令用于检查",
+        "source_reference": "REF-COVERAGE"
+      },
+      {
+        "claim": "本段只支持 scan 子命令用于检查这项陈述，不能替代其他段落的条件或证据",
+        "source_reference": "REF-COVERAGE"
+      }
+    ],
+    "revision_references": []
+  },
+  "artifact": {
+    "answer": "复核编号 B26，须保留\n\n## `archive scan --dry-run`\n\n作用：只检查\n\n核对范围：`scan` 子命令用于检查；本段只支持这项陈述，不能替代其他段落的条件或证据\n\n## `archive pack --list manifest.txt`\n\n作用：按清单打包\n\n清单文件：`manifest.txt`\n\n## 注意\n\n不要删除源目录",
+    "answer_sha256": "f7a8aad47ea7011d62f851432f84f6eaed448cdded17c446d78b2b59f2ca0d51",
+    "approved_snapshot_sha256": null,
+    "revision_of": null
+  },
+  "review": {
+    "decision_source": "pending_user_review",
+    "decision": "pending",
+    "reasons": [],
+    "correct_parts": [],
+    "regression_requirements": [],
+    "non_blocking_preferences": [],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "全新合成评测主题，不含用户、服务器、私有项目或凭据数据"
+    }
+  }
+}

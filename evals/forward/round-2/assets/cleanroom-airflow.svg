@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="360" viewBox="0 0 760 360" role="img" aria-labelledby="title desc">
+  <title id="title">洁净室气流与压差示意图</title>
+  <desc id="desc">顶部送风进入洁净区，气流流向低处回风口，洁净区与走廊之间标注设计压差加十五帕</desc>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#1769aa"/></marker></defs>
+  <rect x="40" y="40" width="460" height="270" fill="#eef7ff" stroke="#334155" stroke-width="3"/>
+  <rect x="500" y="40" width="220" height="270" fill="#f8fafc" stroke="#334155" stroke-width="3"/>
+  <text x="210" y="75" font-size="24">洁净区</text><text x="575" y="75" font-size="24">走廊</text>
+  <rect x="145" y="95" width="250" height="35" fill="#c7e8ff" stroke="#1769aa"/><text x="225" y="120" font-size="18">顶部送风</text>
+  <line x1="200" y1="140" x2="200" y2="245" stroke="#1769aa" stroke-width="5" marker-end="url(#arrow)"/>
+  <line x1="335" y1="140" x2="335" y2="245" stroke="#1769aa" stroke-width="5" marker-end="url(#arrow)"/>
+  <rect x="75" y="250" width="85" height="35" fill="#dbeafe" stroke="#1769aa"/><text x="83" y="274" font-size="16">低位回风口</text>
+  <line x1="500" y1="180" x2="585" y2="180" stroke="#0f766e" stroke-width="5" marker-end="url(#arrow)"/>
+  <text x="515" y="160" font-size="20">+15 Pa</text><text x="505" y="220" font-size="15">设计压差</text>
+</svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="430" viewBox="0 0 900 430" role="img" aria-labelledby="title desc">
+  <title id="title">光伏组串、汇流箱与隔离开关示意图</title>
+  <desc id="desc">三路设计最大电流十二安的组串进入CB-2汇流箱，经DS-1直流隔离开关连接逆变器，F2标红待确认</desc>
+  <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker></defs>
+  <text x="30" y="35" font-size="22">图纸版本 D3</text>
+  <g font-size="18" fill="#0f172a">
+    <rect x="40" y="80" width="145" height="65" fill="#fef3c7" stroke="#92400e"/><text x="62" y="110">组串 1</text><text x="62" y="134">设计最大 12 A</text>
+    <rect x="40" y="180" width="145" height="65" fill="#fef3c7" stroke="#92400e"/><text x="62" y="210">组串 2</text><text x="62" y="234">设计最大 12 A</text>
+    <rect x="40" y="280" width="145" height="65" fill="#fef3c7" stroke="#92400e"/><text x="62" y="310">组串 3</text><text x="62" y="334">设计最大 12 A</text>
+    <rect x="330" y="145" width="170" height="145" fill="#dbeafe" stroke="#1d4ed8" stroke-width="3"/><text x="380" y="185">CB-2</text><text x="365" y="214">直流汇流箱</text><text x="382" y="252" fill="#b91c1c">F2 待确认</text>
+    <rect x="585" y="175" width="120" height="85" fill="#dcfce7" stroke="#15803d" stroke-width="3"/><text x="620" y="208">DS-1</text><text x="600" y="236">直流隔离开关</text>
+    <rect x="780" y="175" width="90" height="85" fill="#f3e8ff" stroke="#7e22ce" stroke-width="3"/><text x="795" y="222">逆变器</text>
+  </g>
+  <g stroke="#334155" stroke-width="4" marker-end="url(#a)"><line x1="185" y1="112" x2="330" y2="175"/><line x1="185" y1="212" x2="330" y2="215"/><line x1="185" y1="312" x2="330" y2="255"/><line x1="500" y1="217" x2="585" y2="217"/><line x1="705" y1="217" x2="780" y2="217"/></g>
+</svg>

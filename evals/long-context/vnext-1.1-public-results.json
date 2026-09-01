@@ -1,0 +1,120 @@
+{
+  "matrix_version": "vnext-1.1-long-context-8",
+  "model": "gpt-5.6-sol",
+  "raw_bodies_location": "local_private_report",
+  "planned_total": 8,
+  "total": 8,
+  "passed": 8,
+  "failed": 0,
+  "automated_checks_are_user_acceptance": false,
+  "evaluation_history": [
+    {
+      "revision": 1,
+      "passed": 1,
+      "failed": 7,
+      "status": "superseded_false_positive_regexes"
+    },
+    {
+      "revision": 2,
+      "passed": 7,
+      "failed": 1,
+      "status": "superseded_windows_path_normalization"
+    },
+    {
+      "revision": 3,
+      "passed": 8,
+      "failed": 0,
+      "status": "current"
+    }
+  ],
+  "results": [
+    {
+      "case_id": "LONG-001",
+      "dimension": "distant_condition_exception",
+      "input_char_count": 1312,
+      "model": "gpt-5.6-sol",
+      "passed": true,
+      "violations": [],
+      "body_sha256": "95fcd57b1e671c4b0e2e0da6141cdd2dbefb644687d1131e0bc40ae58fe65802",
+      "event_sha256": "a5d15b8b7f8e79a20aa1bca19e3c0ee3349e4d4c9a1283c93caba36146f01983",
+      "alignment_helper_invoked": false
+    },
+    {
+      "case_id": "LONG-002",
+      "dimension": "cross_section_numeric_ownership",
+      "input_char_count": 1369,
+      "model": "gpt-5.6-sol",
+      "passed": true,
+      "violations": [],
+      "body_sha256": "aafd1aea3b036b0ae5504e67ccba75ea58308cfe35f9adf73889f82a0b38e062",
+      "event_sha256": "483bc40776423a3519cfed01fd5e334bd8aea8d1ccb87c3198c75cfb81aa5f69",
+      "alignment_helper_invoked": false
+    },
+    {
+      "case_id": "LONG-003",
+      "dimension": "cross_section_term_consistency",
+      "input_char_count": 1378,
+      "model": "gpt-5.6-sol",
+      "passed": true,
+      "violations": [],
+      "body_sha256": "9d96f2a96afedd9fc347e82cb3bc8b2ca8af3c4af570e9ea234e435b3f2e9a76",
+      "event_sha256": "687d93545a21217d7a44f50140be2ada1be3f0452850397c6d59989de456e225",
+      "alignment_helper_invoked": false
+    },
+    {
+      "case_id": "LONG-004",
+      "dimension": "same_word_local_scope",
+      "input_char_count": 1367,
+      "model": "gpt-5.6-sol",
+      "passed": true,
+      "violations": [],
+      "body_sha256": "0795eae80998f15e91217c6ce79dc1b59d48ebeec7ab92ef9ba80a0286a5e910",
+      "event_sha256": "89e269cbf3b11176a90224acb0da51e17e83e0992f762d997f46f94972730154",
+      "alignment_helper_invoked": false
+    },
+    {
+      "case_id": "LONG-005",
+      "dimension": "conflicting_source_priority",
+      "input_char_count": 1302,
+      "model": "gpt-5.6-sol",
+      "passed": true,
+      "violations": [],
+      "body_sha256": "4a69055006483ff08d2b8a0e9e6568018f2e3032fd81666fe0b09d585b39cf99",
+      "event_sha256": "7186711992bc855c3c2a62ec42f0f1dcf45896a10139052222cf45b8075cc134",
+      "alignment_helper_invoked": false
+    },
+    {
+      "case_id": "LONG-006",
+      "dimension": "table_prose_anomaly_binding",
+      "input_char_count": 1387,
+      "model": "gpt-5.6-sol",
+      "passed": true,
+      "violations": [],
+      "body_sha256": "ae2e4a65b3bb077461f00adec3f713bc3a8573a9bc41bd4e25ff5218742646dd",
+      "event_sha256": "f69bdb98e55e76a74cbf8f642153d11299097b9778b9b8cef4e3cc4baf9eb486",
+      "alignment_helper_invoked": false
+    },
+    {
+      "case_id": "LONG-007",
+      "dimension": "code_log_explanation_mix",
+      "input_char_count": 1585,
+      "model": "gpt-5.6-sol",
+      "passed": true,
+      "violations": [],
+      "body_sha256": "565b082038a4c272a9b95f16bef3088a976b59d39da2105abe538601ba6ed11c",
+      "event_sha256": "630d124f1071eb164c3ade434a77651ddd3c933db3309c404b8076f924607116",
+      "alignment_helper_invoked": true
+    },
+    {
+      "case_id": "LONG-008",
+      "dimension": "multi_turn_supersession",
+      "input_char_count": 1390,
+      "model": "gpt-5.6-sol",
+      "passed": true,
+      "violations": [],
+      "body_sha256": "64d94e69e190351f216ab8d3db2fb2a533807dcbf5456306da16a8e862a2f7ee",
+      "event_sha256": "e94a7b5c9dd21391cf4852daec43b0558f733d8520367200be750e8d80f01765",
+      "alignment_helper_invoked": false
+    }
+  ]
+}

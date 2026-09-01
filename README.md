@@ -129,11 +129,15 @@ python scripts/run_vnext.py --help # 系统显示 compile、verify、repair 和 
 ```powershell
 python scripts/validate_vnext_foundation.py # 核对权威计划、合同、YAML 分类、案例、链接、SVG 和公开文件隐私模式
 
-python scripts/run_vnext_fixtures.py # 执行 236 个确定性正反例；预期结果为 236/236
+python scripts/run_vnext_fixtures.py # 执行 252 个确定性正反例；预期结果为 252/252
 
-python scripts/validate_vnext_lifecycle.py # 核对 62 个生命周期记录、用户快照、原始前向答案和 5 个修订候选
+python scripts/validate_vnext_lifecycle.py # 核对 82 个生命周期记录、用户快照、原始前向答案和 20 个第二轮待审首稿
 
-python scripts/validate_context_cases.py # 核对 32 个术语、排比、代码、内容充分性、多轮、主语、标点和段落语境案例
+python scripts/validate_context_cases.py # 核对 40 个术语、排比、代码、长上下文、多轮、主语、标点和段落语境案例
+
+python scripts/validate_forward_rounds.py # 核对五档长度、五类受众、七类任务、变化配额和跨轮去重
+
+python scripts/validate_long_context_stress.py # 核对 8 个长上下文真实任务的脱敏发布证据，不写入人工接受
 
 python scripts/validate_trigger_matrix.py --require-results # 核对 72 个真实触发案例、固定模型、脱敏摘要和全部通过结果
 
@@ -141,41 +145,40 @@ python scripts/validate_forward_round1.py # 分别报告原始文件完整性、
 
 python -m unittest discover -s tests -p "test_deterministic_committer.py" -v # 执行 18 个摘要、范围、冲突、回滚和原子写入测试
 
-python -m unittest discover -s tests -p "test_vnext_runtime.py" -v # 执行 30 个任务编译、覆盖验证、精确修复和结果报告测试
+python -m unittest discover -s tests -p "test_vnext_runtime.py" -v # 执行 38 个任务编译、长上下文拒绝、精确修复和结果报告测试
 ```
 
 当前本地结果如下：
 
-* 确定性案例：236/236
-  * 新增案例覆盖同行注释目标列、错列、换行、不可注释格式回退、内容充分性、证据绑定和删除测试
-* 语境案例：32/32
-  * 程序只检查已登记结构，专业名词边界、有效代码单元和内容充分性继续保留给 Agent 或用户判断
-* 生命周期记录：62/62
-  * 当前共有 27 个 Gold、30 个 Rejected 和 5 个 Candidate
+* 确定性案例：252/252
+  * 新增 16 项覆盖长文元数据、全篇复核、分散锚点、数字归属、术语边界、来源优先级和冲突展示
+* 语境案例：40/40
+  * 新增 8 项长上下文边界；程序只检查已登记结构，语义判断继续保留给 Agent 或用户
+* 生命周期记录：82/82
+  * 当前共有 32 个 Gold、30 个 Rejected 和 20 个第二轮 Candidate
 * 精确补丁测试：18/18
   * 摘要、位置、出现次数、冲突和事务回滚均有正反测试
-* 运行时测试：30/30
-  * 任务编译、排比账本、代码单元、同行对齐、多轮替换和渲染证据均有可执行测试
+* 运行时测试：38/38
+  * 任务编译、代码同行对齐、长文锚点、数字归属、术语边界、来源优先级和全篇复核均有可执行测试
 * 真实触发矩阵：72/72
   * 三类任务各含 6 个显式触发、6 个隐式触发、6 个负向不触发和 6 个规则遵守案例
   * 固定 `gpt-5.6-sol` 在隔离 Codex 任务中全部符合预期；5 个同行对齐案例均登记确定性辅助器调用事件
   * 原始正文只保存在仓库外私有报告；仓库仅保存正文与事件摘要、分组计数和脱敏结论
 * 第一轮前向人工接受：8/20
   * 实际接受率为 40%，原因是 12 个首次答案仍存在术语、结构、居中、代码和内容充分性问题
+* 长上下文压力矩阵：8/8
+  * 8 项输入为 1312–1585 字，覆盖远距离条件、数字归属、术语一致性、同词异义、来源冲突、表文绑定、代码日志混合和多轮覆盖
+  * 原始正文只保存在仓库外；公开报告保留两次评测器误报修订历史，模型没有重跑
+* 第二轮前向首稿：20 个待人工审核
+  * 五档篇幅和五类受众各 4 个；确定性检查发现 14 项问题，涉及 12 个答案的用户标点配置和 2 个答案未原样保留源代码
 
 自动检查通过不等于风格已经合格；第一轮 8/20 的成绩永久保留，修订版不能替换第一次未见测试结果
 
 ## 7. 人工审核入口
 
-[第五轮修订候选审核包](evals/reviews/vnext-1.1-round-5-REVIEW-PACKET.md)包含以下内容：
+[第二轮广覆盖审核包](evals/forward/round-2/REVIEW-PACKET.md)包含 20 个已经一次生成并冻结的首稿；第五轮 5 个修订候选已由用户全部接受，历史审核包继续保留但不再表示待审状态
 
-* `CANDIDATE-03-R6`
-* `CANDIDATE-FWD-R1-005-R3`
-* `CANDIDATE-FWD-R1-009-R3`
-* `CANDIDATE-FWD-R1-012-R3`
-* `CANDIDATE-FWD-R1-015-R3`
-
-这 5 个 Candidate 全部获得用户接受以前，系统不会生成下一轮前向测试；之后必须连续两轮达到 20/20 首稿原样接受，且事实、条件、范围、来源、数量和原文完整性错误为 0；任一轮出现拒绝时，连续完美轮次归零
+第二轮每项必须由用户明确接受或拒绝；自动测试、模型评分和压力矩阵都不能写入人工接受字段；只有第二轮首稿 20/20 才形成连续完美轮次 1 并允许生成第三轮，任一拒绝都会永久保留本轮成绩并把连续计数归零
 
 第四轮迁移来源、决定绑定、计数和未完成发布门槛记录在[实施审计](docs/audits/2026-08-31-vnext-1.1-round-4/audit.md)
 

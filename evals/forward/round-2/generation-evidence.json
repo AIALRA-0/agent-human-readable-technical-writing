@@ -1,0 +1,210 @@
+{
+  "round": 2,
+  "model": "gpt-5.6-sol",
+  "reasoning_effort": "medium",
+  "planned": 20,
+  "completed": 20,
+  "successful": 20,
+  "results": [
+    {
+      "case_id": "FWD-R2-021",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "generation_attempt": 1,
+      "status": "frozen",
+      "answer_sha256": "70c121428324737d1c0dcbe3ec730d55300fea17dbe3f22b24cb5d94d2ed331b",
+      "event_sha256": "c5900cb5af5d8136bfbd821ab3cad8623eaba42a381a12b71af53019ffea27db",
+      "error": null
+    },
+    {
+      "case_id": "FWD-R2-022",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "generation_attempt": 1,
+      "status": "frozen",
+      "answer_sha256": "4843c9603f464d2041c60ed9038bb9e1dceef0ee9c1a698a336fca667ea37a3a",
+      "event_sha256": "0fdca1f98c38c355280f31c6f6e1aa0ac4705bb4c9cf508bf376f4162398ff7d",
+      "error": null
+    },
+    {
+      "case_id": "FWD-R2-023",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "generation_attempt": 1,
+      "status": "frozen",
+      "answer_sha256": "bc8618b3e9e684b78d24ac65df78c178c19834437c2321d19ce694cf2d5550c3",
+      "event_sha256": "971b3e68b233d7159143d35978acf6235a12cf184f9cb273f4e720a866495553",
+      "error": null
+    },
+    {
+      "case_id": "FWD-R2-024",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "generation_attempt": 1,
+      "status": "frozen",
+      "answer_sha256": "e9285f3cc7b919975de365796fcb698a637f654e7079e70f82dd75a29dad0b2d",
+      "event_sha256": "ad714edd66debd3d6445a1202edcafd2e399a07e7233e6ebeba8efecc8acdca7",
+      "error": null
+    },
+    {
+      "case_id": "FWD-R2-025",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "generation_attempt": 1,
+      "status": "frozen",
+      "answer_sha256": "d88e7c3ce00adad9aca0546471a7558e135525af4a4ebdfff5a4393a3c90c2f4",
+      "event_sha256": "d15fe2d9d271c8fa5f422dfee5d02fc3ad34e52d0202d1c78d1ad09b14c9cbc8",
+      "error": null
+    },
+    {
+      "case_id": "FWD-R2-026",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "generation_attempt": 1,
+      "status": "frozen",
+      "answer_sha256": "f7a8aad47ea7011d62f851432f84f6eaed448cdded17c446d78b2b59f2ca0d51",
+      "event_sha256": "46ec52e25128ddbcb112b5c305fa2223a545aa3b6722c9d68db54057d22fa95d",
+      "error": null
+    },
+    {
+      "case_id": "FWD-R2-027",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "generation_attempt": 1,
+      "status": "frozen",
+      "answer_sha256": "09354d4036f570a0120d3ff47bff7080c43383dca4b1b05e2e1c3fdef886ff1f",
+      "event_sha256": "928f1e98de409650685f6efa14b95547afc9249c07138755bda0a991b7225265",
+      "error": null
+    },
+    {
+      "case_id": "FWD-R2-028",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "generation_attempt": 1,
+      "status": "frozen",
+      "answer_sha256": "9aae3b3e55027efcc35ad47442fe23b8cae2db2ec5f2ca892f8929f8856f6f92",
+      "event_sha256": "6359b3e61a8bef767bf1a9fb7941e6cb9057a3b6cb838c90726b89ba9c72f9b3",
+      "error": null
+    },
+    {
+      "case_id": "FWD-R2-029",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "generation_attempt": 1,
+      "status": "frozen",
+      "answer_sha256": "d4501e92f069ad182b62c02e6134f1b179493755fee9bf83ebcf98bcf2bdf794",
+      "event_sha256": "5d174547d2ffc9b85d41d33a2fce26a030348c76d375a698cb7e7f00f220e632",
+      "error": null
+    },
+    {
+      "case_id": "FWD-R2-030",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "generation_attempt": 1,
+      "status": "frozen",
+      "answer_sha256": "ed02573bcb4a85f4b0fe840584fa0082697cdca00cbef47a96a0d1906130d878",
+      "event_sha256": "b69f3bb620ca47212c52fd0cb14ac9a33c3a8a9d74e674b3074f4b8306f132a5",
+      "error": null
+    },
+    {
+      "case_id": "FWD-R2-031",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "generation_attempt": 1,
+      "status": "frozen",
+      "answer_sha256": "875f2119e1db1d774882aae18caae6f7be494ae28e5e3999b87be2dff1e343ba",
+      "event_sha256": "3e1ef2618a9f3949f4085e50fe071cfd6c71fdb91227a9be19886d98162e5fb3",
+      "error": null
+    },
+    {
+      "case_id": "FWD-R2-032",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "generation_attempt": 1,
+      "status": "frozen",
+      "answer_sha256": "12a303eba8e94b5647910c2e64dc0ceadf40b5ce3a44dddb4703e521be1528dd",
+      "event_sha256": "1735ab554d9a316e4d7535e85e15aad23e5f33ed9a8cc418803abb9b15af56d2",
+      "error": null
+    },
+    {
+      "case_id": "FWD-R2-033",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "generation_attempt": 1,
+      "status": "frozen",
+      "answer_sha256": "cb17c8ed3a0e3f021e7e4ea50e4762a5e135c409c9f7095b68d44054e35ccb3e",
+      "event_sha256": "efc513ee19f348de453004f25c367e594dc21e783cb36c92f49905843a262fbc",
+      "error": null
+    },
+    {
+      "case_id": "FWD-R2-034",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "generation_attempt": 1,
+      "status": "frozen",
+      "answer_sha256": "f40d72071afe1f696eb75067e75eae0c6f2873615b7e4a8ad643c3381920fc15",
+      "event_sha256": "99ad75b7fdceaf48cbc2b6799264b3c5fb67d2d2d5f42c824187bb81aff79ba8",
+      "error": null
+    },
+    {
+      "case_id": "FWD-R2-035",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "generation_attempt": 1,
+      "status": "frozen",
+      "answer_sha256": "77444dbb9a2a364db046955ffe9a7bdbc1b683e4607652c7ac937f4c9faa5bef",
+      "event_sha256": "637c2e9d362d064834ae81b4c55377687902f3372045aac3ee4a5bb38a082cfb",
+      "error": null
+    },
+    {
+      "case_id": "FWD-R2-036",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "generation_attempt": 1,
+      "status": "frozen",
+      "answer_sha256": "8f561c724415d2ef26d9515848e23f184e69a568af0a79f330961fa56a4ebd01",
+      "event_sha256": "1895c5982e163de8f70efece22bcbfcd77985dc4efc4045fde90918e8feca2ad",
+      "error": null
+    },
+    {
+      "case_id": "FWD-R2-037",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "generation_attempt": 1,
+      "status": "frozen",
+      "answer_sha256": "d075d718dd78146ce3e8cf03319c391e955a2e99c5e72ef9ab406afc9895b0f7",
+      "event_sha256": "ae5936aaa2800c0f5013dedacfebd6931a6bdcc3010dd006450e1035707627dc",
+      "error": null
+    },
+    {
+      "case_id": "FWD-R2-038",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "generation_attempt": 1,
+      "status": "frozen",
+      "answer_sha256": "aa5bb3bbc7a6d0f371617d6a40cdc862c61c04e9aaa2a4e4e578e72d894ad753",
+      "event_sha256": "ac57df966d1425ec1458d41a46bf930295bcbb47e4fad18c6c4d5f0f5f8ad528",
+      "error": null
+    },
+    {
+      "case_id": "FWD-R2-039",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "generation_attempt": 1,
+      "status": "frozen",
+      "answer_sha256": "910eb04b5e71fd9b47655cb76fcf8eb29710dd6bc8160eebc179d8037dd2f3f1",
+      "event_sha256": "69a42b6700bab1de35429424871866498acf3449ad5c642b2f8c3e73f7f43d6a",
+      "error": null
+    },
+    {
+      "case_id": "FWD-R2-040",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "generation_attempt": 1,
+      "status": "frozen",
+      "answer_sha256": "829e72c90cff90fd4a7f6114a69e5a82dc856f8b70ddd21af8bf832590f27675",
+      "event_sha256": "13e0f50b78eca624a67aa90e8417a5e8eb1d15fb6922eb24f6ead0b6d2042329",
+      "error": null
+    }
+  ]
+}
