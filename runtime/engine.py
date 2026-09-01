@@ -104,7 +104,7 @@ def compile_contract(specification: dict[str, Any]) -> dict[str, Any]:
         term_requirements.append(requirement)
 
     contract = {
-        "identity": {"task_id": specification["task_id"], "contract_version": "1.1", "profile_revision": "round-4-generalization"},
+        "identity": {"task_id": specification["task_id"], "contract_version": "1.1", "profile_revision": "round-5-inline-alignment-aemp"},
         "operation": {"base_operation": base_operation, "augmentation": specification["augmentation"], "source_coverage_target": source_coverage},
         "context": {
             "audience": specification["audience"], "genre": specification["genre"],
@@ -117,6 +117,11 @@ def compile_contract(specification: dict[str, Any]) -> dict[str, Any]:
         "code": {
             "coverage_mode": specification.get("code_coverage_mode", "not_applicable"),
             "unit_mappings": list(specification.get("code_unit_mappings", [])),
+            "comment_alignment": specification.get("comment_alignment", {
+                "mode": "longest_commentable_line" if specification.get("code_coverage_mode") == "annotated_code" else "not_applicable",
+                "scope": "per_code_block",
+                "overflow_policy": "allow",
+            }),
         },
         "conversation": {
             "preserve_superseded_requirements": specification.get("preserve_superseded_requirements", False),
@@ -451,6 +456,60 @@ def verify_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
                         "代码组件的单元映射与任务合同不一致",
                         "部分有效语句可能没有独立解释位置",
                         "按任务合同补齐每个代码单元的解释映射",
+                    ))
+                alignment_contract = task["code"]["comment_alignment"]
+                alignment = code_coverage["comment_alignment"]
+                if expected_mode == "annotated_code":
+                    if (
+                        alignment_contract["mode"] != "longest_commentable_line"
+                        or alignment["mode"] != "longest_commentable_line"
+                        or not alignment["blocks"]
+                    ):
+                        findings.append(_finding(
+                            "CODE_COMMENT_ALIGNMENT_MODE", component_id,
+                            "注释代码没有使用最长可注释代码行作为同行对齐基准",
+                            "同一代码块中的注释起点不稳定，读者难以逐行扫描",
+                            "把所有可注释语句的注释标记移到最长代码行之后的同一列",
+                        ))
+                    else:
+                        alignment_ids: set[str] = set()
+                        target_failure = False
+                        unit_failure = False
+                        for block in alignment["blocks"]:
+                            commentable = [item for item in block["units"] if item["commentable"]]
+                            if not commentable:
+                                unit_failure = True
+                                continue
+                            expected_column = max(item["code_width"] for item in commentable) + 2
+                            alignment_ids.update(item["unit_id"] for item in commentable)
+                            if block["target_column"] != expected_column:
+                                target_failure = True
+                            if any(not item["same_line"] or item["comment_column"] != expected_column for item in commentable):
+                                unit_failure = True
+                        if target_failure:
+                            findings.append(_finding(
+                                "CODE_COMMENT_ALIGNMENT_TARGET", component_id,
+                                "至少一个代码块登记的注释目标列不是该块最长代码显示宽度加二",
+                                "验证包不能证明每个代码块的注释真正从各自最长代码行之后开始",
+                                "逐块去掉代码尾部空白，按四列制表位计算宽度并重新登记目标列",
+                            ))
+                        if alignment_ids != task_units or unit_failure:
+                            findings.append(_finding(
+                                "CODE_COMMENT_ALIGNMENT_UNITS", component_id,
+                                "至少一个可注释语句缺少同行注释或注释起点没有在所属代码块内对齐",
+                                "代码说明出现错列、换行或漏行，覆盖账本与实际呈现不一致",
+                                "把每个可注释 CODE 单元的注释放在所属代码块的目标列并保持同行",
+                            ))
+                elif (
+                    alignment_contract["mode"] != "not_applicable"
+                    or alignment["mode"] != "not_applicable"
+                    or alignment["blocks"]
+                ):
+                    findings.append(_finding(
+                        "CODE_COMMENT_ALIGNMENT_NOT_APPLICABLE", component_id,
+                        "逐行解释路径仍然登记了同行注释对齐证据",
+                        "不能添加合法注释的格式可能被伪装成已注释代码",
+                        "把同行对齐记为 not_applicable，并只保留逐行解释映射",
                     ))
         mermaid = component["mermaid"]
         if mermaid:

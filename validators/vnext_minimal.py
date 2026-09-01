@@ -84,6 +84,56 @@ def validate_code_coverage_mode(rule_id: str, payload: dict[str, Any]) -> Valida
     return [] if checks.get(rule_id, False) else [f"{rule_id} failed"]
 
 
+def validate_code_comment_alignment(rule_id: str, payload: dict[str, Any]) -> ValidationResult:
+    """Validate observable same-line alignment without interpreting arbitrary code semantics."""
+
+    mode = payload.get("mode")
+    blocks = payload.get("blocks", [])
+    block_units = [block.get("units", []) for block in blocks]
+    commentable = [[item for item in units if item.get("commentable")] for units in block_units]
+    checks = {
+        "COMMENT_ALIGNMENT_MODE": mode in {"longest_commentable_line", "not_applicable"},
+        "COMMENT_ALIGNMENT_TARGET": mode == "longest_commentable_line" and bool(blocks) and all(
+            units and block.get("target_column") == max(int(item.get("code_width", 0)) for item in units) + 2
+            for block, units in zip(blocks, commentable)
+        ),
+        "COMMENT_ALIGNMENT_SAME_LINE": mode == "longest_commentable_line" and bool(blocks) and all(
+            units and all(item.get("same_line") is True for item in units) for units in commentable
+        ),
+        "COMMENT_ALIGNMENT_SHARED_COLUMN": mode == "longest_commentable_line" and bool(blocks) and all(
+            units and all(item.get("comment_column") == block.get("target_column") for item in units)
+            for block, units in zip(blocks, commentable)
+        ),
+        "COMMENT_ALIGNMENT_STRUCTURAL_EXEMPT": all(
+            item.get("comment_column") is None and item.get("same_line") is False
+            for units in block_units for item in units if not item.get("commentable")
+        ),
+        "COMMENT_ALIGNMENT_FALLBACK": mode == "not_applicable" and not blocks,
+    }
+    return [] if checks.get(rule_id, False) else [f"{rule_id} failed"]
+
+
+def validate_content_sufficiency(rule_id: str, payload: dict[str, Any]) -> ValidationResult:
+    """Validate declared AEMP coverage while leaving semantic adequacy to review."""
+
+    modes = {"tutorial", "operation", "reference", "explanation", "decision", "status", "audit", "project_change"}
+    required = ["must_understand", "must_see", "must_decide", "must_verify"]
+    coverage_ids = set().union(*(set(payload.get(name, [])) for name in required))
+    evidence_ids = {item.get("item_id") for item in payload.get("evidence_bindings", [])}
+    layers = payload.get("layers", {})
+    checks = {
+        "CONTENT_MODE_ALLOWED": payload.get("mode") in modes,
+        "CONTENT_READER_TASK": bool(str(payload.get("reader_task", "")).strip()),
+        "CONTENT_REQUIRED_QUESTIONS": all(name in payload and isinstance(payload[name], list) for name in required),
+        "CONTENT_FIRST_SCREEN": bool(payload.get("first_screen")) and set(payload.get("first_screen", [])) <= coverage_ids,
+        "CONTENT_EVIDENCE_BOUND": set(payload.get("evidence_required", [])) <= evidence_ids,
+        "CONTENT_UNKNOWN_VISIBLE": not payload.get("has_unknowns") or bool(payload.get("visible_unknowns")),
+        "CONTENT_THREE_LAYERS": set(layers) <= {"summary", "structure", "evidence"} and len(layers) <= 3,
+        "CONTENT_DELETION_TEST": not set(payload.get("removable_without_effect", [])) & set(payload.get("retained_items", [])),
+    }
+    return [] if checks.get(rule_id, False) else [f"{rule_id} failed"]
+
+
 def validate_conversation_supersession(rule_id: str, payload: dict[str, Any]) -> ValidationResult:
     """Validate current-only output unless history retention was explicitly requested."""
 
@@ -317,6 +367,8 @@ VALIDATORS: dict[str, Callable[[str, dict[str, Any]], ValidationResult]] = {
     "parallel_group_layout": validate_parallel_group,
     "github_render_evidence": validate_render_evidence,
     "code_coverage_mode": validate_code_coverage_mode,
+    "code_comment_alignment": validate_code_comment_alignment,
+    "content_sufficiency": validate_content_sufficiency,
     "conversation_supersession": validate_conversation_supersession,
 }
 

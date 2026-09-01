@@ -6,8 +6,8 @@
   "additionalProperties": false,
   "required": ["case_id", "round", "base_operation", "augmentation", "genre", "audience", "components", "request", "source", "references"],
   "properties": {
-    "case_id": {"type": "string", "pattern": "^FWD-R1-[0-9]{3}$"},
-    "round": {"const": 1},
+    "case_id": {"type": "string", "pattern": "^FWD-R[1-9][0-9]*-[0-9]{3}$"},
+    "round": {"type": "integer", "minimum": 1},
     "base_operation": {"enum": ["TRANSFORM", "TRANSLATE", "COMPRESS", "EXPLAIN", "GENERATE", "FORMAT_ONLY"]},
     "augmentation": {"enum": ["NONE", "GLOSS", "EXPLANATORY", "TEACHING"]},
     "genre": {"type": "string", "minLength": 1},

@@ -1,4 +1,4 @@
-"""Execute and summarize the 220 deterministic vNext minimal fixtures."""
+"""Execute and summarize the 236 deterministic vNext fixtures."""
 
 from __future__ import annotations
 
@@ -19,6 +19,7 @@ from validators.vnext_minimal import validate_fixture  # noqa: E402
 DEFAULT_FIXTURES = [
     ROOT / "evals" / "deterministic" / "vnext-1.1-minimal-cases.jsonl",
     ROOT / "evals" / "deterministic" / "round-4-generalization-cases.jsonl",
+    ROOT / "evals" / "deterministic" / "round-5-finalization-cases.jsonl",
 ]
 EXPECTED_COUNTS = {
     "lifecycle_schema": 20,
@@ -36,6 +37,8 @@ EXPECTED_COUNTS = {
     "github_render_evidence": 6,
     "code_coverage_mode": 6,
     "conversation_supersession": 4,
+    "code_comment_alignment": 8,
+    "content_sufficiency": 8,
 }
 
 
@@ -95,7 +98,7 @@ def main() -> int:
         if counts.get(category, 0) != expected
     }
     unexpected_categories = sorted(set(counts) - set(EXPECTED_COUNTS))
-    passed = len(cases) == 220 and not mismatches and not count_errors and not unexpected_categories
+    passed = len(cases) == 236 and not mismatches and not count_errors and not unexpected_categories
     report = {
         "status": "PASS" if passed else "FAIL",
         "summary": {
@@ -105,7 +108,7 @@ def main() -> int:
             "category_counts": dict(sorted(counts.items())),
         },
         "reason": "every independently executed rule produced its reviewed pass or fail result" if passed else "one or more executable fixtures disagreed with the reviewed expectation or required count",
-        "impact": "the vNext deterministic gate has executable positive and negative coverage for all fifteen active categories" if passed else "the deterministic gate cannot be used for candidate review until every mismatch is resolved",
+        "impact": "the vNext deterministic gate has executable positive and negative coverage for all seventeen active categories" if passed else "the deterministic gate cannot be used for candidate review until every mismatch is resolved",
         "next": "run lifecycle, contextual, and forward-candidate validation" if passed else "inspect the reported rule and repair only its validator or fixture",
         "count_errors": count_errors,
         "unexpected_categories": unexpected_categories,

@@ -1,0 +1,175 @@
+{
+  "review_round": {
+    "review_id": "vnext-1.1-round-4",
+    "reviewed_at": "2026-08-31",
+    "decision_source": "explicit_user_review",
+    "profile_revision_at_review": "round-4-generalization",
+    "next_profile_revision": "round-5-inline-alignment-aemp",
+    "privacy": "deidentified_technical_feedback_only",
+    "user_preference": {
+      "verbatim": "始终同行对齐",
+      "normalized": "每个代码块内，所有可注释有效语句的同行注释从最长可注释代码行之后的同一列开始；允许对齐增加行宽",
+      "scope": "user_profile_code_component_runtime_contract_validator_positive_and_negative_tests"
+    },
+    "decisions": [
+      {
+        "reviewed_candidate_id": "CANDIDATE-03-R5",
+        "reviewed_answer_sha256": "efd945b3282941260afea879252c00aa10587ec0d9d622b578b1e5350e9f39cc",
+        "decision": "rejected",
+        "user_instruction": "CANDIDATE-03-R6：保留 R5 正确内容，自然说明 npm 是官方名称，不是 Node Package Manager 的首字母缩写",
+        "resulting_record_id": "REJECTED-03-R5",
+        "next_candidate_id": "CANDIDATE-03-R6"
+      },
+      {
+        "reviewed_candidate_id": "CANDIDATE-FWD-R1-002-R2",
+        "reviewed_answer_sha256": "7bed7469d9a7edf4e6c857fb8e4c30c6140b060a0086ff63eccc5c5663dd2621",
+        "decision": "accepted",
+        "user_instruction": "接受 FWD 002、003、004、008、010、013、017、018 的 R2",
+        "resulting_record_id": "GOLD-FWD-R1-002-R2",
+        "next_candidate_id": null
+      },
+      {
+        "reviewed_candidate_id": "CANDIDATE-FWD-R1-003-R2",
+        "reviewed_answer_sha256": "658c0b226d016589af5fd3d81309dc436919cf7df7cac12c0f473c35ca692012",
+        "decision": "accepted",
+        "user_instruction": "接受 FWD 002、003、004、008、010、013、017、018 的 R2",
+        "resulting_record_id": "GOLD-FWD-R1-003-R2",
+        "next_candidate_id": null
+      },
+      {
+        "reviewed_candidate_id": "CANDIDATE-FWD-R1-004-R2",
+        "reviewed_answer_sha256": "3b42f884e5462d5b2ed07a11dfece0c28b0e2e4d940e96562cd73c8f767749f8",
+        "decision": "accepted",
+        "user_instruction": "接受 FWD 002、003、004、008、010、013、017、018 的 R2",
+        "resulting_record_id": "GOLD-FWD-R1-004-R2",
+        "next_candidate_id": null
+      },
+      {
+        "reviewed_candidate_id": "CANDIDATE-FWD-R1-008-R2",
+        "reviewed_answer_sha256": "912e9d6be239bcc7d2223db14b3df51688aac2ed02150a5fc85b5bb04c9a1a85",
+        "decision": "accepted",
+        "user_instruction": "接受 FWD 002、003、004、008、010、013、017、018 的 R2",
+        "resulting_record_id": "GOLD-FWD-R1-008-R2",
+        "next_candidate_id": null
+      },
+      {
+        "reviewed_candidate_id": "CANDIDATE-FWD-R1-010-R2",
+        "reviewed_answer_sha256": "96465b7be9aa5446e2ee2f0a05fabc4239bb71a5d43c7876ac1755d307940f9e",
+        "decision": "accepted",
+        "user_instruction": "接受 FWD 002、003、004、008、010、013、017、018 的 R2",
+        "resulting_record_id": "GOLD-FWD-R1-010-R2",
+        "next_candidate_id": null
+      },
+      {
+        "reviewed_candidate_id": "CANDIDATE-FWD-R1-013-R2",
+        "reviewed_answer_sha256": "5b545335768996f00cc8e02e135523d2e2fa441aeec23ba1a400ce954b2b2393",
+        "decision": "accepted",
+        "user_instruction": "接受 FWD 002、003、004、008、010、013、017、018 的 R2",
+        "resulting_record_id": "GOLD-FWD-R1-013-R2",
+        "next_candidate_id": null
+      },
+      {
+        "reviewed_candidate_id": "CANDIDATE-FWD-R1-017-R2",
+        "reviewed_answer_sha256": "c7abd9024322749b9f576fd624835fc4703a9da778848af7e4033f189e9e7909",
+        "decision": "accepted",
+        "user_instruction": "接受 FWD 002、003、004、008、010、013、017、018 的 R2",
+        "resulting_record_id": "GOLD-FWD-R1-017-R2",
+        "next_candidate_id": null
+      },
+      {
+        "reviewed_candidate_id": "CANDIDATE-FWD-R1-018-R2",
+        "reviewed_answer_sha256": "3f56b794a9b1d3d3766adef5304c0489563b1f0f8333e1d579745335b9d85e76",
+        "decision": "accepted",
+        "user_instruction": "接受 FWD 002、003、004、008、010、013、017、018 的 R2",
+        "resulting_record_id": "GOLD-FWD-R1-018-R2",
+        "next_candidate_id": null
+      },
+      {
+        "reviewed_candidate_id": "CANDIDATE-FWD-R1-005-R2",
+        "reviewed_answer_sha256": "f145155f45e0393fe0547f1138a71d9a30d4bad9414139b262ed7189b50cddad",
+        "decision": "rejected",
+        "user_instruction": "FWD 005 R3：单行步骤和说明保持同行，只有真实多项内容使用嵌套列表",
+        "resulting_record_id": "REJECTED-FWD-R1-005-R2",
+        "next_candidate_id": "CANDIDATE-FWD-R1-005-R3"
+      },
+      {
+        "reviewed_candidate_id": "CANDIDATE-FWD-R1-009-R2",
+        "reviewed_answer_sha256": "bee98bf2595945b1061f21ce6b0b5057ec5acf1a31124f76e731ca0f1f6b8ecc",
+        "decision": "rejected",
+        "user_instruction": "FWD 009 R3：保留原始代码，注释全部同行对齐，并删除与注释重复的正文",
+        "resulting_record_id": "REJECTED-FWD-R1-009-R2",
+        "next_candidate_id": "CANDIDATE-FWD-R1-009-R3"
+      },
+      {
+        "reviewed_candidate_id": "CANDIDATE-FWD-R1-012-R2",
+        "reviewed_answer_sha256": "432c4b9540f6f32bfe26db21efded716e8559d11ea48dcb1f57adcb3fdca9974",
+        "decision": "rejected",
+        "user_instruction": "FWD 012 R3：增加无需地质知识也能理解的上下层、先后时间和最低年龄解释",
+        "resulting_record_id": "REJECTED-FWD-R1-012-R2",
+        "next_candidate_id": "CANDIDATE-FWD-R1-012-R3"
+      },
+      {
+        "reviewed_candidate_id": "CANDIDATE-FWD-R1-015-R2",
+        "reviewed_answer_sha256": "afc172950b43e36286aa29391fcb1ffd4452ca7b254b437c8df7ca4bfb363fd6",
+        "decision": "rejected",
+        "user_instruction": "FWD 015 R3：单项说明保持同行，书名、设备型号和应用版本继续作为真实多项嵌套",
+        "resulting_record_id": "REJECTED-FWD-R1-015-R2",
+        "next_candidate_id": "CANDIDATE-FWD-R1-015-R3"
+      }
+    ],
+    "c03": {
+      "reviewed_candidate_id": "CANDIDATE-03-R5",
+      "decision": "rejected",
+      "reasons": [
+        "当前内容可以保留，但还要自然说明 npm 是官方名称，不是 Node Package Manager 的首字母缩写"
+      ],
+      "correct_parts": [
+        "npm 的客户端和软件包仓库作用可以保留",
+        "命令主体、退出码、CI 和证据边界可以保留"
+      ],
+      "next_candidate_id": "CANDIDATE-03-R6"
+    },
+    "forward": {
+      "accepted": [2, 3, 4, 8, 10, 13, 17, 18],
+      "rejected": [5, 9, 12, 15],
+      "feedback": {
+        "005": [
+          "编号项只有一条紧随说明时保持同行",
+          "一个编号项包含多个真实子项时才使用嵌套列表"
+        ],
+        "009": [
+          "所有可注释语句的同行注释从最长代码行之后的同一列开始",
+          "代码注释已经说明的逐行内容不得在正文重复"
+        ],
+        "012": [
+          "增加不需要地质学知识也能理解的普通解释",
+          "继续区分原文结论和补充背景"
+        ],
+        "015": [
+          "编号项只有一条紧随说明时保持同行",
+          "书名、设备型号和应用版本属于真实多项，继续使用嵌套列表"
+        ]
+      }
+    },
+    "review_result": {
+      "reviewed": 13,
+      "accepted": 8,
+      "rejected": 5,
+      "new_candidates": 5,
+      "automated_checks_are_user_acceptance": false
+    },
+    "post_review_counts": {
+      "anchor": {"gold": 11, "rejected": 14, "candidate": 1, "total": 26},
+      "forward": {"gold": 16, "rejected": 16, "candidate": 4, "total": 36},
+      "combined": {"gold": 27, "rejected": 30, "candidate": 5, "total": 62}
+    },
+    "perfect_round_streak": {"current": 0, "required": 2, "release_gate_met": false},
+    "first_round_result": {
+      "human_acceptance": "8/20",
+      "acceptance_rate": 0.4,
+      "immutable": true,
+      "next_round_allowed": false,
+      "reason": "首次未见成绩不因修订答案或自动检查改变；五个新候选仍需用户逐项接受"
+    }
+  }
+}

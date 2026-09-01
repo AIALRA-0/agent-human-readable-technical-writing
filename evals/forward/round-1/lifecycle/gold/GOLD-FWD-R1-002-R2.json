@@ -1,12 +1,12 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-FWD-R1-002-R2",
+    "case_id": "GOLD-FWD-R1-002-R2",
     "origin_case_id": "FWD-R1-002",
-    "status": "candidate",
+    "status": "gold",
     "revision": 2,
-    "approved_by_user": false,
-    "reviewed_at": null,
-    "profile_revision_at_review": null
+    "approved_by_user": true,
+    "reviewed_at": "2026-08-31",
+    "profile_revision_at_review": "round-4-generalization"
   },
   "task": {
     "audience": "zero_prior_knowledge",
@@ -69,14 +69,14 @@
   "artifact": {
     "answer": "拆下设备后面板以前，先断开设备与市电（Mains Power）的连接；市电是市政电网通过建筑供电线路引入的交流电源，这个名称强调设备使用的是建筑外部电网提供的电力\n\n断开电源后的 5 分钟内不要拆下后面板；电容器（Capacitor）是能够暂时储存电荷的电子部件，它在设备断电后仍可能保留危险电荷，因此等待 5 分钟是为了让残留电荷有时间释放",
     "answer_sha256": "7bed7469d9a7edf4e6c857fb8e4c30c6140b060a0086ff63eccc5c5663dd2621",
-    "approved_snapshot_sha256": null,
+    "approved_snapshot_sha256": "7bed7469d9a7edf4e6c857fb8e4c30c6140b060a0086ff63eccc5c5663dd2621",
     "revision_of": "REJECTED-FWD-R1-002"
   },
   "review": {
-    "decision_source": "pending_user_review",
-    "decision": "pending",
+    "decision_source": "explicit_user_review",
+    "decision": "accepted",
     "reasons": [
-      "根据第一轮用户反馈完成修订，等待用户逐项审核"
+      "用户明确接受当前 R2，可以原样进入 Gold"
     ],
     "correct_parts": [
       "原始答案中未被用户否定的事实、数字、条件和证据边界继续保留"

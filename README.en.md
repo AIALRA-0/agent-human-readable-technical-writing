@@ -4,10 +4,10 @@
 
 <p><strong>Preserve source information, track explanatory additions, and generate Chinese that remains readable, auditable, and locally repairable</strong></p>
 
-<p><strong>Status: vNext 1.1 is being revised after forward round one; generalization has not passed validation</strong></p>
+<p><strong>Status: round-four user decisions are recorded and five new revisions await manual review</strong></p>
 
 <p>
-  <a href="evals/reviews/vnext-1.1-round-4-REVIEW-PACKET.md">13 revised candidates</a> ·
+  <a href="evals/reviews/vnext-1.1-round-5-REVIEW-PACKET.md">5 revised candidates</a> ·
   <a href="docs/design/vnext-1.1-authoritative-plan.md">Authoritative design</a> ·
   <a href="README.md">简体中文</a>
 </p>
@@ -59,7 +59,7 @@ Each task combines two independent dimensions:
 
 `TRANSLATE + EXPLANATORY` preserves all source information while adding separately sourced background needed by the target reader
 
-## 4. Round-Four Generalization Changes
+## 4. Round-Five Finalization Changes
 
 The current candidate adds five general mechanisms:
 
@@ -67,6 +67,8 @@ The current candidate adds five general mechanisms:
 * Indented lists for Agent-declared parallel groups, regardless of whether a colon appears
 * GitHub render evidence at 1280-pixel and 390-pixel viewports in light and dark themes
 * Per-statement code coverage through legal comments or independently locatable line-by-line explanations
+* Same-line comments aligned after the longest commentable code line in each block, with line-by-line fallback for JSON and other non-commentable formats
+* AEMP content-sufficiency routing for reader tasks, first-screen information, evidence binding, three-layer drill-down, and deletion testing
 * Removal of superseded requirements unless history, audit, evidence, or revocation context explicitly requires them
 
 The official lowercase `npm` form is preserved; authored prose explains it as the package-management client and package registry used by the Node.js ecosystem, without inventing `Node.js Package Manager` as an expansion
@@ -75,20 +77,23 @@ The official lowercase `npm` form is preserved; authored prose explains it as th
 
 The current local evidence is:
 
-* Deterministic fixtures: 220/220
-* Context fixtures: 28/28
-* Lifecycle records: 57/57, comprising 19 Gold, 25 Rejected, and 13 Candidate records
+* Deterministic fixtures: 236/236
+* Context fixtures: 32/32
+* Lifecycle records: 62/62, comprising 27 Gold, 30 Rejected, and 5 Candidate records
 * Exact patch tests: 18/18
-* Runtime tests: 24/24
+* Runtime tests: 30/30
+* Trigger-matrix manifest: 72/72 case slots across three families and four expectation classes; the 72 isolated Codex tasks have not yet run
 * Original forward-round acceptance: 8/20, or 40%
 
 The 8/20 result is permanent evidence from the first unseen round; revised answers do not replace that score
 
 ## 6. Manual Review
 
-The [round-four review packet](evals/reviews/vnext-1.1-round-4-REVIEW-PACKET.md) contains `CANDIDATE-03-R5` and twelve `CANDIDATE-FWD-R1-*-R2` answers
+The [round-five review packet](evals/reviews/vnext-1.1-round-5-REVIEW-PACKET.md) contains `CANDIDATE-03-R6` and four `CANDIDATE-FWD-R1-*-R3` answers
 
-No second forward round will be generated until all 13 revised candidates are accepted; forward rounds two and three must each reach at least 18/20 unchanged user acceptance with zero hard factual, scope, provenance, quantity, or source-coverage errors
+No new forward round will be generated until all five revised candidates are explicitly accepted; release then requires two consecutive unseen rounds at 20/20 unchanged user acceptance with zero hard factual, scope, provenance, quantity, or source-coverage errors
+
+The [round-four implementation audit](docs/audits/2026-08-31-vnext-1.1-round-4/audit.md) records migration provenance, explicit decisions, counts, and the remaining release gates
 
 ## 7. Repository Structure
 

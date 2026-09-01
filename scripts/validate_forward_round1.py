@@ -124,10 +124,28 @@ def main() -> int:
             "failures": evidence_errors,
         },
         "human_acceptance": {"accepted": 8, "total": 20, "rate": 0.4, "threshold_met": False},
+        "revision_review": {
+            "decision_source": "explicit_user_review",
+            "reviewed": 13,
+            "accepted": 8,
+            "rejected": 5,
+        },
+        "current_candidates": {
+            "pending": 5,
+            "case_ids": [
+                "CANDIDATE-03-R6",
+                "CANDIDATE-FWD-R1-005-R3",
+                "CANDIDATE-FWD-R1-009-R3",
+                "CANDIDATE-FWD-R1-012-R3",
+                "CANDIDATE-FWD-R1-015-R3",
+            ],
+            "all_explicitly_accepted": False,
+        },
+        "perfect_round_streak": {"current": 0, "required": 2, "release_gate_met": False},
         "next_round_allowed": False,
         "reason": "首次答案、请求摘要和已登记机械错误保持一致，但用户只原样接受 8/20" if not evidence_errors else "前向证据与实际检查结果不一致",
         "impact": "第一轮成绩固定为 40%，修订版不能替换该成绩，第二轮继续停止" if not evidence_errors else "当前记录不能证明第一轮的真实结果",
-        "next": "审核 12 个前向 R2 修订候选；全部接受后再生成第二轮" if not evidence_errors else "修复证据记录或生成物不一致问题",
+        "next": "审核 5 个当前修订候选；全部明确接受后再生成第二轮" if not evidence_errors else "修复证据记录或生成物不一致问题",
     }
     report_schema = json.loads((ROOT / "contracts" / "forward-round-report.schema.json").read_text(encoding="utf-8"))
     jsonschema.Draft202012Validator(report_schema).validate(report)

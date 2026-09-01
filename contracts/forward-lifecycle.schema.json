@@ -11,8 +11,8 @@
       "additionalProperties": false,
       "required": ["case_id", "origin_case_id", "status", "revision", "approved_by_user", "reviewed_at", "profile_revision_at_review"],
       "properties": {
-        "case_id": {"type": "string", "pattern": "^(?:GOLD|REJECTED)-FWD-R1-[0-9]{3}$|^CANDIDATE-FWD-R1-[0-9]{3}-R2$"},
-        "origin_case_id": {"type": "string", "pattern": "^FWD-R1-[0-9]{3}$"},
+        "case_id": {"type": "string", "pattern": "^(?:(?:GOLD|REJECTED)-FWD-R[1-9][0-9]*-[0-9]{3}(?:-R[2-9][0-9]*)?|CANDIDATE-FWD-R[1-9][0-9]*-[0-9]{3}-R[2-9][0-9]*)$"},
+        "origin_case_id": {"type": "string", "pattern": "^FWD-R[1-9][0-9]*-[0-9]{3}$"},
         "status": {"enum": ["gold", "rejected", "candidate"]},
         "revision": {"type": "integer", "minimum": 1},
         "approved_by_user": {"type": "boolean"},
@@ -63,7 +63,7 @@
         "answer": {"type": "string", "minLength": 1},
         "answer_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
         "approved_snapshot_sha256": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
-        "revision_of": {"type": ["string", "null"], "pattern": "^(?:FWD-R1-[0-9]{3}|REJECTED-FWD-R1-[0-9]{3})$"}
+        "revision_of": {"type": ["string", "null"], "pattern": "^REJECTED-FWD-R[1-9][0-9]*-[0-9]{3}(?:-R[2-9][0-9]*)?$"}
       }
     },
     "review": {
@@ -93,23 +93,23 @@
     {
       "if": {"properties": {"identity": {"properties": {"status": {"const": "gold"}}}}},
       "then": {"properties": {
-        "identity": {"properties": {"case_id": {"pattern": "^GOLD-FWD-R1-[0-9]{3}$"}, "approved_by_user": {"const": true}, "reviewed_at": {"type": "string"}, "profile_revision_at_review": {"type": "string"}}},
-        "artifact": {"properties": {"approved_snapshot_sha256": {"type": "string"}, "revision_of": {"type": "null"}}},
+        "identity": {"properties": {"case_id": {"pattern": "^GOLD-FWD-R[1-9][0-9]*-[0-9]{3}(?:-R[2-9][0-9]*)?$"}, "approved_by_user": {"const": true}, "reviewed_at": {"type": "string"}, "profile_revision_at_review": {"type": "string"}}},
+        "artifact": {"properties": {"approved_snapshot_sha256": {"type": "string"}}},
         "review": {"properties": {"decision_source": {"const": "explicit_user_review"}, "decision": {"const": "accepted"}}}
       }}
     },
     {
       "if": {"properties": {"identity": {"properties": {"status": {"const": "rejected"}}}}},
       "then": {"properties": {
-        "identity": {"properties": {"case_id": {"pattern": "^REJECTED-FWD-R1-[0-9]{3}$"}, "approved_by_user": {"const": false}, "reviewed_at": {"type": "string"}, "profile_revision_at_review": {"type": "string"}}},
-        "artifact": {"properties": {"approved_snapshot_sha256": {"type": "null"}, "revision_of": {"type": "null"}}},
+        "identity": {"properties": {"case_id": {"pattern": "^REJECTED-FWD-R[1-9][0-9]*-[0-9]{3}(?:-R[2-9][0-9]*)?$"}, "approved_by_user": {"const": false}, "reviewed_at": {"type": "string"}, "profile_revision_at_review": {"type": "string"}}},
+        "artifact": {"properties": {"approved_snapshot_sha256": {"type": "null"}}},
         "review": {"properties": {"decision_source": {"const": "explicit_user_review"}, "decision": {"const": "rejected"}, "reasons": {"minItems": 1}, "regression_requirements": {"minItems": 1}}}
       }}
     },
     {
       "if": {"properties": {"identity": {"properties": {"status": {"const": "candidate"}}}}},
       "then": {"properties": {
-        "identity": {"properties": {"case_id": {"pattern": "^CANDIDATE-FWD-R1-[0-9]{3}-R2$"}, "approved_by_user": {"const": false}, "reviewed_at": {"type": "null"}, "profile_revision_at_review": {"type": "null"}}},
+        "identity": {"properties": {"case_id": {"pattern": "^CANDIDATE-FWD-R[1-9][0-9]*-[0-9]{3}-R[2-9][0-9]*$"}, "approved_by_user": {"const": false}, "reviewed_at": {"type": "null"}, "profile_revision_at_review": {"type": "null"}}},
         "artifact": {"properties": {"approved_snapshot_sha256": {"type": "null"}, "revision_of": {"type": "string"}}},
         "review": {"properties": {"decision_source": {"const": "pending_user_review"}, "decision": {"const": "pending"}}}
       }}

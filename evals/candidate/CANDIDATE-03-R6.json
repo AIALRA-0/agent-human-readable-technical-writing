@@ -1,0 +1,214 @@
+{
+  "identity": {
+    "case_id": "CANDIDATE-03-R6",
+    "origin_case_id": "CANDIDATE-03",
+    "status": "candidate",
+    "revision": 6,
+    "approved_by_user": false,
+    "category": "glossed_transform",
+    "reviewed_at": null,
+    "profile_revision_at_review": null
+  },
+  "task": {
+    "base_operation": "TRANSFORM",
+    "augmentation": "GLOSS",
+    "genre": "readme",
+    "audience": "zero_prior_knowledge",
+    "media": [
+      "markdown"
+    ],
+    "components": [
+      "TEXT",
+      "CODE"
+    ],
+    "request": "改写快速检查说明，并解释新手完成操作必须知道的术语"
+  },
+  "source": {
+    "material_type": "text",
+    "content": "运行 `npm run check`。发现失效链接时，命令以退出码 `2` 结束，CI 会把本次检查标记为失败。",
+    "references": [
+      {
+        "id": "REF-001",
+        "kind": "fixture_glossary",
+        "content": "npm 是项目调用已登记脚本的命令行工具；CI 是在提交代码后自动运行检查的持续集成流程；退出码是命令结束时返回给操作系统的数字状态"
+      },
+      {
+        "id": "REF-ROUND-1",
+        "kind": "explicit_user_review",
+        "content": "npm 使用官方小写形式并说明包管理用途；CI 需要覆盖提交、自动构建、测试和尽早发现集成问题"
+      },
+      {
+        "id": "REF-NPM-OFFICIAL",
+        "kind": "official_documentation",
+        "url": "https://docs.npmjs.com/policies/logos-and-usage/",
+        "content": "npm 必须保持小写；package manager 是通用类别；npm 不得被解释为首字母缩写"
+      },
+      {
+        "id": "REF-ROUND-4-CASE",
+        "kind": "explicit_user_review",
+        "content": "npm 保持官方小写，不展开成 Node.js Package Manager；首次出现时自然说明它是 Node.js 生态使用的包管理客户端和软件包仓库"
+      },
+      {
+        "id": "REF-ROUND-4-NPM-NAME",
+        "kind": "explicit_user_review",
+        "content": "保留当前内容，并自然说明 npm 是官方名称，不是 Node Package Manager 的首字母缩写"
+      }
+    ]
+  },
+  "semantics": {
+    "source_atoms": [
+      {
+        "id": "ATOM-001",
+        "source_locator": "第 1 句",
+        "claim": "用户需要运行 npm run check",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-002",
+        "source_locator": "第 2 句前半",
+        "claim": "失效链接会使命令返回退出码 2",
+        "provenance_type": "SOURCE"
+      },
+      {
+        "id": "ATOM-003",
+        "source_locator": "第 2 句后半",
+        "claim": "CI 会把检查标记为失败",
+        "provenance_type": "SOURCE"
+      }
+    ],
+    "background_atoms": [
+      {
+        "id": "BG-001",
+        "source_reference": "REF-001",
+        "purpose": "解释 npm",
+        "claim": "npm 用于调用项目已登记的脚本",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-002",
+        "source_reference": "REF-001",
+        "purpose": "解释退出码",
+        "claim": "退出码是命令结束时返回的数字状态",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-003",
+        "source_reference": "REF-001",
+        "purpose": "解释 CI",
+        "claim": "CI 会在代码提交后自动运行检查",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-005",
+        "source_reference": "REF-ROUND-1",
+        "purpose": "解释 CI 的完整流程",
+        "claim": "CI 在代码提交后自动执行构建、测试和检查，用于尽早发现集成问题",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      },
+      {
+        "id": "BG-004",
+        "source_reference": "REF-NPM-OFFICIAL",
+        "purpose": "解释 npm 的官方形式和用途",
+        "claim": "npm 是 Node.js 生态使用的包管理客户端和软件包仓库，不是 Node.js Package Manager 的首字母缩写",
+        "provenance_type": "EXTERNAL_BACKGROUND"
+      }
+    ],
+    "must_preserve": [
+      "命令 npm run check",
+      "失效链接",
+      "退出码 2",
+      "CI 标记失败"
+    ],
+    "must_not_invent": [
+      "命令会自动修复链接",
+      "退出码 2 表示所有类型的错误",
+      "CI 已经配置完成"
+    ],
+    "inference_atoms": []
+  },
+  "artifact": {
+    "answer": "用户可以运行下面的命令，让系统检查项目中的链接：\n\n```powershell\nnpm run check # npm 调用项目已登记的 check 脚本；系统在命令结束后显示检查结果\n```\n\nnpm 是官方名称，不是 `Node Package Manager` 的首字母缩写；它是 Node.js 生态使用的包管理客户端和软件包仓库；开发者可以用它安装、更新、管理和发布 JavaScript 或 TypeScript 软件包与项目依赖；这里的 `run check` 会让 npm 调用当前项目登记为 `check` 的脚本，脚本的实际检查内容由项目配置决定\n\n如果系统发现失效链接，检查命令会以退出码 `2` 结束；退出码是命令返回给操作系统的数字状态，调用脚本可以据此判断本次检查失败\n\nCI 持续集成（Continuous Integration）是开发者提交代码后自动执行构建、测试和检查，从而尽早发现代码集成问题的一套开发流程；CI 可以读取退出码 `2` 并把本次检查标记为失败，但现有说明没有证明当前项目已经启用 CI，需要查看项目的自动化配置才能确认",
+    "support_map": [
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-001"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-002"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "ATOM-003"
+        ],
+        "role": "source_restatement"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-001"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-002"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-003"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-004"
+        ],
+        "role": "explanatory_background"
+      },
+      {
+        "rendered_scope": "候选答案全文",
+        "supports": [
+          "BG-005"
+        ],
+        "role": "explanatory_background"
+      }
+    ],
+    "self_claims": [],
+    "original_case_sha256": "42c29960e24e5d90d76590c46f6e21ee19d41ba2e5a70dad7c25220c2d73f237",
+    "approved_snapshot_sha256": null
+  },
+  "review": {
+    "decision_source": "explicit_user_review",
+    "decision": "pending",
+    "reasons": [
+      "R6 已增加 npm 官方名称边界，等待人工审核"
+    ],
+    "correct_parts": [
+      "npm 的客户端和软件包仓库作用可以保留",
+      "命令主体、退出码、CI 和证据边界可以保留"
+    ],
+    "regression_requirements": [
+      "npm 保持官方小写",
+      "自然说明 npm 是官方名称，不是 Node Package Manager 的首字母缩写",
+      "保留客户端、软件包仓库、命令主体、退出码、CI 和证据边界"
+    ],
+    "privacy": {
+      "status": "public_safe",
+      "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
+    },
+    "non_blocking_preferences": []
+  }
+}

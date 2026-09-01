@@ -78,7 +78,7 @@ class VNextRuntimeTests(unittest.TestCase):
 
         self.assertEqual("PASS", verify_bundle(self.build_bundle())["status"])
 
-    def test_compile_records_round_four_presentation(self) -> None:
+    def test_compile_records_round_five_presentation(self) -> None:
         """The compiler requires verifiable GitHub object and caption alignment."""
 
         contract = compile_contract({
@@ -86,7 +86,7 @@ class VNextRuntimeTests(unittest.TestCase):
             "audience": "general_reader", "genre": "readme", "media": ["github_markdown"],
             "components": ["TEXT", "IMAGE"],
         })
-        self.assertEqual("round-4-generalization", contract["identity"]["profile_revision"])
+        self.assertEqual("round-5-inline-alignment-aemp", contract["identity"]["profile_revision"])
         self.assertTrue(contract["presentation"]["renderer"]["exact_object_alignment"])
         self.assertEqual("center", contract["presentation"]["component_alignment"]["caption"])
 
@@ -315,18 +315,39 @@ class VNextRuntimeTests(unittest.TestCase):
     def add_code_component(self, bundle: dict, uncovered: list[str]) -> None:
         """Attach one code component with explicit annotated-code mappings."""
 
-        source = "```python\nvalue = 1  # 初始化数值\n```"
-        mapping = {"unit_id": "CODE-001", "source_locator": "第 1 行", "explanation_locator": "第 1 行注释"}
+        source = "```python\nvalue = 1  # 初始化数值\n```\n\n```python\nlong_name = 2  # 初始化较长名称\n```"
+        mappings = [
+            {"unit_id": "CODE-001", "source_locator": "代码块 1 第 1 行", "explanation_locator": "代码块 1 第 1 行注释"},
+            {"unit_id": "CODE-002", "source_locator": "代码块 2 第 1 行", "explanation_locator": "代码块 2 第 1 行注释"},
+        ]
         bundle["task_contract"]["context"]["components"].append("CODE")
         bundle["task_contract"]["components"]["component_order"].append({"component_id": "CODE-1", "source_before_explanation": True})
-        bundle["task_contract"]["code"] = {"coverage_mode": "annotated_code", "unit_mappings": [mapping]}
+        bundle["task_contract"]["code"] = {
+            "coverage_mode": "annotated_code", "unit_mappings": mappings,
+            "comment_alignment": {"mode": "longest_commentable_line", "scope": "per_code_block", "overflow_policy": "allow"},
+        }
         bundle["component_coverage"].append({
             "component_id": "CODE-1", "component_type": "CODE", "source_text": source,
-            "source_position": 0, "explanation_position": len(source), "required_units": ["CODE-001"],
-            "covered_units": ["CODE-001"],
+            "source_position": 0, "explanation_position": len(source), "required_units": ["CODE-001", "CODE-002"],
+            "covered_units": ["CODE-001", "CODE-002"],
             "presentation": {"source_format": "code_fence", "object_alignment": "not_applicable", "caption_alignment": "not_applicable", "renderer": "chat", "limitation": ""},
             "mermaid": None, "table_cells": {"all": [], "covered": []},
-            "code": {"coverage_mode": "annotated_code", "unit_mappings": [mapping], "uncovered_units": uncovered},
+            "code": {
+                "coverage_mode": "annotated_code", "unit_mappings": mappings, "uncovered_units": uncovered,
+                "comment_alignment": {
+                    "mode": "longest_commentable_line",
+                    "blocks": [
+                        {
+                            "block_id": "CODE-BLOCK-001", "target_column": 11,
+                            "units": [{"unit_id": "CODE-001", "commentable": True, "code_width": 9, "comment_column": 11, "same_line": True}],
+                        },
+                        {
+                            "block_id": "CODE-BLOCK-002", "target_column": 15,
+                            "units": [{"unit_id": "CODE-002", "commentable": True, "code_width": 13, "comment_column": 15, "same_line": True}],
+                        },
+                    ],
+                },
+            },
         })
         text = source + "\n\n" + bundle["rendered_document"]["text"]
         bundle["rendered_document"]["text"] = text
@@ -346,6 +367,66 @@ class VNextRuntimeTests(unittest.TestCase):
         self.add_code_component(bundle, ["CODE-001"])
         report = verify_bundle(bundle)
         self.assertIn("CODE_UNIT_COVERAGE", {item["rule_id"] for item in report["findings"]})
+
+    def test_compile_annotated_code_requires_longest_line_alignment(self) -> None:
+        """Annotated code receives the user-required per-block alignment contract."""
+
+        contract = compile_contract({
+            "task_id": "TASK-CODE-ALIGN", "base_operation": "EXPLAIN", "augmentation": "TEACHING",
+            "audience": "beginner", "genre": "code_explanation", "media": ["chat"],
+            "components": ["TEXT", "CODE"], "code_coverage_mode": "annotated_code",
+        })
+        self.assertEqual("longest_commentable_line", contract["code"]["comment_alignment"]["mode"])
+        self.assertEqual("per_code_block", contract["code"]["comment_alignment"]["scope"])
+
+    def test_compile_line_by_line_marks_alignment_not_applicable(self) -> None:
+        """Non-commentable formats do not fabricate inline-comment evidence."""
+
+        contract = compile_contract({
+            "task_id": "TASK-CODE-JSON", "base_operation": "EXPLAIN", "augmentation": "TEACHING",
+            "audience": "beginner", "genre": "code_explanation", "media": ["chat"],
+            "components": ["TEXT", "CODE"], "code_coverage_mode": "line_by_line_explanation",
+        })
+        self.assertEqual("not_applicable", contract["code"]["comment_alignment"]["mode"])
+
+    def test_shifted_inline_comment_fails(self) -> None:
+        """One comment shifted away from the shared column is rejected."""
+
+        bundle = self.build_bundle()
+        self.add_code_component(bundle, [])
+        bundle["component_coverage"][-1]["code"]["comment_alignment"]["blocks"][0]["units"][0]["comment_column"] = 10
+        report = verify_bundle(bundle)
+        self.assertIn("CODE_COMMENT_ALIGNMENT_UNITS", {item["rule_id"] for item in report["findings"]})
+
+    def test_wrong_alignment_target_fails(self) -> None:
+        """The declared column must be longest code width plus two."""
+
+        bundle = self.build_bundle()
+        self.add_code_component(bundle, [])
+        bundle["component_coverage"][-1]["code"]["comment_alignment"]["blocks"][1]["target_column"] = 16
+        report = verify_bundle(bundle)
+        self.assertIn("CODE_COMMENT_ALIGNMENT_TARGET", {item["rule_id"] for item in report["findings"]})
+
+    def test_missing_commentable_unit_fails(self) -> None:
+        """Alignment evidence must cover every task CODE mapping."""
+
+        bundle = self.build_bundle()
+        self.add_code_component(bundle, [])
+        bundle["component_coverage"][-1]["code"]["comment_alignment"]["blocks"][0]["units"] = []
+        report = verify_bundle(bundle)
+        self.assertIn("CODE_COMMENT_ALIGNMENT_UNITS", {item["rule_id"] for item in report["findings"]})
+
+    def test_line_by_line_alignment_evidence_passes(self) -> None:
+        """Line-by-line explanation passes only with empty not-applicable alignment evidence."""
+
+        bundle = self.build_bundle()
+        self.add_code_component(bundle, [])
+        bundle["task_contract"]["code"]["coverage_mode"] = "line_by_line_explanation"
+        bundle["task_contract"]["code"]["comment_alignment"]["mode"] = "not_applicable"
+        code = bundle["component_coverage"][-1]["code"]
+        code["coverage_mode"] = "line_by_line_explanation"
+        code["comment_alignment"] = {"mode": "not_applicable", "blocks": []}
+        self.assertEqual("PASS", verify_bundle(bundle)["status"])
 
     def test_superseded_requirement_is_removed_by_default(self) -> None:
         """An overridden requirement cannot remain in the current answer by default."""

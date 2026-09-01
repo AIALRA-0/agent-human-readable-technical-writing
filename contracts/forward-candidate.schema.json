@@ -6,8 +6,8 @@
   "additionalProperties": false,
   "required": ["case_id", "round", "generation_attempt", "status", "request_sha256", "answer", "answer_sha256", "source_units", "support_map", "background_claims", "review"],
   "properties": {
-    "case_id": {"type": "string", "pattern": "^FWD-R1-[0-9]{3}$"},
-    "round": {"const": 1},
+    "case_id": {"type": "string", "pattern": "^FWD-R[1-9][0-9]*-[0-9]{3}$"},
+    "round": {"type": "integer", "minimum": 1},
     "generation_attempt": {"const": 1},
     "status": {"const": "pending_user_review"},
     "request_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},

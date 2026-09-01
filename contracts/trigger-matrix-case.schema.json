@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AIALRA-0/agent-human-readable-technical-writing/contracts/trigger-matrix-case.schema.json",
+  "title": "TriggerMatrixCase",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["case_id", "family", "expectation", "ordinal", "prompt", "expected_activation", "evaluator"],
+  "properties": {
+    "case_id": {"type": "string", "pattern": "^TRG-(CODE|TRANS|AUDIT)-(EXP|IMP|NEG|RULE)-0[1-6]$"},
+    "family": {"enum": ["code_explanation", "explanatory_translation", "status_audit"]},
+    "expectation": {"enum": ["explicit_trigger", "implicit_trigger", "negative_no_trigger", "rule_adherence"]},
+    "ordinal": {"type": "integer", "minimum": 1, "maximum": 6},
+    "prompt": {"type": "string", "minLength": 1},
+    "expected_activation": {"type": "boolean"},
+    "evaluator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "required_patterns", "forbidden_patterns"],
+      "properties": {
+        "kind": {"enum": ["activation_only", "exact_output", "inline_alignment", "json_fallback", "translation_coverage", "status_aemp"]},
+        "required_patterns": {"type": "array", "items": {"type": "string"}},
+        "forbidden_patterns": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

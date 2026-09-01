@@ -1,12 +1,12 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-FWD-R1-018-R2",
+    "case_id": "GOLD-FWD-R1-018-R2",
     "origin_case_id": "FWD-R1-018",
-    "status": "candidate",
+    "status": "gold",
     "revision": 2,
-    "approved_by_user": false,
-    "reviewed_at": null,
-    "profile_revision_at_review": null
+    "approved_by_user": true,
+    "reviewed_at": "2026-08-31",
+    "profile_revision_at_review": "round-4-generalization"
   },
   "task": {
     "audience": "zero_prior_knowledge",
@@ -62,14 +62,14 @@
   "artifact": {
     "answer": "<div align=\"center\">\n<table>\n<thead><tr><th>样品</th><th>20 分钟</th><th>40 分钟</th><th>60 分钟</th></tr></thead>\n<tbody>\n<tr><td>A</td><td>22.1°C</td><td>24.8°C</td><td>26.0°C</td></tr>\n<tr><td>B</td><td>22.0°C</td><td>—</td><td>25.1°C</td></tr>\n<tr><td>C</td><td>22.2°C</td><td>23.0°C</td><td>23.4°C</td></tr>\n</tbody>\n</table>\n<p>表 1. 样品温度随时间变化</p>\n</div>\n\n第一列列出样品 A、B 和 C；其余 3 列分别记录 20 分钟、40 分钟和 60 分钟时的温度，单位为摄氏度；每一行表示同一样品在不同时间的记录\n\n样品 B 在 40 分钟位置的破折号表示该时间点没有记录，不表示温度为 0；由于中间数据缺失，不能判断 B 在 20 分钟到 60 分钟之间的具体变化过程\n\n各样品的变化如下：\n\n* A：从 22.1°C 升到 26.0°C，总变化为 3.9°C\n* B：从 22.0°C 升到 25.1°C，总变化为 3.1°C，但缺少 40 分钟记录\n* C：从 22.2°C 升到 23.4°C，总变化为 1.2°C\n\n现有记录显示 A 和 C 的温度随时间上升，其中 A 的增幅大于 C；B 的起点最低，60 分钟时的温度位于 A 与 C 之间，但缺失值使中间趋势无法确认\n\n表格没有加热功率、环境温度或重复实验结果，因此不能解释样品温度差异的原因，也不能证明相同趋势能够稳定重复；下一步需要补充这些条件并进行重复实验",
     "answer_sha256": "3f56b794a9b1d3d3766adef5304c0489563b1f0f8333e1d579745335b9d85e76",
-    "approved_snapshot_sha256": null,
+    "approved_snapshot_sha256": "3f56b794a9b1d3d3766adef5304c0489563b1f0f8333e1d579745335b9d85e76",
     "revision_of": "REJECTED-FWD-R1-018"
   },
   "review": {
-    "decision_source": "pending_user_review",
-    "decision": "pending",
+    "decision_source": "explicit_user_review",
+    "decision": "accepted",
     "reasons": [
-      "根据第一轮用户反馈完成修订，等待用户逐项审核"
+      "用户明确接受当前 R2，可以原样进入 Gold"
     ],
     "correct_parts": [
       "原始答案中未被用户否定的事实、数字、条件和证据边界继续保留"

@@ -4,7 +4,7 @@
   "title": "ForwardRoundReport",
   "type": "object",
   "additionalProperties": false,
-  "required": ["artifact_integrity", "human_acceptance", "next_round_allowed", "reason", "impact", "next"],
+  "required": ["artifact_integrity", "human_acceptance", "revision_review", "current_candidates", "perfect_round_streak", "next_round_allowed", "reason", "impact", "next"],
   "properties": {
     "artifact_integrity": {
       "type": "object", "additionalProperties": false,
@@ -23,6 +23,34 @@
         "total": {"type": "integer", "minimum": 1},
         "rate": {"type": "number", "minimum": 0, "maximum": 1},
         "threshold_met": {"type": "boolean"}
+      }
+    },
+    "revision_review": {
+      "type": "object", "additionalProperties": false,
+      "required": ["decision_source", "reviewed", "accepted", "rejected"],
+      "properties": {
+        "decision_source": {"const": "explicit_user_review"},
+        "reviewed": {"type": "integer", "minimum": 0},
+        "accepted": {"type": "integer", "minimum": 0},
+        "rejected": {"type": "integer", "minimum": 0}
+      }
+    },
+    "current_candidates": {
+      "type": "object", "additionalProperties": false,
+      "required": ["pending", "case_ids", "all_explicitly_accepted"],
+      "properties": {
+        "pending": {"type": "integer", "minimum": 0},
+        "case_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "all_explicitly_accepted": {"type": "boolean"}
+      }
+    },
+    "perfect_round_streak": {
+      "type": "object", "additionalProperties": false,
+      "required": ["current", "required", "release_gate_met"],
+      "properties": {
+        "current": {"type": "integer", "minimum": 0},
+        "required": {"const": 2},
+        "release_gate_met": {"type": "boolean"}
       }
     },
     "next_round_allowed": {"type": "boolean"},

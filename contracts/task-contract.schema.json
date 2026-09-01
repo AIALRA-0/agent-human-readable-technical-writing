@@ -12,7 +12,7 @@
       "properties": {
         "task_id": {"type": "string", "pattern": "^TASK-[A-Z0-9-]+$"},
         "contract_version": {"const": "1.1"},
-        "profile_revision": {"const": "round-4-generalization"}
+        "profile_revision": {"const": "round-5-inline-alignment-aemp"}
       }
     },
     "operation": {
@@ -117,7 +117,7 @@
     },
     "code": {
       "type": "object", "additionalProperties": false,
-      "required": ["coverage_mode", "unit_mappings"],
+      "required": ["coverage_mode", "unit_mappings", "comment_alignment"],
       "properties": {
         "coverage_mode": {"enum": ["not_applicable", "annotated_code", "line_by_line_explanation"]},
         "unit_mappings": {
@@ -130,6 +130,15 @@
               "source_locator": {"type": "string", "minLength": 1},
               "explanation_locator": {"type": "string", "minLength": 1}
             }
+          }
+        },
+        "comment_alignment": {
+          "type": "object", "additionalProperties": false,
+          "required": ["mode", "scope", "overflow_policy"],
+          "properties": {
+            "mode": {"enum": ["not_applicable", "longest_commentable_line"]},
+            "scope": {"const": "per_code_block"},
+            "overflow_policy": {"const": "allow"}
           }
         }
       }

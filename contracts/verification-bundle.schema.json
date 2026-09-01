@@ -109,7 +109,7 @@
           "code": {
             "type": ["object", "null"],
             "additionalProperties": false,
-            "required": ["coverage_mode", "unit_mappings", "uncovered_units"],
+            "required": ["coverage_mode", "unit_mappings", "uncovered_units", "comment_alignment"],
             "properties": {
               "coverage_mode": {"enum": ["annotated_code", "line_by_line_explanation"]},
               "unit_mappings": {
@@ -124,7 +124,39 @@
                   }
                 }
               },
-              "uncovered_units": {"type": "array", "items": {"type": "string", "pattern": "^CODE-[0-9]{3,}$"}}
+              "uncovered_units": {"type": "array", "items": {"type": "string", "pattern": "^CODE-[0-9]{3,}$"}},
+              "comment_alignment": {
+                "type": "object", "additionalProperties": false,
+                "required": ["mode", "blocks"],
+                "properties": {
+                  "mode": {"enum": ["not_applicable", "longest_commentable_line"]},
+                  "blocks": {
+                    "type": "array",
+                    "items": {
+                      "type": "object", "additionalProperties": false,
+                      "required": ["block_id", "target_column", "units"],
+                      "properties": {
+                        "block_id": {"type": "string", "pattern": "^CODE-BLOCK-[0-9]{3,}$"},
+                        "target_column": {"type": "integer", "minimum": 2},
+                        "units": {
+                          "type": "array",
+                          "items": {
+                            "type": "object", "additionalProperties": false,
+                            "required": ["unit_id", "commentable", "code_width", "comment_column", "same_line"],
+                            "properties": {
+                              "unit_id": {"type": "string", "pattern": "^CODE-[0-9]{3,}$"},
+                              "commentable": {"type": "boolean"},
+                              "code_width": {"type": "integer", "minimum": 0},
+                              "comment_column": {"type": ["integer", "null"], "minimum": 2},
+                              "same_line": {"type": "boolean"}
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }

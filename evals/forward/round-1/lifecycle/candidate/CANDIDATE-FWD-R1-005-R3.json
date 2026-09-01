@@ -1,9 +1,9 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-FWD-R1-005-R2",
+    "case_id": "CANDIDATE-FWD-R1-005-R3",
     "origin_case_id": "FWD-R1-005",
     "status": "candidate",
-    "revision": 2,
+    "revision": 3,
     "approved_by_user": false,
     "reviewed_at": null,
     "profile_revision_at_review": null
@@ -58,26 +58,32 @@
         "source_reference": "REF-001"
       }
     ],
-    "revision_references": []
+    "revision_references": [
+      {
+        "id": "USER-ROUND4-FWD-005",
+        "kind": "explicit_user_review",
+        "content": "编号项只有一条紧随说明时保持同行；一个编号项包含多个真实子项时才使用嵌套列表"
+      }
+    ]
   },
   "artifact": {
-    "answer": "# Thermo Mini 首次配对\n\n下面的流程分别显示配对成功和超时退出两种结果\n\n```mermaid\nflowchart TD\n    A[长按设备侧键 3 秒] --> B[指示灯蓝色闪烁]\n    B --> C[在手机系统设置中选择 Thermo Mini]\n    C --> D{60 秒内是否连接成功}\n    D -- 是 --> E[指示灯常亮 5 秒]\n    D -- 否 --> F[设备退出配对]\n```\n\n<p align=\"center\">图 1. Thermo Mini 首次配对流程</p>\n\n图中的流程从长按设备侧键开始；蓝色闪烁表示设备已经进入可配对状态，手机随后需要在系统设置中选择 `Thermo Mini`；连接成功时，指示灯会常亮 5 秒，60 秒内没有连接时，设备会退出配对并返回开始步骤\n\n1. 长按设备侧键 3 秒\n   - 看到指示灯蓝色闪烁后再继续；这个现象表示设备已经进入配对状态\n2. 在手机系统设置中选择 `Thermo Mini`\n   - 这一步让手机向当前设备发起连接\n3. 查看指示灯\n   - 指示灯常亮 5 秒表示连接成功\n   - 60 秒内没有连接表示本次配对超时；设备退出配对后，需要从第一步重新开始",
-    "answer_sha256": "f145155f45e0393fe0547f1138a71d9a30d4bad9414139b262ed7189b50cddad",
+    "answer": "# Thermo Mini 首次配对\n\n下面的流程分别显示配对成功和超时退出两种结果\n\n```mermaid\nflowchart TD\n    A[长按设备侧键 3 秒] --> B[指示灯蓝色闪烁]\n    B --> C[在手机系统设置中选择 Thermo Mini]\n    C --> D{60 秒内是否连接成功}\n    D -- 是 --> E[指示灯常亮 5 秒]\n    D -- 否 --> F[设备退出配对]\n```\n\n<p align=\"center\">图 1. Thermo Mini 首次配对流程</p>\n\n图中的流程从长按设备侧键开始；蓝色闪烁表示设备已经进入可配对状态，手机随后需要在系统设置中选择 `Thermo Mini`；连接成功时，指示灯会常亮 5 秒，60 秒内没有连接时，设备会退出配对并返回开始步骤\n\n1. 长按设备侧键 3 秒，看到指示灯蓝色闪烁后再继续；这个现象表示设备已经进入配对状态\n2. 在手机系统设置中选择 `Thermo Mini`，这一步让手机向当前设备发起连接\n3. 查看指示灯\n   - 指示灯常亮 5 秒表示连接成功\n   - 60 秒内没有连接表示本次配对超时；设备退出配对后，需要从第一步重新开始",
+    "answer_sha256": "986c428625922fdcc07fda0d452c0114d166d3471a766e2360f2f01bfaaef342",
     "approved_snapshot_sha256": null,
-    "revision_of": "REJECTED-FWD-R1-005"
+    "revision_of": "REJECTED-FWD-R1-005-R2"
   },
   "review": {
     "decision_source": "pending_user_review",
     "decision": "pending",
     "reasons": [
-      "根据第一轮用户反馈完成修订，等待用户逐项审核"
+      "R3 已按照第四轮用户反馈修订，等待用户逐项审核"
     ],
     "correct_parts": [
       "原始答案中未被用户否定的事实、数字、条件和证据边界继续保留"
     ],
     "regression_requirements": [
-      "步骤保持缩进编号列表",
-      "GitHub 中的图题必须经过实际渲染确认居中"
+      "编号项只有一条紧随说明时保持同行",
+      "一个编号项包含多个真实子项时才使用嵌套列表"
     ],
     "non_blocking_preferences": [],
     "privacy": {

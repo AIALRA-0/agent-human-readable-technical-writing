@@ -1,7 +1,7 @@
 profile:
   identity:
     profile_id: code-explanation
-    revision: round-4-generalization
+    revision: round-5-inline-alignment-aemp
     description: 代码按照零先验读者处理，并保留原始代码后解释功能、原因、输入、结果和边界
   source_order:
     original_code:
@@ -26,11 +26,24 @@ profile:
       description: 纯括号和闭合符继承所在块说明，不添加机械废注释
     non_commentable_format:
       description: JSON 等格式保留原始版本，再提供可注释等价版本
+  comment_alignment:
+    mode:
+      policy: longest_commentable_line
+      description: 同一代码块内先去掉代码尾部空白，再按四列制表位计算每个可注释语句的显示宽度；最长宽度为 L 时，所有注释标记从第 L+2 列开始
+    scope:
+      policy: per_code_block
+      description: 每个代码块独立计算目标列，不跨代码块对齐
+    overflow:
+      policy: allow
+      description: 注释对齐优先于任意固定行宽，不能为了缩短行宽把同行注释移到下一行
+    exemptions:
+      policy: structural_only
+      description: 空行、纯闭合符和只承担结构作用的括号不添加机械注释，也不参与最长行计算
   coverage_modes:
     annotated_code:
-      description: 在代码中加入目标语言允许的合法注释，并覆盖每个有效语句或功能块
+      description: 在代码中加入目标语言允许的合法同行注释，覆盖每个有效语句或功能块，并始终按最长可注释代码行对齐
     line_by_line_explanation:
-      description: 在代码后为每个有效语句建立独立且可定位的解释；密集段落不能代替逐行映射
+      description: 在代码后为每个有效语句建立独立且可定位的解释；密集段落不能代替逐行映射；该路径的同行对齐记为 not_applicable
     equivalence:
       description: 两种路径具有相同覆盖要求；选择逐行解释时，每个有效代码单元都必须登记解释位置
   required_coverage:

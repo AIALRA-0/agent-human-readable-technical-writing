@@ -1,9 +1,9 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-FWD-R1-012-R2",
+    "case_id": "CANDIDATE-FWD-R1-012-R3",
     "origin_case_id": "FWD-R1-012",
     "status": "candidate",
-    "revision": 2,
+    "revision": 3,
     "approved_by_user": false,
     "reviewed_at": null,
     "profile_revision_at_review": null
@@ -79,28 +79,32 @@
         "id": "TERM-GEOLOGY-ROUND4",
         "kind": "term_registry",
         "content": "地层、火山灰层、化石层和最低年龄的术语形式与当前语境定义"
+      },
+      {
+        "id": "USER-ROUND4-FWD-012",
+        "kind": "explicit_user_review",
+        "content": "增加不需要地质学知识也能理解的普通解释；继续区分原文结论和补充背景"
       }
     ]
   },
   "artifact": {
-    "answer": "# 原文结论\n\n已经测定年代的火山灰层位于化石层上方，因此这个年代为埋藏事件确定了最低年龄；不过，这个年代不能说明这些生物在被埋藏以前生活了多长时间\n\n# 理解结论需要的背景\n\n* 地层（Stratum）：地质过程中逐层形成的岩石或沉积物；这里的位置关系用于判断不同层形成的先后顺序\n* 火山灰层（Volcanic Ash Layer）：火山喷发后沉积形成的灰层；它可以通过合适的同位素方法测定形成年代\n* 化石层（Fossil Bed）：包含化石的地层；这个名称表示化石集中保存在这一层中\n* 最低年龄（Minimum Age）：事件至少已经发生了这么久；上覆火山灰层形成在埋藏事件之后，因此它限制了埋藏事件不能晚于该层的形成时间\n\n测年的对象是化石层上方的火山灰层，不是生物本身；这些信息只能限制埋藏事件的时间，不能据此推断生物在埋藏以前存活了多久",
-    "answer_sha256": "432c4b9540f6f32bfe26db21efded716e8559d11ea48dcb1f57adcb3fdca9974",
+    "answer": "# 原文结论\n\n已经测定年代的火山灰层位于化石层上方，因此这个年代为埋藏事件确定了最低年龄；不过，这个年代不能说明这些生物在被埋藏以前生活了多长时间\n\n# 不需要地质学知识的理解方式\n\n可以把这些地层想成先后叠放的几层材料；化石层在下面，火山灰层后来覆盖在上面，因此下面的埋藏事件一定发生得更早\n\n测得上方火山灰层的年代以后，只能确认埋藏事件至少已经发生了这么久；埋藏也可能更早，所以这个结果叫作最低年龄\n\n# 补充背景\n\n* 地层（Stratum）：地质过程中逐层形成的岩石或沉积物；上下位置可以帮助判断形成先后\n* 火山灰层（Volcanic Ash Layer）：火山喷发后沉积形成的灰层；合适的同位素方法可以测定它的形成年代\n* 化石层（Fossil Bed）：包含化石的地层；这里记录了生物被埋藏的位置\n* 最低年龄（Minimum Age）：事件至少已经发生了这么久，但实际时间可以更早\n\n测年的对象是化石层上方的火山灰层，不是生物本身；这些信息只能限制埋藏事件的时间，不能据此推断生物在埋藏以前存活了多久",
+    "answer_sha256": "b5212c278ea35905313b2c11d62bf5f827e82f9fbd53d55749d22d5a03e785f6",
     "approved_snapshot_sha256": null,
-    "revision_of": "REJECTED-FWD-R1-012"
+    "revision_of": "REJECTED-FWD-R1-012-R2"
   },
   "review": {
     "decision_source": "pending_user_review",
     "decision": "pending",
     "reasons": [
-      "根据第一轮用户反馈完成修订，等待用户逐项审核"
+      "R3 已按照第四轮用户反馈修订，等待用户逐项审核"
     ],
     "correct_parts": [
       "原始答案中未被用户否定的事实、数字、条件和证据边界继续保留"
     ],
     "regression_requirements": [
-      "删除中文句号",
-      "降低单段信息密度",
-      "解释专业名词及其名称含义"
+      "增加不需要地质学知识也能理解的普通解释",
+      "继续区分原文结论和补充背景"
     ],
     "non_blocking_preferences": [],
     "privacy": {

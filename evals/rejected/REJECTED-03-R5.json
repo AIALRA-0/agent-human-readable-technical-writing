@@ -1,13 +1,13 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-03-R5",
+    "case_id": "REJECTED-03-R5",
     "origin_case_id": "CANDIDATE-03",
-    "status": "candidate",
+    "status": "rejected",
     "revision": 5,
     "approved_by_user": false,
     "category": "glossed_transform",
-    "reviewed_at": null,
-    "profile_revision_at_review": null
+    "reviewed_at": "2026-08-31",
+    "profile_revision_at_review": "round-4-generalization"
   },
   "task": {
     "base_operation": "TRANSFORM",
@@ -187,25 +187,22 @@
   },
   "review": {
     "decision_source": "explicit_user_review",
-    "decision": "pending",
+    "decision": "rejected",
     "reasons": [
-      "R5 已按用户反馈移除误导性的括号类别和虚假缩写展开，等待人工审核"
+      "当前内容可以保留，但还要自然说明 npm 是官方名称，不是 Node Package Manager 的首字母缩写"
     ],
     "correct_parts": [
-      "命令注释已经明确执行主体",
-      "退出码、CI 和未启用边界解释可以保留"
+      "npm 的客户端和软件包仓库作用可以保留",
+      "命令主体、退出码、CI 和证据边界可以保留"
     ],
     "regression_requirements": [
-      "npm 保持官方小写",
-      "不得把 npm 展开为 Node.js Package Manager",
-      "首次出现时自然说明 npm 的客户端和软件包仓库作用",
-      "命令注释明确执行主体",
-      "保留退出码、CI 和证据边界"
+      "当前内容可以保留，但还要自然说明 npm 是官方名称，不是 Node Package Manager 的首字母缩写"
     ],
     "privacy": {
       "status": "public_safe",
       "basis": "只保存脱敏后的技术判断，不包含原始对话、账户信息或个人路径"
     },
-    "non_blocking_preferences": []
+    "non_blocking_preferences": [],
+    "reviewed_snapshot_sha256": "efd945b3282941260afea879252c00aa10587ec0d9d622b578b1e5350e9f39cc"
   }
 }

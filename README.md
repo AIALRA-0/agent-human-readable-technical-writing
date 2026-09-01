@@ -4,10 +4,10 @@
 
 <p><strong>完整保留源信息，分开追踪补充解释，再生成能够阅读、核对和局部修复的中文</strong></p>
 
-<p><strong>当前状态：vNext 1.1 候选版本正在根据第一轮前向测试修订，泛化能力尚未通过验证</strong></p>
+<p><strong>当前状态：vNext 1.1 已完成第四轮人工决定落账，5 个新修订候选等待用户审核</strong></p>
 
 <p>
-  <a href="evals/reviews/vnext-1.1-round-4-REVIEW-PACKET.md">13 个修订候选</a> ·
+  <a href="evals/reviews/vnext-1.1-round-5-REVIEW-PACKET.md">5 个修订候选</a> ·
   <a href="docs/design/vnext-1.1-authoritative-plan.md">权威设计</a> ·
   <a href="README.en.md">English</a>
 </p>
@@ -79,7 +79,7 @@ flowchart TD
 
 `TRANSLATE + EXPLANATORY` 表示完整翻译原文，同时补充理解原文所需的背景；补充解释具有独立来源，不能抵消原文遗漏
 
-## 4. 第三轮新增约束
+## 4. 第四轮收尾约束
 
 本轮根据第一轮未见前向测试增加以下通用能力：
 
@@ -92,7 +92,13 @@ flowchart TD
 * GitHub 视觉
   * 图片和表格使用居中 HTML，流程图使用原生代码块和居中题注
   * 桌面、移动端、亮色和暗色实际渲染结果决定是否通过
-* 代码覆盖：原始代码继续保留；每个有效语句需要合法注释或独立可定位的逐行解释
+* 代码覆盖
+  * 原始代码继续保留；每个有效语句需要合法注释或独立可定位的逐行解释
+  * 使用注释时，每个代码块内的注释始终从最长可注释代码行之后的同一列开始，允许对齐增加行宽
+  * JSON 等不能合法添加注释的格式使用逐行解释，不伪造注释覆盖
+* AEMP 内容充分性
+  * 教程、操作、参考、解释、决策、状态、审计和项目变化先登记读者必须理解、看到、决定和验证的内容
+  * 复杂内容最多分为三层，重要主张分别绑定证据，并通过删除测试移除不改变理解和行动的噪声
 * 多轮替换
   * 追加要求替换旧要求后，只保留当前有效内容
   * 历史、审计、证据核对或撤销说明任务可以明确保留旧要求
@@ -123,31 +129,36 @@ python scripts/run_vnext.py --help # 系统显示 compile、verify、repair 和 
 ```powershell
 python scripts/validate_vnext_foundation.py # 核对权威计划、合同、YAML 分类、案例、链接、SVG 和公开文件隐私模式
 
-python scripts/run_vnext_fixtures.py # 执行 220 个确定性正反例；预期结果为 220/220
+python scripts/run_vnext_fixtures.py # 执行 236 个确定性正反例；预期结果为 236/236
 
-python scripts/validate_vnext_round4.py # 核对 57 个生命周期记录、用户快照、原始前向答案和 13 个修订候选
+python scripts/validate_vnext_lifecycle.py # 核对 62 个生命周期记录、用户快照、原始前向答案和 5 个修订候选
 
-python scripts/validate_context_cases.py # 核对 28 个术语、排比、代码、多轮、主语、标点和段落语境案例
+python scripts/validate_context_cases.py # 核对 32 个术语、排比、代码、内容充分性、多轮、主语、标点和段落语境案例
+
+python scripts/validate_trigger_matrix.py # 核对 72 个真实触发案例槽位；不把清单结构通过冒充隔离任务已经运行
 
 python scripts/validate_forward_round1.py # 分别报告原始文件完整性、人工接受率和是否允许生成下一轮
 
 python -m unittest discover -s tests -p "test_deterministic_committer.py" -v # 执行 18 个摘要、范围、冲突、回滚和原子写入测试
 
-python -m unittest discover -s tests -p "test_vnext_runtime.py" -v # 执行 24 个任务编译、覆盖验证、精确修复和结果报告测试
+python -m unittest discover -s tests -p "test_vnext_runtime.py" -v # 执行 30 个任务编译、覆盖验证、精确修复和结果报告测试
 ```
 
 当前本地结果如下：
 
-* 确定性案例：220/220
-  * 新增案例覆盖术语名称含义、无冒号排比、GitHub 渲染证据、代码覆盖方式和多轮替换
-* 语境案例：28/28
-  * 程序只检查已登记结构，专业名词边界和排比识别继续保留给 Agent 或用户判断
-* 生命周期记录：57/57
-  * 当前共有 19 个 Gold、25 个 Rejected 和 13 个 Candidate
+* 确定性案例：236/236
+  * 新增案例覆盖同行注释目标列、错列、换行、不可注释格式回退、内容充分性、证据绑定和删除测试
+* 语境案例：32/32
+  * 程序只检查已登记结构，专业名词边界、有效代码单元和内容充分性继续保留给 Agent 或用户判断
+* 生命周期记录：62/62
+  * 当前共有 27 个 Gold、30 个 Rejected 和 5 个 Candidate
 * 精确补丁测试：18/18
   * 摘要、位置、出现次数、冲突和事务回滚均有正反测试
-* 运行时测试：24/24
-  * 任务编译、排比账本、代码单元、多轮替换和渲染证据均有可执行测试
+* 运行时测试：30/30
+  * 任务编译、排比账本、代码单元、同行对齐、多轮替换和渲染证据均有可执行测试
+* 真实触发矩阵定义：72/72
+  * 三类任务各含 6 个显式触发、6 个隐式触发、6 个负向不触发和 6 个规则遵守案例
+  * 72 次隔离 Codex 任务尚未执行；原始正文只允许写入仓库外私有报告，清单通过不属于发布通过证据
 * 第一轮前向人工接受：8/20
   * 实际接受率为 40%，原因是 12 个首次答案仍存在术语、结构、居中、代码和内容充分性问题
 
@@ -155,12 +166,17 @@ python -m unittest discover -s tests -p "test_vnext_runtime.py" -v # 执行 24 �
 
 ## 7. 人工审核入口
 
-[第三轮修订候选审核包](evals/reviews/vnext-1.1-round-4-REVIEW-PACKET.md)包含以下内容：
+[第五轮修订候选审核包](evals/reviews/vnext-1.1-round-5-REVIEW-PACKET.md)包含以下内容：
 
-* `CANDIDATE-03-R5`
-* 12 个 `CANDIDATE-FWD-R1-*-R2`
+* `CANDIDATE-03-R6`
+* `CANDIDATE-FWD-R1-005-R3`
+* `CANDIDATE-FWD-R1-009-R3`
+* `CANDIDATE-FWD-R1-012-R3`
+* `CANDIDATE-FWD-R1-015-R3`
 
-这 13 个 Candidate 全部获得用户接受以前，系统不会生成第二轮前向测试；第二轮和第三轮还需要分别达到至少 18/20 原样接受，且事实、条件、范围、来源、数量和原文完整性错误为 0
+这 5 个 Candidate 全部获得用户接受以前，系统不会生成下一轮前向测试；之后必须连续两轮达到 20/20 首稿原样接受，且事实、条件、范围、来源、数量和原文完整性错误为 0；任一轮出现拒绝时，连续完美轮次归零
+
+第四轮迁移来源、决定绑定、计数和未完成发布门槛记录在[实施审计](docs/audits/2026-08-31-vnext-1.1-round-4/audit.md)
 
 ## 8. 仓库结构
 

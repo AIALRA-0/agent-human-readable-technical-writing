@@ -1,7 +1,7 @@
 profile:
   identity:
     profile_id: lucas
-    revision: round-4-generalization
+    revision: round-5-inline-alignment-aemp
     description: Lucas 已明确确认的个人写作要求
   punctuation:
     chinese_full_stop:
@@ -96,6 +96,19 @@ profile:
       policy: forward
       severity: ADVISORY
       description: 优先按照时间、因果或操作顺序展开，避免无必要插叙和倒叙
+  code:
+    inline_comment_alignment:
+      policy: longest_commentable_line
+      severity: PROFILE_REQUIRED
+      description: 每个代码块内所有可注释有效语句使用同行注释，注释标记从最长可注释代码行之后的同一列开始；允许对齐增加行宽
+    alignment_scope:
+      policy: per_code_block
+      severity: MACHINE_FINAL
+      description: 不跨代码块计算最长行；空行、纯闭合符和结构性括号不参与计算
+    non_commentable_fallback:
+      policy: line_by_line_explanation
+      severity: PROFILE_REQUIRED
+      description: JSON 等不能合法添加注释的格式保留原文并逐行解释，同行对齐不适用
   source_presentation:
     short_verbatim_text:
       policy: blockquote

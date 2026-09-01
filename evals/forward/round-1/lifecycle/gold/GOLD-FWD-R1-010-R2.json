@@ -1,12 +1,12 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-FWD-R1-010-R2",
+    "case_id": "GOLD-FWD-R1-010-R2",
     "origin_case_id": "FWD-R1-010",
-    "status": "candidate",
+    "status": "gold",
     "revision": 2,
-    "approved_by_user": false,
-    "reviewed_at": null,
-    "profile_revision_at_review": null
+    "approved_by_user": true,
+    "reviewed_at": "2026-08-31",
+    "profile_revision_at_review": "round-4-generalization"
   },
   "task": {
     "audience": "zero_prior_knowledge",
@@ -49,14 +49,14 @@
   "artifact": {
     "answer": "# 校准说明\n\n校准前，让探头在室温下静置 15 分钟\n\n每次记录 3 个读数；如果 3 个读数中的最大值与最小值相差超过 0.4 摄氏度，重新连接探头并再次测量",
     "answer_sha256": "96465b7be9aa5446e2ee2f0a05fabc4239bb71a5d43c7876ac1755d307940f9e",
-    "approved_snapshot_sha256": null,
+    "approved_snapshot_sha256": "96465b7be9aa5446e2ee2f0a05fabc4239bb71a5d43c7876ac1755d307940f9e",
     "revision_of": "REJECTED-FWD-R1-010"
   },
   "review": {
-    "decision_source": "pending_user_review",
-    "decision": "pending",
+    "decision_source": "explicit_user_review",
+    "decision": "accepted",
     "reasons": [
-      "根据第一轮用户反馈完成修订，等待用户逐项审核"
+      "用户明确接受当前 R2，可以原样进入 Gold"
     ],
     "correct_parts": [
       "原始答案中未被用户否定的事实、数字、条件和证据边界继续保留"
