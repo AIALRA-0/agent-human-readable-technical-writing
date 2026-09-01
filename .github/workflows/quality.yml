@@ -14,6 +14,8 @@ jobs: # 定义相互独立的自动检查任务
     steps: # 按照依赖准备、确定性检查、提交器测试和生成物核对的顺序执行
       - name: Check out repository # 下载触发本次检查的精确提交
         uses: actions/checkout@v5 # 使用官方仓库下载动作，不写回远端
+        with: # 保留上一提交以执行精确空白差异检查
+          fetch-depth: 2 # 当前提交与直接父提交都可供 git diff 使用
 
       - name: Set up Python # 安装与本地候选基线一致的 Python 主版本
         uses: actions/setup-python@v5 # 使用官方 Python 环境准备动作
@@ -26,20 +28,23 @@ jobs: # 定义相互独立的自动检查任务
       - name: Compile Python sources # 在运行以前发现语法和编码错误
         run: python -m compileall -q patcher runtime scripts tests validators # 只编译 vNext 实现、验证器和测试
 
+      - name: Reject trailing whitespace # 防止审核页中的不可见差异绕过人工复核
+        run: git diff --check HEAD^ HEAD # 检查本次提交引入的行尾空白和空白错误
+
       - name: Validate vNext foundation # 验证权威计划、契约、YAML 分类、候选案例、链接、SVG 和隐私模式
         run: python scripts/validate_vnext_foundation.py # 任一确定性缺陷都会返回非零退出状态
 
       - name: Execute 252 deterministic fixtures # 运行十八类确定性规则的独立正反例
         run: python scripts/run_vnext_fixtures.py # 结果必须为 252/252，数量或判定不一致都会失败
 
-      - name: Validate 82 lifecycle records and 20 pending round-two candidates # 验证 Gold 快照、版本化拒绝、首次前向证据和新候选来源覆盖
-        run: python scripts/validate_vnext_lifecycle.py # 第一轮人工接受率保持 8/20，第二轮首稿全部保持未批准
+      - name: Validate dynamic lifecycle records and pending candidates # 按实际轮次核对 Gold、Rejected、Candidate、摘要和明确用户决定
+        run: python scripts/validate_vnext_lifecycle.py # 记录数随人工拒绝和新轮次动态增长，自动检查不得改变人工状态
 
       - name: Validate 40 contextual cases # 检查术语、排比、代码、内容充分性、长上下文、多轮、主语、标点和段落的职责边界
         run: python scripts/validate_context_cases.py # 已登记结构允许确定性判断，语义边界继续由 Agent 或用户决定
 
       - name: Validate broad-coverage forward-round declarations # 核对长度、受众、任务、变化配额及主题素材去重
-        run: python scripts/validate_forward_rounds.py # 第三轮在第二轮人工首稿 20/20 前保持硬门关闭
+        run: python scripts/validate_forward_rounds.py # 下一轮在上一轮所有修订获明确接受前保持硬门关闭
 
       - name: Validate long-context stress evidence # 核对八项 1200-3000 字隔离压力案例和脱敏执行摘要
         run: python scripts/validate_long_context_stress.py # 8/8 只作为发布证据，不能写入用户接受字段
@@ -56,5 +61,8 @@ jobs: # 定义相互独立的自动检查任务
       - name: Test executable runtime # 验证 compile、verify、repair、长上下文拒绝和 report 的结构化接口
         run: python -m unittest discover -s tests -p "test_vnext_runtime.py" -v # 运行 38 个运行时测试，不要求外部 Agent
 
+      - name: Test forward review and round gates # 验证完整发现、分批审核、摘要绑定、幂等迁移和动态轮次门槛
+        run: python -m unittest discover -s tests -p "test_forward_review_workflow.py" -v # 自动测试只能验证证据与迁移，不能产生用户接受
+
       - name: Verify generated evidence synchronization # 确认确定性案例、审核包和前向候选摘要能够从登记源重建
-        run: python scripts/build_vnext_minimal_cases.py && python scripts/build_vnext_trigger_matrix.py && python scripts/build_forward_round1_requests.py && python scripts/materialize_forward_round1.py && python scripts/apply_vnext_round3_review.py && python scripts/build_round4_review_packet.py && python scripts/apply_vnext_round4_review.py && python scripts/build_round5_review_packet.py && python scripts/apply_vnext_round5_review.py && python scripts/build_forward_round2_requests.py && python scripts/materialize_forward_round1.py --round 2 && python scripts/check_forward_candidates.py --round 2 && python scripts/materialize_forward_lifecycle.py --round 2 && python scripts/build_forward_review_packet.py --round 2 && python scripts/build_long_context_stress.py && git diff --exit-code -- evals/candidate evals/gold evals/rejected evals/deterministic/vnext-1.1-minimal-cases.jsonl evals/trigger-matrix/vnext-1.1-72-cases.jsonl evals/forward/round-1 evals/forward/round-2 evals/long-context/vnext-1.1-8-cases.jsonl evals/reviews/vnext-1.1-round-4-REVIEW-PACKET.md evals/reviews/vnext-1.1-round-5-REVIEW-PACKET.md # 任何用户快照、首次答案、长上下文案例或修订证据变化都会阻止候选提交
+        run: python scripts/build_vnext_minimal_cases.py && python scripts/build_vnext_trigger_matrix.py && python scripts/build_forward_round1_requests.py && python scripts/materialize_forward_round1.py && python scripts/apply_vnext_round3_review.py && python scripts/build_round4_review_packet.py && python scripts/apply_vnext_round4_review.py && python scripts/build_round5_review_packet.py && python scripts/apply_vnext_round5_review.py && python scripts/rebuild_forward_rounds.py && python scripts/build_long_context_stress.py && git diff --exit-code -- evals/candidate evals/gold evals/rejected evals/deterministic/vnext-1.1-minimal-cases.jsonl evals/trigger-matrix/vnext-1.1-72-cases.jsonl evals/forward evals/long-context/vnext-1.1-8-cases.jsonl evals/reviews/vnext-1.1-round-4-REVIEW-PACKET.md evals/reviews/vnext-1.1-round-5-REVIEW-PACKET.md # 任何用户快照、首次答案、长上下文案例、审核账本或修订证据变化都会阻止候选提交

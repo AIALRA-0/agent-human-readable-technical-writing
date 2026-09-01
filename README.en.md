@@ -4,10 +4,10 @@
 
 <p><strong>Preserve source information, track explanatory additions, and generate Chinese that remains readable, auditable, and locally repairable</strong></p>
 
-<p><strong>Status: round-four user decisions are recorded and five new revisions await manual review</strong></p>
+<p><strong>Status: twenty vNext 1.1 round-two first drafts await item-by-item human review; automated checks found fourteen mechanical issues</strong></p>
 
 <p>
-  <a href="evals/reviews/vnext-1.1-round-5-REVIEW-PACKET.md">5 revised candidates</a> ·
+  <a href="evals/forward/round-2/review-batches/INDEX.md">Round-two review batches</a> ·
   <a href="docs/design/vnext-1.1-authoritative-plan.md">Authoritative design</a> ·
   <a href="README.md">简体中文</a>
 </p>
@@ -82,6 +82,7 @@ The current local evidence is:
 * Lifecycle records: 82/82, comprising 32 Gold, 30 Rejected, and 20 pending round-two Candidate records
 * Exact patch tests: 18/18
 * Runtime tests: 38/38
+* Forward-review workflow tests: 9/9, covering complete finding aggregation, four five-case review pages, digest-bound decisions, idempotent transitions, rejected revisions, later-round gates, and the two-round perfect streak
 * Trigger matrix: 72/72 isolated tasks passed on fixed `gpt-5.6-sol`; raw bodies remain in a local private report and the repository stores only digests, event summaries, counts, and deidentified conclusions
 * Long-context stress matrix: 8/8 frozen isolated tasks over 1,312–1,585-character inputs; the public evidence preserves two evaluator false-positive corrections and no model rerun
 * Original forward-round acceptance: 8/20, or 40%
@@ -91,11 +92,11 @@ The 8/20 result is permanent evidence from the first unseen round; revised answe
 
 ## 6. Manual Review
 
-The [round-two broad-coverage review packet](evals/forward/round-2/REVIEW-PACKET.md) contains 20 once-generated, digest-frozen first drafts; all five round-five revision candidates have already received explicit user acceptance
+The [round-two review index](evals/forward/round-2/review-batches/INDEX.md) divides 20 once-generated, digest-frozen first drafts into four five-case batches; the [complete packet](evals/forward/round-2/REVIEW-PACKET.md) preserves the same content and answer SHA-256 bindings
 
-Round three remains blocked until every round-two first draft receives explicit user review and the round scores 20/20; release still requires two consecutive unseen rounds at 20/20 unchanged user acceptance with zero hard factual, scope, provenance, quantity, or source-coverage errors
+Round two already has mechanical hard errors and cannot count as a perfect round; round three remains blocked until every round-two rejection is revised and every current revision is explicitly accepted; rounds three and four must then both score 20/20 on first drafts to satisfy the two-round release streak
 
-The [round-four implementation audit](docs/audits/2026-08-31-vnext-1.1-round-4/audit.md) records migration provenance, explicit decisions, counts, and the remaining release gates
+The [round-four implementation audit](docs/audits/2026-08-31-vnext-1.1-round-4/audit.md) preserves migration provenance; the [round-two broad-coverage audit](docs/audits/2026-09-01-vnext-1.1-forward-round-2/audit.md) records current counts, review interfaces, and remaining release gates
 
 ## 7. Repository Structure
 
@@ -123,7 +124,7 @@ The following content is prohibited:
 
 ## 9. Release Boundary
 
-`main` remains frozen, the candidate Skill is not installed, and no pull request is created
+`main` remains frozen; the currently installed Skill is not final-release evidence and will not be replaced before the release gate passes; no pull request is created
 
 ## 10. License
 

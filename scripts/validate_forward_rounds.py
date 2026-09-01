@@ -28,10 +28,8 @@ SLOTS = [
     ("EXPLAIN", "EXPLANATORY", ("IMAGE", "TEXT")), ("EXPLAIN", "GLOSS", ("TABLE", "TEXT")),
     ("EXPLAIN", "TEACHING", ("CODE", "TEXT")), ("TRANSFORM", "GLOSS", ("TEXT",)),
 ]
-TASK_DISTRIBUTIONS = {
-    2: Counter({"tutorial": 3, "operation": 3, "reference": 3, "explanation": 3, "decision": 3, "status": 2, "audit": 3}),
-    3: Counter({"tutorial": 3, "operation": 3, "reference": 3, "explanation": 3, "decision": 2, "status": 3, "audit": 3}),
-}
+EVEN_TASKS = Counter({"tutorial": 3, "operation": 3, "reference": 3, "explanation": 3, "decision": 3, "status": 2, "audit": 3})
+ODD_TASKS = Counter({"tutorial": 3, "operation": 3, "reference": 3, "explanation": 3, "decision": 2, "status": 3, "audit": 3})
 QUOTAS = {"distributed_condition": 4, "conflicting_sources": 2, "noisy_input": 3, "mixed_format": 4, "correction_turn": 2, "numeric_scope": 3, "negation_exception": 3, "urgency_or_emotion": 2}
 
 
@@ -53,13 +51,20 @@ def input_chars(item: dict[str, Any]) -> int:
     return len(item["request"]) + len(material_text(item["source"])) + sum(len(reference["content"]) for reference in item["references"])
 
 
-def round3_gate() -> bool:
-    ledgers = []
-    for path in (ROOT / "evals" / "reviews").glob("vnext-1.1-round-*.json"):
-        record = json.loads(path.read_text(encoding="utf-8")).get("review_round", {})
-        if record.get("forward_round") == 2:
-            ledgers.append(record)
-    return any(record.get("review_result", {}).get("accepted") == 20 and record.get("review_result", {}).get("rejected") == 0 for record in ledgers)
+def round_final_gold(round_number: int) -> bool:
+    """Return true only when all 20 origins end in explicitly accepted Gold."""
+
+    lifecycle = FORWARD / f"round-{round_number}" / "lifecycle"
+    records = [json.loads(path.read_text(encoding="utf-8")) for path in lifecycle.rglob("*.json")]
+    chains: dict[str, list[dict[str, Any]]] = {}
+    for record in records:
+        chains.setdefault(record["identity"]["origin_case_id"], []).append(record)
+    if len(chains) != 20:
+        return False
+    return all(
+        max(chain, key=lambda item: item["identity"]["revision"])["identity"]["status"] == "gold"
+        for chain in chains.values()
+    )
 
 
 def main() -> int:
@@ -77,8 +82,8 @@ def main() -> int:
             continue
         round_number = int(match.group(1))
         rounds.append(round_number)
-        if round_number == 3 and not round3_gate():
-            errors.append("round-3 exists before round-2 received explicit first-draft 20/20 acceptance")
+        if round_number >= 3 and not round_final_gold(round_number - 1):
+            errors.append(f"round-{round_number} exists before round-{round_number - 1} revisions were all explicitly accepted")
         rows = [json.loads(line) for line in (directory / "requests.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]
         if len(rows) != 20:
             errors.append(f"round-{round_number}: expected 20 requests, found {len(rows)}")
@@ -101,6 +106,10 @@ def main() -> int:
             observed_digest = stable_digest(item["source"]["content"])
             if item["source"]["sha256"] != observed_digest:
                 errors.append(f"{item['case_id']}: source digest mismatch")
+            if item["source"]["material_type"] == "image":
+                image_path = directory / item["source"]["content"]["path"]
+                if not image_path.is_file():
+                    errors.append(f"{item['case_id']}: local image source is missing")
             topic = item["topic_id"]
             if topic in topic_ids:
                 errors.append(f"{item['case_id']}: duplicate topic_id {topic}")
@@ -120,13 +129,17 @@ def main() -> int:
             errors.append(f"round-{round_number}: length classes are not 4 each")
         if Counter(item["audience"] for item in rows) != Counter({name: 4 for name in ("zero_prior_knowledge", "operator", "technical_practitioner", "decision_maker", "auditor")}):
             errors.append(f"round-{round_number}: audiences are not 4 each")
-        expected_tasks = TASK_DISTRIBUTIONS.get(round_number)
-        if expected_tasks and Counter(item["content_task"] for item in rows) != expected_tasks:
+        expected_tasks = EVEN_TASKS if round_number % 2 == 0 else ODD_TASKS
+        if Counter(item["content_task"] for item in rows) != expected_tasks:
             errors.append(f"round-{round_number}: content-task distribution differs")
+        if round_number >= 3 and max(item["input_char_count"] for item in rows) < 2800:
+            errors.append(f"round-{round_number}: no extended case reaches the 2800-character stress boundary")
         tags = Counter(tag for item in rows for tag in item["variation_tags"])
         for tag, minimum in QUOTAS.items():
             if tags[tag] < minimum:
                 errors.append(f"round-{round_number}: {tag} appears {tags[tag]} times, expected at least {minimum}")
+    if rounds and rounds != list(range(2, max(rounds) + 1)):
+        errors.append("materialized forward rounds are not contiguous from round 2")
     result = {"status": "PASS" if not errors else "FAIL", "rounds": rounds, "checked": checked, "errors": errors}
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if not errors else 1

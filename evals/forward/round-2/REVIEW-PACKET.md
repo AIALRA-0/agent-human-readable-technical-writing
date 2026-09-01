@@ -1,14 +1,18 @@
 # vNext 1.1 第 2 轮未见前向审核包
 
-这 20 个答案由隔离生成 Agent 各生成一次；生成前没有提供预期答案、怀疑问题或评分依据，当前全部处于 `pending_user_review`
+本页包含 20 个一次生成并立即冻结的答案；生成 Agent 未看到评分依据或预期答案
 
-请逐项给出接受或拒绝；拒绝时指出事实、遗漏、来源、结构或表达问题；本轮成绩永久保留，只有首稿 20/20 才计入连续完美轮次
+确定性检查只提示机械问题，不能写入人工接受字段；接受或拒绝只能来自用户明确决定
 
-确定性检查只登记机械结果，不写入人工接受字段；首次答案生成一次后立即以摘要冻结
+审核页为便于显示会移除不可见的行尾空白；答案是否被改写以页面所列 SHA-256 和 `candidates.jsonl` 为准
 
-## 1. FWD-R2-021
+本轮首稿成绩永久保留；只有首稿 20/20 才计入连续完美轮次
 
-配置：`TRANSFORM + NONE`；组件为 `TEXT`
+## 1. CANDIDATE-FWD-R2-021-R1
+
+原始案例：`FWD-R2-021`；配置：`TRANSFORM + NONE`；组件：`TEXT`
+
+答案 SHA-256：`70c121428324737d1c0dcbe3ec730d55300fea17dbe3f22b24cb5d94d2ed331b`
 
 用户请求：
 
@@ -22,13 +26,20 @@
 
 同步窗口状态（复核编号 B21）：已完成 12 项只读校验；另有 2 项待权限恢复。当前为只读状态，未进行复制。
 
-确定性检查：失败；生成正文含中文句号
+确定性检查：
 
-审核决定：接受或拒绝；拒绝时请说明具体位置和原因
+- 失败 `LUCAS_NO_CHINESE_FULL_STOP`：生成正文含中文句号
 
-## 2. FWD-R2-022
+审核决定（请使用候选编号）：
 
-配置：`TRANSLATE + GLOSS`；组件为 `TEXT`
+- 接受：`CANDIDATE-FWD-R2-021-R1 可以，没问题`
+- 拒绝：`CANDIDATE-FWD-R2-021-R1 拒绝：具体位置、原因和希望保留的正确部分`
+
+## 2. CANDIDATE-FWD-R2-022-R1
+
+原始案例：`FWD-R2-022`；配置：`TRANSLATE + GLOSS`；组件：`TEXT`
+
+答案 SHA-256：`4843c9603f464d2041c60ed9038bb9e1dceef0ee9c1a698a336fca667ea37a3a`
 
 用户请求：
 
@@ -50,13 +61,20 @@ Lock out the pump; pressure may remain.
 
 复核编号：B22
 
-确定性检查：通过；没有发现已登记的机械格式问题
+确定性检查：
 
-审核决定：接受或拒绝；拒绝时请说明具体位置和原因
+- 通过：没有发现已登记的机械格式问题
 
-## 3. FWD-R2-023
+审核决定（请使用候选编号）：
 
-配置：`COMPRESS + NONE`；组件为 `TEXT`
+- 接受：`CANDIDATE-FWD-R2-022-R1 可以，没问题`
+- 拒绝：`CANDIDATE-FWD-R2-022-R1 拒绝：具体位置、原因和希望保留的正确部分`
+
+## 3. CANDIDATE-FWD-R2-023-R1
+
+原始案例：`FWD-R2-023`；配置：`COMPRESS + NONE`；组件：`TEXT`
+
+答案 SHA-256：`bc8618b3e9e684b78d24ac65df78c178c19834437c2321d19ce694cf2d5550c3`
 
 用户请求：
 
@@ -70,13 +88,20 @@ Lock out the pump; pressure may remain.
 
 复核编号 B23：抽样发票 18 张，17 张一致，1 张税额差异 3 元；其余 62 张未检查。
 
-确定性检查：失败；生成正文含中文句号
+确定性检查：
 
-审核决定：接受或拒绝；拒绝时请说明具体位置和原因
+- 失败 `LUCAS_NO_CHINESE_FULL_STOP`：生成正文含中文句号
 
-## 4. FWD-R2-024
+审核决定（请使用候选编号）：
 
-配置：`EXPLAIN + TEACHING`；组件为 `TEXT`
+- 接受：`CANDIDATE-FWD-R2-023-R1 可以，没问题`
+- 拒绝：`CANDIDATE-FWD-R2-023-R1 拒绝：具体位置、原因和希望保留的正确部分`
+
+## 4. CANDIDATE-FWD-R2-024-R1
+
+原始案例：`FWD-R2-024`；配置：`EXPLAIN + TEACHING`；组件：`TEXT`
+
+答案 SHA-256：`e9285f3cc7b919975de365796fcb698a637f654e7079e70f82dd75a29dad0b2d`
 
 用户请求：
 
@@ -101,13 +126,20 @@ Lock out the pump; pressure may remain.
 
 复核编号 B24，须保留
 
-确定性检查：失败；生成正文含中文句号
+确定性检查：
 
-审核决定：接受或拒绝；拒绝时请说明具体位置和原因
+- 失败 `LUCAS_NO_CHINESE_FULL_STOP`：生成正文含中文句号
 
-## 5. FWD-R2-025
+审核决定（请使用候选编号）：
 
-配置：`GENERATE + GLOSS`；组件为 `TEXT`
+- 接受：`CANDIDATE-FWD-R2-024-R1 可以，没问题`
+- 拒绝：`CANDIDATE-FWD-R2-024-R1 拒绝：具体位置、原因和希望保留的正确部分`
+
+## 5. CANDIDATE-FWD-R2-025-R1
+
+原始案例：`FWD-R2-025`；配置：`GENERATE + GLOSS`；组件：`TEXT`
+
+答案 SHA-256：`d88e7c3ce00adad9aca0546471a7558e135525af4a4ebdfff5a4393a3c90c2f4`
 
 用户请求：
 
@@ -128,13 +160,20 @@ Lock out the pump; pressure may remain.
 
 证据边界：圆键持续按住 4 秒与“白灯慢闪表示配对窗口开启”分别由对应核对段支持；每个核对段只支持其对应陈述，不能替代 45 秒窗口或连接后暂不更改校准偏移的其他依据
 
-确定性检查：通过；没有发现已登记的机械格式问题
+确定性检查：
 
-审核决定：接受或拒绝；拒绝时请说明具体位置和原因
+- 通过：没有发现已登记的机械格式问题
 
-## 6. FWD-R2-026
+审核决定（请使用候选编号）：
 
-配置：`FORMAT_ONLY + NONE`；组件为 `TEXT`
+- 接受：`CANDIDATE-FWD-R2-025-R1 可以，没问题`
+- 拒绝：`CANDIDATE-FWD-R2-025-R1 拒绝：具体位置、原因和希望保留的正确部分`
+
+## 6. CANDIDATE-FWD-R2-026-R1
+
+原始案例：`FWD-R2-026`；配置：`FORMAT_ONLY + NONE`；组件：`TEXT`
+
+答案 SHA-256：`f7a8aad47ea7011d62f851432f84f6eaed448cdded17c446d78b2b59f2ca0d51`
 
 用户请求：
 
@@ -164,13 +203,20 @@ archive scan --dry-run 只检查 archive pack --list manifest.txt 按清单打�
 
 不要删除源目录
 
-确定性检查：通过；没有发现已登记的机械格式问题
+确定性检查：
 
-审核决定：接受或拒绝；拒绝时请说明具体位置和原因
+- 通过：没有发现已登记的机械格式问题
 
-## 7. FWD-R2-027
+审核决定（请使用候选编号）：
 
-配置：`EXPLAIN + EXPLANATORY`；组件为 `IMAGE, TEXT`
+- 接受：`CANDIDATE-FWD-R2-026-R1 可以，没问题`
+- 拒绝：`CANDIDATE-FWD-R2-026-R1 拒绝：具体位置、原因和希望保留的正确部分`
+
+## 7. CANDIDATE-FWD-R2-027-R1
+
+原始案例：`FWD-R2-027`；配置：`EXPLAIN + EXPLANATORY`；组件：`IMAGE, TEXT`
+
+答案 SHA-256：`09354d4036f570a0120d3ff47bff7080c43383dca4b1b05e2e1c3fdef886ff1f`
 
 用户请求：
 
@@ -194,13 +240,20 @@ archive scan --dry-run 只检查 archive pack --list manifest.txt 按清单打�
 
 复核编号：B27
 
-确定性检查：通过；没有发现已登记的机械格式问题
+确定性检查：
 
-审核决定：接受或拒绝；拒绝时请说明具体位置和原因
+- 通过：没有发现已登记的机械格式问题
 
-## 8. FWD-R2-028
+审核决定（请使用候选编号）：
 
-配置：`EXPLAIN + GLOSS`；组件为 `TABLE, TEXT`
+- 接受：`CANDIDATE-FWD-R2-027-R1 可以，没问题`
+- 拒绝：`CANDIDATE-FWD-R2-027-R1 拒绝：具体位置、原因和希望保留的正确部分`
+
+## 8. CANDIDATE-FWD-R2-028-R1
+
+原始案例：`FWD-R2-028`；配置：`EXPLAIN + GLOSS`；组件：`TABLE, TEXT`
+
+答案 SHA-256：`9aae3b3e55027efcc35ad47442fe23b8cae2db2ec5f2ca892f8929f8856f6f92`
 
 用户请求：
 
@@ -228,13 +281,20 @@ archive scan --dry-run 只检查 archive pack --list manifest.txt 按清单打�
 
 因此，非拥堵时段可优先考虑常态耗时较短的东门；若处于 8:00–9:00，或必须满足北门的冷链上限，应先取得实时证据，当前材料不足以支持无条件选路
 
-确定性检查：通过；没有发现已登记的机械格式问题
+确定性检查：
 
-审核决定：接受或拒绝；拒绝时请说明具体位置和原因
+- 通过：没有发现已登记的机械格式问题
 
-## 9. FWD-R2-029
+审核决定（请使用候选编号）：
 
-配置：`EXPLAIN + TEACHING`；组件为 `CODE, TEXT`
+- 接受：`CANDIDATE-FWD-R2-028-R1 可以，没问题`
+- 拒绝：`CANDIDATE-FWD-R2-028-R1 拒绝：具体位置、原因和希望保留的正确部分`
+
+## 9. CANDIDATE-FWD-R2-029-R1
+
+原始案例：`FWD-R2-029`；配置：`EXPLAIN + TEACHING`；组件：`CODE, TEXT`
+
+答案 SHA-256：`d4501e92f069ad182b62c02e6134f1b179493755fee9bf83ebcf98bcf2bdf794`
 
 用户请求：
 
@@ -287,13 +347,21 @@ def fetch(call, waits=(1, 2, 4)): # 定义重试函数；默认等待序列为 1
 
 复核编号：B29
 
-确定性检查：失败；答案没有原样保留原始代码
+确定性检查：
 
-审核决定：接受或拒绝；拒绝时请说明具体位置和原因
+- 失败 `LUCAS_NO_CHINESE_FULL_STOP`：生成正文含中文句号
+- 失败 `SOURCE_CODE_PRESENCE`：答案没有原样保留原始代码
 
-## 10. FWD-R2-030
+审核决定（请使用候选编号）：
 
-配置：`TRANSFORM + GLOSS`；组件为 `TEXT`
+- 接受：`CANDIDATE-FWD-R2-029-R1 可以，没问题`
+- 拒绝：`CANDIDATE-FWD-R2-029-R1 拒绝：具体位置、原因和希望保留的正确部分`
+
+## 10. CANDIDATE-FWD-R2-030-R1
+
+原始案例：`FWD-R2-030`；配置：`TRANSFORM + GLOSS`；组件：`TEXT`
+
+答案 SHA-256：`ed02573bcb4a85f4b0fe840584fa0082697cdca00cbef47a96a0d1906130d878`
 
 用户请求：
 
@@ -326,13 +394,20 @@ def fetch(call, waits=(1, 2, 4)): # 定义重试函数；默认等待序列为 1
 
 证据边界：各核对段只支持其对应陈述，不能替代其他段落所载的条件或证据；不得据此外推其他处理要求
 
-确定性检查：通过；没有发现已登记的机械格式问题
+确定性检查：
 
-审核决定：接受或拒绝；拒绝时请说明具体位置和原因
+- 通过：没有发现已登记的机械格式问题
 
-## 11. FWD-R2-031
+审核决定（请使用候选编号）：
 
-配置：`TRANSFORM + EXPLANATORY`；组件为 `TEXT`
+- 接受：`CANDIDATE-FWD-R2-030-R1 可以，没问题`
+- 拒绝：`CANDIDATE-FWD-R2-030-R1 拒绝：具体位置、原因和希望保留的正确部分`
+
+## 11. CANDIDATE-FWD-R2-031-R1
+
+原始案例：`FWD-R2-031`；配置：`TRANSFORM + EXPLANATORY`；组件：`TEXT`
+
+答案 SHA-256：`875f2119e1db1d774882aae18caae6f7be494ae28e5e3999b87be2dff1e343ba`
 
 用户请求：
 
@@ -367,13 +442,20 @@ payload: value number; sample_age_ms integer; quality_flag ok|stale|missing; val
 
 复核编号：B31
 
-确定性检查：通过；没有发现已登记的机械格式问题
+确定性检查：
 
-审核决定：接受或拒绝；拒绝时请说明具体位置和原因
+- 通过：没有发现已登记的机械格式问题
 
-## 12. FWD-R2-032
+审核决定（请使用候选编号）：
 
-配置：`TRANSLATE + EXPLANATORY`；组件为 `TEXT`
+- 接受：`CANDIDATE-FWD-R2-031-R1 可以，没问题`
+- 拒绝：`CANDIDATE-FWD-R2-031-R1 拒绝：具体位置、原因和希望保留的正确部分`
+
+## 12. CANDIDATE-FWD-R2-032-R1
+
+原始案例：`FWD-R2-032`；配置：`TRANSLATE + EXPLANATORY`；组件：`TEXT`
+
+答案 SHA-256：`12a303eba8e94b5647910c2e64dc0ceadf40b5ce3a44dddb4703e521be1528dd`
 
 用户请求：
 
@@ -404,13 +486,20 @@ Gallery B exceeded 60% relative humidity from 14:10 to 14:28 according to the wa
 - 门报警器未激活，只能说明报警状态；原文已明确，这不足以证明门始终关闭。
 - 核对段 1 仅支持“墙面记录器报告 14:10 至 14:28 超过 60%”这一陈述，不能替代有关便携表、校准日期、来源优先级或门状态的其他条件与证据。
 
-确定性检查：失败；生成正文含中文句号
+确定性检查：
 
-审核决定：接受或拒绝；拒绝时请说明具体位置和原因
+- 失败 `LUCAS_NO_CHINESE_FULL_STOP`：生成正文含中文句号
 
-## 13. FWD-R2-033
+审核决定（请使用候选编号）：
 
-配置：`EXPLAIN + TEACHING`；组件为 `TEXT`
+- 接受：`CANDIDATE-FWD-R2-032-R1 可以，没问题`
+- 拒绝：`CANDIDATE-FWD-R2-032-R1 拒绝：具体位置、原因和希望保留的正确部分`
+
+## 13. CANDIDATE-FWD-R2-033-R1
+
+原始案例：`FWD-R2-033`；配置：`EXPLAIN + TEACHING`；组件：`TEXT`
+
+答案 SHA-256：`cb17c8ed3a0e3f021e7e4ea50e4762a5e135c409c9f7095b68d44054e35ccb3e`
 
 用户请求：
 
@@ -461,13 +550,20 @@ Gallery B exceeded 60% relative humidity from 14:10 to 14:28 according to the wa
 
 复核编号 B33，须保留
 
-确定性检查：失败；生成正文含中文句号
+确定性检查：
 
-审核决定：接受或拒绝；拒绝时请说明具体位置和原因
+- 失败 `LUCAS_NO_CHINESE_FULL_STOP`：生成正文含中文句号
 
-## 14. FWD-R2-034
+审核决定（请使用候选编号）：
 
-配置：`COMPRESS + GLOSS`；组件为 `TEXT`
+- 接受：`CANDIDATE-FWD-R2-033-R1 可以，没问题`
+- 拒绝：`CANDIDATE-FWD-R2-033-R1 拒绝：具体位置、原因和希望保留的正确部分`
+
+## 14. CANDIDATE-FWD-R2-034-R1
+
+原始案例：`FWD-R2-034`；配置：`COMPRESS + GLOSS`；组件：`TEXT`
+
+答案 SHA-256：`f40d72071afe1f696eb75067e75eae0c6f2873615b7e4a8ad643c3381920fc15`
 
 用户请求：
 
@@ -515,13 +611,20 @@ Gallery B exceeded 60% relative humidity from 14:10 to 14:28 according to the wa
 
 复核编号：B34（须保留）
 
-确定性检查：失败；生成正文含中文句号
+确定性检查：
 
-审核决定：接受或拒绝；拒绝时请说明具体位置和原因
+- 失败 `LUCAS_NO_CHINESE_FULL_STOP`：生成正文含中文句号
 
-## 15. FWD-R2-035
+审核决定（请使用候选编号）：
 
-配置：`GENERATE + EXPLANATORY`；组件为 `TEXT`
+- 接受：`CANDIDATE-FWD-R2-034-R1 可以，没问题`
+- 拒绝：`CANDIDATE-FWD-R2-034-R1 拒绝：具体位置、原因和希望保留的正确部分`
+
+## 15. CANDIDATE-FWD-R2-035-R1
+
+原始案例：`FWD-R2-035`；配置：`GENERATE + EXPLANATORY`；组件：`TEXT`
+
+答案 SHA-256：`77444dbb9a2a364db046955ffe9a7bdbc1b683e4607652c7ac937f4c9faa5bef`
 
 用户请求：
 
@@ -682,13 +785,20 @@ Gallery B exceeded 60% relative humidity from 14:10 to 14:28 according to the wa
 
 上述每个核对段都只有其列明的支持范围，不能用某一段替代其他段落的条件或证据。最终审计应分别保存数据库提交、广播发布、重试、节点接收、缓存键删除、自动过期和人工清除的证据；缺少哪一项，就把对应结论标为未知或未验证
 
-确定性检查：失败；生成正文含中文句号
+确定性检查：
 
-审核决定：接受或拒绝；拒绝时请说明具体位置和原因
+- 失败 `LUCAS_NO_CHINESE_FULL_STOP`：生成正文含中文句号
 
-## 16. FWD-R2-036
+审核决定（请使用候选编号）：
 
-配置：`FORMAT_ONLY + NONE`；组件为 `TEXT`
+- 接受：`CANDIDATE-FWD-R2-035-R1 可以，没问题`
+- 拒绝：`CANDIDATE-FWD-R2-035-R1 拒绝：具体位置、原因和希望保留的正确部分`
+
+## 16. CANDIDATE-FWD-R2-036-R1
+
+原始案例：`FWD-R2-036`；配置：`FORMAT_ONLY + NONE`；组件：`TEXT`
+
+答案 SHA-256：`8f561c724415d2ef26d9515848e23f184e69a568af0a79f330961fa56a4ebd01`
 
 用户请求：
 
@@ -738,13 +848,20 @@ Gallery B exceeded 60% relative humidity from 14:10 to 14:28 according to the wa
 - 时间 16:20
 - 复核编号 B36，须保留
 
-确定性检查：通过；没有发现已登记的机械格式问题
+确定性检查：
 
-审核决定：接受或拒绝；拒绝时请说明具体位置和原因
+- 通过：没有发现已登记的机械格式问题
 
-## 17. FWD-R2-037
+审核决定（请使用候选编号）：
 
-配置：`EXPLAIN + EXPLANATORY`；组件为 `IMAGE, TEXT`
+- 接受：`CANDIDATE-FWD-R2-036-R1 可以，没问题`
+- 拒绝：`CANDIDATE-FWD-R2-036-R1 拒绝：具体位置、原因和希望保留的正确部分`
+
+## 17. CANDIDATE-FWD-R2-037-R1
+
+原始案例：`FWD-R2-037`；配置：`EXPLAIN + EXPLANATORY`；组件：`IMAGE, TEXT`
+
+答案 SHA-256：`d075d718dd78146ce3e8cf03319c391e955a2e99c5e72ef9ab406afc9895b0f7`
 
 用户请求：
 
@@ -760,7 +877,7 @@ Gallery B exceeded 60% relative humidity from 14:10 to 14:28 according to the wa
 
 ![光伏组串、汇流箱与隔离开关示意图](assets/solar-combiner.svg)
 
-图纸版本：D3  
+图纸版本：D3
 图源摘要（SHA-256）：`2efa7126aa4366a4c5ab1c3d664ad17a6aac5af5c055516615b26ab0e3a6e81e`
 
 ### 读图路径
@@ -806,13 +923,20 @@ Gallery B exceeded 60% relative humidity from 14:10 to 14:28 according to the wa
 
 依据：`REF-DESIGN`；逐项证据边界：`REF-COVERAGE`；复核编号：`REF-RESTART`。
 
-确定性检查：失败；生成正文含中文句号
+确定性检查：
 
-审核决定：接受或拒绝；拒绝时请说明具体位置和原因
+- 失败 `LUCAS_NO_CHINESE_FULL_STOP`：生成正文含中文句号
 
-## 18. FWD-R2-038
+审核决定（请使用候选编号）：
 
-配置：`EXPLAIN + GLOSS`；组件为 `TABLE, TEXT`
+- 接受：`CANDIDATE-FWD-R2-037-R1 可以，没问题`
+- 拒绝：`CANDIDATE-FWD-R2-037-R1 拒绝：具体位置、原因和希望保留的正确部分`
+
+## 18. CANDIDATE-FWD-R2-038-R1
+
+原始案例：`FWD-R2-038`；配置：`EXPLAIN + GLOSS`；组件：`TABLE, TEXT`
+
+答案 SHA-256：`aa5bb3bbc7a6d0f371617d6a40cdc862c61c04e9aaa2a4e4e578e72d894ad753`
 
 用户请求：
 
@@ -894,13 +1018,20 @@ pH 数据只能作有限描述：30°C 组两个批次均有完整的 24 小时�
 
 最终结论不得外推到全部生产。进一步复核时，应先取得负责人签署的 B2 来源更正或其他可核验记录，确认 B2 实际属于哪个接种批次；同时保留 B2 的取样时间偏差，并将“包含 B2 的预定分析”与任何补充的敏感性分析明确分开。
 
-确定性检查：失败；生成正文含中文句号
+确定性检查：
 
-审核决定：接受或拒绝；拒绝时请说明具体位置和原因
+- 失败 `LUCAS_NO_CHINESE_FULL_STOP`：生成正文含中文句号
 
-## 19. FWD-R2-039
+审核决定（请使用候选编号）：
 
-配置：`EXPLAIN + TEACHING`；组件为 `CODE, TEXT`
+- 接受：`CANDIDATE-FWD-R2-038-R1 可以，没问题`
+- 拒绝：`CANDIDATE-FWD-R2-038-R1 拒绝：具体位置、原因和希望保留的正确部分`
+
+## 19. CANDIDATE-FWD-R2-039-R1
+
+原始案例：`FWD-R2-039`；配置：`EXPLAIN + TEACHING`；组件：`CODE, TEXT`
+
+答案 SHA-256：`910eb04b5e71fd9b47655cb76fcf8eb29710dd6bc8160eebc179d8037dd2f3f1`
 
 用户请求：
 
@@ -979,13 +1110,21 @@ def permit(used, soft_limit, burst, is_admin): # 定义配额判断函数，接�
 
 批准前应验证两项证据：审计所有调用入口是否确实完成负数、整数溢出和租户校验；追踪 `is_admin` 的产生路径，确认它来自可信鉴权。现有代码和监控标签本身不能证明这两项已经满足。
 
-确定性检查：失败；答案没有原样保留原始代码
+确定性检查：
 
-审核决定：接受或拒绝；拒绝时请说明具体位置和原因
+- 失败 `LUCAS_NO_CHINESE_FULL_STOP`：生成正文含中文句号
+- 失败 `SOURCE_CODE_PRESENCE`：答案没有原样保留原始代码
 
-## 20. FWD-R2-040
+审核决定（请使用候选编号）：
 
-配置：`TRANSFORM + GLOSS`；组件为 `TEXT`
+- 接受：`CANDIDATE-FWD-R2-039-R1 可以，没问题`
+- 拒绝：`CANDIDATE-FWD-R2-039-R1 拒绝：具体位置、原因和希望保留的正确部分`
+
+## 20. CANDIDATE-FWD-R2-040-R1
+
+原始案例：`FWD-R2-040`；配置：`TRANSFORM + GLOSS`；组件：`TEXT`
+
+答案 SHA-256：`829e72c90cff90fd4a7f6114a69e5a82dc856f8b70ddd21af8bf832590f27675`
 
 用户请求：
 
@@ -1040,6 +1179,11 @@ def permit(used, soft_limit, burst, is_admin): # 定义配额判断函数，接�
 
 在上述证据补齐前，可审计结论应写为：“14 天规则已经形成明确政策要求，计划自 2026-10-01 00:00 UTC 起适用于新创建的普通导出文件；现有生产快照早于计划切换时间，且缺少部署完成日志，因此实际配置切换状态尚不能确认。”复核编号 B40 须保留 [REF-RESTART]。
 
-确定性检查：失败；生成正文含中文句号
+确定性检查：
 
-审核决定：接受或拒绝；拒绝时请说明具体位置和原因
+- 失败 `LUCAS_NO_CHINESE_FULL_STOP`：生成正文含中文句号
+
+审核决定（请使用候选编号）：
+
+- 接受：`CANDIDATE-FWD-R2-040-R1 可以，没问题`
+- 拒绝：`CANDIDATE-FWD-R2-040-R1 拒绝：具体位置、原因和希望保留的正确部分`

@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AIALRA-0/agent-human-readable-technical-writing/contracts/forward-review-ledger.schema.json",
+  "title": "ForwardReviewLedger",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["review_id", "forward_round", "review_iteration", "reviewed_at", "decision_source", "profile_revision_at_review", "privacy", "decisions"],
+  "properties": {
+    "review_id": {"type": "string", "pattern": "^forward-round-[1-9][0-9]*-review-[1-9][0-9]*$"},
+    "forward_round": {"type": "integer", "minimum": 2},
+    "review_iteration": {"type": "integer", "minimum": 1},
+    "reviewed_at": {"type": "string", "format": "date"},
+    "decision_source": {"const": "explicit_user_review"},
+    "profile_revision_at_review": {"type": "string", "minLength": 1},
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "basis"],
+      "properties": {
+        "status": {"const": "public_safe"},
+        "basis": {"type": "string", "minLength": 1}
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["reviewed_candidate_id", "reviewed_answer_sha256", "decision", "user_instruction", "reasons", "correct_parts", "regression_requirements", "non_blocking_preferences", "resulting_record_id", "next_candidate"],
+        "properties": {
+          "reviewed_candidate_id": {"type": "string", "pattern": "^CANDIDATE-FWD-R[1-9][0-9]*-[0-9]{3}-R[1-9][0-9]*$"},
+          "reviewed_answer_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "decision": {"enum": ["accepted", "rejected"]},
+          "user_instruction": {"type": "string", "minLength": 1},
+          "reasons": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "correct_parts": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "regression_requirements": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "non_blocking_preferences": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "resulting_record_id": {"type": "string", "pattern": "^(?:GOLD|REJECTED)-FWD-R[1-9][0-9]*-[0-9]{3}(?:-R[2-9][0-9]*)?$"},
+          "next_candidate": {
+            "oneOf": [
+              {"type": "null"},
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["candidate_id", "answer", "answer_sha256"],
+                "properties": {
+                  "candidate_id": {"type": "string", "pattern": "^CANDIDATE-FWD-R[1-9][0-9]*-[0-9]{3}-R[2-9][0-9]*$"},
+                  "answer": {"type": "string", "minLength": 1},
+                  "answer_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+                }
+              }
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {"properties": {"decision": {"const": "accepted"}}},
+            "then": {"properties": {"next_candidate": {"type": "null"}}}
+          },
+          {
+            "if": {"properties": {"decision": {"const": "rejected"}}},
+            "then": {
+              "properties": {
+                "reasons": {"minItems": 1},
+                "regression_requirements": {"minItems": 1},
+                "next_candidate": {"type": "object"}
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

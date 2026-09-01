@@ -189,7 +189,7 @@ def load_forward_evidence(failures: list[str]) -> tuple[dict[str, dict[str, Any]
     return requests, originals
 
 
-def validate_forward_records(failures: list[str]) -> tuple[Counter[str], list[str]]:
+def validate_forward_records(failures: list[str]) -> tuple[Counter[str], list[str], dict[str, dict[str, Any]]]:
     """Validate generalized rounds, revisions, immutable attempts, and revision ancestry."""
 
     lifecycle_validator = validator("forward-lifecycle.schema.json", ["forward-request.schema.json"])
@@ -280,11 +280,11 @@ def validate_forward_records(failures: list[str]) -> tuple[Counter[str], list[st
     fwd015 = records.get("GOLD-FWD-R1-015-R3")
     if fwd015 and "重新安装会删除尚未同步的本地标注" not in fwd015["artifact"]["answer"]:
         failures.append("GOLD-FWD-R1-015-R3: source certainty about local annotation deletion was weakened")
-    return counts, candidates
+    return counts, candidates, records
 
 
-def latest_review() -> dict[str, Any]:
-    """Return the latest review ledger that declares post-review counts."""
+def baseline_review() -> dict[str, Any]:
+    """Return the legacy round-five ledger that closes anchors and round one."""
 
     ledgers: list[tuple[int, dict[str, Any]]] = []
     for path in (ROOT / "evals" / "reviews").glob("vnext-1.1-round-*.json"):
@@ -294,8 +294,127 @@ def latest_review() -> dict[str, Any]:
         review = read_json(path).get("review_round", {})
         if "post_review_counts" in review:
             ledgers.append((int(match.group(1)), review))
-    require(bool(ledgers), "no review ledger declares current lifecycle counts")
-    return max(ledgers, key=lambda item: item[0])[1]
+    require(bool(ledgers), "no legacy review ledger declares baseline lifecycle counts")
+    review = max(ledgers, key=lambda item: item[0])[1]
+    require(review.get("review_id") == "vnext-1.1-round-5", "legacy baseline must remain vNext round five")
+    return review
+
+
+def load_forward_review_ledgers(failures: list[str]) -> list[dict[str, Any]]:
+    """Load generic human review ledgers in round and iteration order."""
+
+    ledger_validator = validator("forward-review-ledger.schema.json", [])
+    ledgers: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
+    seen_candidates: set[str] = set()
+    iterations: dict[int, list[int]] = {}
+    for path in sorted(FORWARD_ROOT.glob("round-*/reviews/review-*.json")):
+        ledger = read_json(path)
+        errors = list(ledger_validator.iter_errors(ledger))
+        if errors:
+            failures.append(f"{path.name}: review ledger schema: {errors[0].message}")
+            continue
+        round_number = ledger["forward_round"]
+        if path.parents[1].name != f"round-{round_number}":
+            failures.append(f"{path.name}: review ledger is stored in the wrong round")
+        if ledger["review_id"] in seen_ids:
+            failures.append(f"duplicate forward review id: {ledger['review_id']}")
+        seen_ids.add(ledger["review_id"])
+        iterations.setdefault(round_number, []).append(ledger["review_iteration"])
+        for decision in ledger["decisions"]:
+            candidate_id = decision["reviewed_candidate_id"]
+            if candidate_id in seen_candidates:
+                failures.append(f"duplicate explicit decision for {candidate_id}")
+            seen_candidates.add(candidate_id)
+        ledgers.append(ledger)
+    for round_number, values in iterations.items():
+        expected = list(range(1, max(values) + 1))
+        if sorted(values) != expected:
+            failures.append(f"round {round_number}: review iterations are not contiguous")
+    return sorted(ledgers, key=lambda item: (item["forward_round"], item["review_iteration"]))
+
+
+def validate_generic_review_bindings(
+    ledgers: list[dict[str, Any]],
+    records: dict[str, dict[str, Any]],
+    failures: list[str],
+) -> Counter[str]:
+    """Bind each generic decision to one terminal revision and optional successor."""
+
+    decisions: Counter[str] = Counter()
+    by_origin_revision = {
+        (record["identity"]["origin_case_id"], record["identity"]["revision"]): record
+        for record in records.values()
+    }
+    for ledger in ledgers:
+        for decision in ledger["decisions"]:
+            decisions[decision["decision"]] += 1
+            result = records.get(decision["resulting_record_id"])
+            if result is None:
+                failures.append(f"review result record is missing: {decision['resulting_record_id']}")
+                continue
+            if result["artifact"]["answer_sha256"] != decision["reviewed_answer_sha256"]:
+                failures.append(f"{decision['resulting_record_id']}: reviewed digest differs from ledger")
+            expected_status = "gold" if decision["decision"] == "accepted" else "rejected"
+            if result["identity"]["status"] != expected_status:
+                failures.append(f"{decision['resulting_record_id']}: terminal status contradicts ledger")
+            if result["identity"]["reviewed_at"] != ledger["reviewed_at"]:
+                failures.append(f"{decision['resulting_record_id']}: review date differs from ledger")
+            if result["identity"]["profile_revision_at_review"] != ledger["profile_revision_at_review"]:
+                failures.append(f"{decision['resulting_record_id']}: profile revision differs from ledger")
+            if decision["decision"] == "rejected":
+                specification = decision["next_candidate"]
+                successor = by_origin_revision.get(
+                    (result["identity"]["origin_case_id"], result["identity"]["revision"] + 1)
+                )
+                if successor is None:
+                    failures.append(f"{decision['resulting_record_id']}: rejected revision lacks successor")
+                elif successor["artifact"]["answer_sha256"] != specification["answer_sha256"]:
+                    failures.append(f"{decision['resulting_record_id']}: successor digest differs from ledger")
+    return decisions
+
+
+def validate_revision_chains(records: dict[str, dict[str, Any]], failures: list[str]) -> dict[int, dict[str, Any]]:
+    """Validate one contiguous chain per immutable origin and derive round state."""
+
+    chains: dict[str, list[dict[str, Any]]] = {}
+    for record in records.values():
+        origin = record["identity"]["origin_case_id"]
+        chains.setdefault(origin, []).append(record)
+    round_state: dict[int, dict[str, Any]] = {}
+    for origin, chain in chains.items():
+        ordered = sorted(chain, key=lambda item: item["identity"]["revision"])
+        revisions = [item["identity"]["revision"] for item in ordered]
+        if revisions != list(range(1, max(revisions) + 1)):
+            failures.append(f"{origin}: revision chain is not contiguous")
+        if len(revisions) != len(set(revisions)):
+            failures.append(f"{origin}: more than one record exists for one revision")
+        if any(item["identity"]["status"] != "rejected" for item in ordered[:-1]):
+            failures.append(f"{origin}: only the final revision may be Gold or Candidate")
+        if ordered[-1]["identity"]["status"] == "rejected":
+            failures.append(f"{origin}: rejected terminal revision lacks a pending successor")
+        match = re.fullmatch(r"FWD-R([1-9][0-9]*)-[0-9]{3}", origin)
+        if match is None:
+            failures.append(f"{origin}: invalid origin identifier")
+            continue
+        round_number = int(match.group(1))
+        state = round_state.setdefault(round_number, {"origins": 0, "r1_reviewed": 0, "r1_accepted": 0, "final_gold": 0})
+        state["origins"] += 1
+        first = ordered[0]
+        if first["identity"]["status"] in {"gold", "rejected"}:
+            state["r1_reviewed"] += 1
+        if first["identity"]["status"] == "gold":
+            state["r1_accepted"] += 1
+        if ordered[-1]["identity"]["status"] == "gold":
+            state["final_gold"] += 1
+    for round_number, state in round_state.items():
+        if state["origins"] != 20:
+            failures.append(f"round {round_number}: lifecycle has {state['origins']} origins instead of 20")
+    for round_number in sorted(number for number in round_state if number >= 3):
+        previous = round_state.get(round_number - 1)
+        if previous is None or previous["final_gold"] != 20:
+            failures.append(f"round {round_number}: previous round was not fully accepted before generation")
+    return round_state
 
 
 def validate_review_bindings(review: dict[str, Any], anchor_records: dict[str, dict[str, Any]], forward_records: dict[str, dict[str, Any]], failures: list[str]) -> list[str]:
@@ -332,12 +451,29 @@ def validate_review_bindings(review: dict[str, Any], anchor_records: dict[str, d
     return expected_candidates
 
 
-def build_report(review: dict[str, Any], failures: list[str], counts: Counter[str], candidate_ids: list[str]) -> dict[str, Any]:
-    """Keep machine integrity, explicit review, and release streak separate."""
+def build_report(
+    failures: list[str],
+    counts: Counter[str],
+    candidate_ids: list[str],
+    decisions: Counter[str],
+    round_state: dict[int, dict[str, Any]],
+) -> dict[str, Any]:
+    """Keep machine integrity, human decisions, and release streak separate."""
 
-    result = review["review_result"]
-    accepted, total = (int(value) for value in review["first_round_result"]["human_acceptance"].split("/"))
-    streak = review["perfect_round_streak"]
+    tested_rounds = sorted(number for number in round_state if number >= 2)
+    latest_round = tested_rounds[-1] if tested_rounds else 1
+    latest = round_state.get(latest_round, {"r1_reviewed": 20, "r1_accepted": 8, "final_gold": 20})
+    accepted, total = latest["r1_accepted"], 20
+    completed = [number for number in tested_rounds if round_state[number]["r1_reviewed"] == 20]
+    streak_count = 0
+    for round_number in reversed(completed):
+        if round_state[round_number]["r1_accepted"] != 20:
+            break
+        streak_count += 1
+    all_final = bool(tested_rounds) and latest["final_gold"] == 20 and not candidate_ids
+    release_gate = streak_count >= 2 and all_final
+    streak = {"current": streak_count, "required": 2, "release_gate_met": release_gate}
+    next_round_allowed = all_final and not release_gate
     report = {
         "artifact_integrity": {
             "status": "PASS" if not failures else "FAIL",
@@ -347,9 +483,9 @@ def build_report(review: dict[str, Any], failures: list[str], counts: Counter[st
         "human_acceptance": {"accepted": accepted, "total": total, "rate": accepted / total, "threshold_met": accepted == total},
         "revision_review": {
             "decision_source": "explicit_user_review",
-            "reviewed": result["reviewed"],
-            "accepted": result["accepted"],
-            "rejected": result["rejected"],
+            "reviewed": sum(decisions.values()),
+            "accepted": decisions["accepted"],
+            "rejected": decisions["rejected"],
         },
         "current_candidates": {
             "pending": len(candidate_ids),
@@ -357,25 +493,33 @@ def build_report(review: dict[str, Any], failures: list[str], counts: Counter[st
             "all_explicitly_accepted": not candidate_ids,
         },
         "perfect_round_streak": streak,
-        "next_round_allowed": review["first_round_result"]["next_round_allowed"] and not candidate_ids,
+        "next_round_allowed": next_round_allowed,
         "reason": (
-            f"生命周期和摘要一致，但 {len(candidate_ids)} 个新候选尚未获得用户接受"
+            f"生命周期和摘要一致；第 {latest_round} 轮仍有 {len(candidate_ids)} 个候选尚未获得用户明确决定"
             if candidate_ids and not failures
-            else "生命周期、摘要和人工决定绑定一致；当前没有待审候选"
+            else f"生命周期、摘要和人工决定绑定一致；连续完美轮次为 {streak_count}/2"
             if not failures
             else "生命周期、摘要、来源或人工决定绑定存在错误"
         ),
         "impact": (
-            "当前审核包可以提交用户审核；自动通过不会改变人工状态"
+            "当前审核包可以提交用户审核；自动检查不会改变人工状态"
             if candidate_ids and not failures
-            else "可以按人工门槛生成下一轮未见案例；自动通过不会改变人工状态"
+            else "发布所需的连续两轮人工首稿 20/20 已满足"
+            if release_gate and not failures
+            else "可以按人工门槛生成下一轮未见案例；自动检查不会改变人工状态"
+            if next_round_allowed and not failures
+            else "当前轮次已结束，但没有满足继续生成或发布的门槛"
             if not failures
             else "当前候选包不能进入人工审核"
         ),
         "next": (
             "审核 " + "、".join(sorted(candidate_ids))
             if candidate_ids and not failures
+            else "进入归档、发布和安装复验"
+            if release_gate and not failures
             else "生成下一轮全新未见案例"
+            if next_round_allowed and not failures
+            else "检查当前轮次的终态与人工门槛"
             if not failures
             else "修复列出的确定性错误后重新验证"
         ),
@@ -389,36 +533,30 @@ def main() -> int:
 
     failures: list[str] = []
     try:
-        review = latest_review()
+        review = baseline_review()
         anchor_counts, anchor_candidates, anchor_records = validate_anchor_records(failures)
-        forward_counts, forward_candidates = validate_forward_records(failures)
-        forward_records = {read_json(path)["identity"]["case_id"]: read_json(path) for path in forward_paths()}
+        forward_counts, forward_candidates, forward_records = validate_forward_records(failures)
         expected_candidates = validate_review_bindings(review, anchor_records, forward_records, failures)
-        pending_first_attempts = [
-            case_id for case_id, case in forward_records.items()
-            if case["identity"]["status"] == "candidate"
-            and case["identity"]["revision"] == 1
-            and case["review"]["decision_source"] == "pending_user_review"
-        ]
-        expected_candidates.extend(pending_first_attempts)
+        ledgers = load_forward_review_ledgers(failures)
+        decisions = validate_generic_review_bindings(ledgers, forward_records, failures)
+        round_state = validate_revision_chains(forward_records, failures)
         counts = anchor_counts + forward_counts
         expected = review["post_review_counts"]
         require(anchor_counts == Counter({key: value for key, value in expected["anchor"].items() if key != "total"}), f"anchor post-review counts differ: {dict(anchor_counts)}")
-        expected_forward = Counter({key: value for key, value in expected["forward"].items() if key != "total"})
-        expected_forward["candidate"] += len(pending_first_attempts)
-        expected_combined = Counter({key: value for key, value in expected["combined"].items() if key != "total"})
-        expected_combined["candidate"] += len(pending_first_attempts)
-        require(forward_counts == expected_forward, f"forward post-review plus pending counts differ: {dict(forward_counts)}")
-        require(counts == expected_combined, f"combined post-review plus pending counts differ: {dict(counts)}")
-        require(sum(counts.values()) == expected["combined"]["total"] + len(pending_first_attempts), "combined lifecycle total differs from review ledger plus pending attempts")
+        generated_origins = sum(state["origins"] for number, state in round_state.items() if number >= 2)
+        expected_combined = Counter({"gold": 32 + decisions["accepted"], "rejected": 30 + decisions["rejected"], "candidate": generated_origins - decisions["accepted"]})
+        require(counts == expected_combined, f"dynamic combined lifecycle counts differ: {dict(counts)}")
+        require(sum(counts.values()) == 62 + generated_origins + decisions["rejected"], "dynamic lifecycle total differs from generated origins and rejections")
         candidates = anchor_candidates + forward_candidates
-        require(sorted(candidates) == sorted(expected_candidates), "current candidates differ from explicit rejected-decision transitions")
+        baseline_expected = [candidate for candidate in expected_candidates if candidate in candidates]
+        require(sorted(baseline_expected) == sorted(anchor_candidates), "legacy candidate transitions differ from round-five ledger")
     except (ValidationFailure, json.JSONDecodeError, jsonschema.ValidationError) as error:
         failures.append(str(error))
-        review = {"review_result": {"reviewed": 0, "accepted": 0, "rejected": 0}, "first_round_result": {"human_acceptance": "0/1", "next_round_allowed": False}, "perfect_round_streak": {"current": 0, "required": 2, "release_gate_met": False}}
         counts = Counter()
         candidates = []
-    report = build_report(review, failures, counts, candidates)
+        decisions = Counter()
+        round_state = {}
+    report = build_report(failures, counts, candidates, decisions, round_state)
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0 if report["artifact_integrity"]["status"] == "PASS" else 1
 

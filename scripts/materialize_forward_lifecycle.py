@@ -35,7 +35,8 @@ def main() -> int:
     target.mkdir(parents=True, exist_ok=True)
     for name in ("gold", "rejected"):
         (lifecycle / name).mkdir(parents=True, exist_ok=True)
-    expected_files: set[str] = set()
+    created = 0
+    existing = 0
     for candidate in candidates:
         origin = candidate["case_id"]
         request = requests.get(origin)
@@ -43,7 +44,16 @@ def main() -> int:
             raise SystemExit(f"missing request for {origin}")
         record_id = f"CANDIDATE-{origin}-R1"
         filename = record_id + ".json"
-        expected_files.add(filename)
+        revision_one = []
+        for path in lifecycle.rglob("*.json"):
+            current = json.loads(path.read_text(encoding="utf-8"))
+            if current["identity"]["origin_case_id"] == origin and current["identity"]["revision"] == 1:
+                revision_one.append(current)
+        if revision_one:
+            if len(revision_one) != 1 or revision_one[0]["source"]["original_answer_sha256"] != candidate["answer_sha256"]:
+                raise SystemExit(f"{origin}: existing revision-one lifecycle record differs from immutable evidence")
+            existing += 1
+            continue
         record = {
             "identity": {
                 "case_id": record_id,
@@ -83,10 +93,8 @@ def main() -> int:
             },
         }
         (target / filename).write_text(json.dumps(record, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
-    stale = [path for path in target.glob("*.json") if path.name not in expected_files]
-    if stale:
-        raise SystemExit("refusing to remove unexpected pending lifecycle files: " + ", ".join(path.name for path in stale))
-    print(json.dumps({"status": "PASS", "round": args.round_number, "pending": len(expected_files)}, ensure_ascii=False))
+        created += 1
+    print(json.dumps({"status": "PASS", "round": args.round_number, "created": created, "existing_revision_one": existing}, ensure_ascii=False))
     return 0
 
 

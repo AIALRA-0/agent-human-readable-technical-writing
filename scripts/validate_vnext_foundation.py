@@ -34,7 +34,8 @@ def validate_contract_schemas() -> int:
     schema_paths = sorted((ROOT / "contracts").glob("*.schema.json"))
     required_names = {
         "context-case.schema.json", "evaluation-case.schema.json", "forward-candidate.schema.json",
-        "forward-request.schema.json", "task-contract.schema.json", "verification-bundle.schema.json",
+        "forward-request.schema.json", "forward-review-ledger.schema.json", "forward-lifecycle.schema.json",
+        "forward-round-report.schema.json", "task-contract.schema.json", "verification-bundle.schema.json",
     }
     actual_names = {path.name for path in schema_paths}
     require(required_names <= actual_names, f"required contract schemas are missing: {sorted(required_names - actual_names)}")
@@ -174,7 +175,7 @@ def validate_svg_assets() -> int:
     """Reject active, remote, or inaccessible SVG content in candidate assets."""
 
     paths = sorted((ROOT / "evals").rglob("*.svg"))
-    require(len(paths) == 5, f"expected five reviewed or forward SVG assets, found {len(paths)}")
+    require(len(paths) >= 5, f"expected at least five reviewed or forward SVG assets, found {len(paths)}")
     for path in paths:
         text = path.read_text(encoding="utf-8")
         lowered = text.lower()

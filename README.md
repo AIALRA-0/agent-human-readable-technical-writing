@@ -4,10 +4,10 @@
 
 <p><strong>完整保留源信息，分开追踪补充解释，再生成能够阅读、核对和局部修复的中文</strong></p>
 
-<p><strong>当前状态：vNext 1.1 已完成第四轮人工决定落账，5 个新修订候选等待用户审核</strong></p>
+<p><strong>当前状态：vNext 1.1 第二轮 20 个首稿等待逐项人工审核；自动检查发现 14 项机械问题</strong></p>
 
 <p>
-  <a href="evals/reviews/vnext-1.1-round-5-REVIEW-PACKET.md">5 个修订候选</a> ·
+  <a href="evals/forward/round-2/review-batches/INDEX.md">第二轮分批审核</a> ·
   <a href="docs/design/vnext-1.1-authoritative-plan.md">权威设计</a> ·
   <a href="README.en.md">English</a>
 </p>
@@ -97,8 +97,23 @@ flowchart TD
   * 使用注释时，每个代码块内的注释始终从最长可注释代码行之后的同一列开始，允许对齐增加行宽
   * JSON 等不能合法添加注释的格式使用逐行解释，不伪造注释覆盖
 * AEMP 内容充分性
-  * 教程、操作、参考、解释、决策、状态、审计和项目变化先登记读者必须理解、看到、决定和验证的内容
-  * 复杂内容最多分为三层，重要主张分别绑定证据，并通过删除测试移除不改变理解和行动的噪声
+  * 七类内容任务
+    * 教程
+    * 操作
+    * 参考
+    * 解释
+    * 决策
+    * 状态
+    * 审计和项目变化
+  * 每类任务分别登记读者需求
+    * 必须理解的内容
+    * 必须看到的证据
+    * 必须作出的决定
+    * 必须能够执行的验证
+  * 复杂内容处理
+    * 展示深度最多三层
+    * 重要主张分别绑定证据
+    * 删除测试移除不改变理解和行动的噪声
 * 多轮替换
   * 追加要求替换旧要求后，只保留当前有效内容
   * 历史、审计、证据核对或撤销说明任务可以明确保留旧要求
@@ -131,7 +146,7 @@ python scripts/validate_vnext_foundation.py # 核对权威计划、合同、YAML
 
 python scripts/run_vnext_fixtures.py # 执行 252 个确定性正反例；预期结果为 252/252
 
-python scripts/validate_vnext_lifecycle.py # 核对 82 个生命周期记录、用户快照、原始前向答案和 20 个第二轮待审首稿
+python scripts/validate_vnext_lifecycle.py # 按实际轮次核对生命周期、用户决定、修订链、动态计数和连续完美轮次
 
 python scripts/validate_context_cases.py # 核对 40 个术语、排比、代码、长上下文、多轮、主语、标点和段落语境案例
 
@@ -146,6 +161,8 @@ python scripts/validate_forward_round1.py # 分别报告原始文件完整性、
 python -m unittest discover -s tests -p "test_deterministic_committer.py" -v # 执行 18 个摘要、范围、冲突、回滚和原子写入测试
 
 python -m unittest discover -s tests -p "test_vnext_runtime.py" -v # 执行 38 个任务编译、长上下文拒绝、精确修复和结果报告测试
+
+python -m unittest discover -s tests -p "test_forward_review_workflow.py" -v # 执行 9 个分批审核、摘要绑定、幂等迁移、动态轮次门槛和连续完美计数测试
 ```
 
 当前本地结果如下：
@@ -160,6 +177,8 @@ python -m unittest discover -s tests -p "test_vnext_runtime.py" -v # 执行 38 �
   * 摘要、位置、出现次数、冲突和事务回滚均有正反测试
 * 运行时测试：38/38
   * 任务编译、代码同行对齐、长文锚点、数字归属、术语边界、来源优先级和全篇复核均有可执行测试
+* 前向审核工作流测试：9/9
+  * 多发现聚合、无行尾空白、四批审核页、答案摘要绑定、拒绝修订、幂等重放和后续轮次门槛均已通过
 * 真实触发矩阵：72/72
   * 三类任务各含 6 个显式触发、6 个隐式触发、6 个负向不触发和 6 个规则遵守案例
   * 固定 `gpt-5.6-sol` 在隔离 Codex 任务中全部符合预期；5 个同行对齐案例均登记确定性辅助器调用事件
@@ -176,11 +195,11 @@ python -m unittest discover -s tests -p "test_vnext_runtime.py" -v # 执行 38 �
 
 ## 7. 人工审核入口
 
-[第二轮广覆盖审核包](evals/forward/round-2/REVIEW-PACKET.md)包含 20 个已经一次生成并冻结的首稿；第五轮 5 个修订候选已由用户全部接受，历史审核包继续保留但不再表示待审状态
+[第二轮分批审核索引](evals/forward/round-2/review-batches/INDEX.md)把 20 个一次生成并冻结的首稿分成四批，每批 5 项；[完整审核包](evals/forward/round-2/REVIEW-PACKET.md)保留同一内容和答案 SHA-256
 
-第二轮每项必须由用户明确接受或拒绝；自动测试、模型评分和压力矩阵都不能写入人工接受字段；只有第二轮首稿 20/20 才形成连续完美轮次 1 并允许生成第三轮，任一拒绝都会永久保留本轮成绩并把连续计数归零
+第二轮每项必须由用户明确接受或拒绝；自动测试、模型评分和压力矩阵都不能写入人工接受字段；第二轮已有机械硬错误，不能形成完美轮次，拒绝项取得修订接受后才能生成第三轮；第三轮和第四轮都需要首稿 20/20，才能形成连续完美轮次 2/2
 
-第四轮迁移来源、决定绑定、计数和未完成发布门槛记录在[实施审计](docs/audits/2026-08-31-vnext-1.1-round-4/audit.md)
+迁移来源保留在[第四轮实施审计](docs/audits/2026-08-31-vnext-1.1-round-4/audit.md)；当前计数、审核接口和发布门槛记录在[第二轮广覆盖终验审计](docs/audits/2026-09-01-vnext-1.1-forward-round-2/audit.md)
 
 ## 8. 仓库结构
 
@@ -210,7 +229,7 @@ python -m unittest discover -s tests -p "test_vnext_runtime.py" -v # 执行 38 �
 * 未脱敏图片、远程图片请求和含活动内容的 SVG
 * 没有来源却作为事实写入的补充解释
 
-`main` 继续冻结，本机正式 Skill 不安装候选版本；远程候选分支只保存审核材料和验证证据，不创建 PR
+`main` 继续冻结；本机现有 Skill 不作为最终发布证据，也不会在发布门槛满足前被候选覆盖；远程候选分支只保存审核材料和验证证据，不创建 PR
 
 ## 10. 许可
 
