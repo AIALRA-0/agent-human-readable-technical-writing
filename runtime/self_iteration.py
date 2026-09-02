@@ -268,6 +268,14 @@ def deterministic_findings(
                 "PARALLEL_GROUP_LAYOUT", group_id, old,
                 "两个以上同类项目没有逐项换行并按层级缩进", "sentence",
             ))
+        elif required_layout == "compact_inline" and (
+            len(set(item_lines)) != 1 or group.get("rendered_as_indented_list")
+        ):
+            old = next((line for number, line in authored if number in item_lines), group_id)
+            findings.append(_finding(
+                "PARALLEL_GROUP_LAYOUT", group_id, old,
+                "排比组声明为紧凑同排，但项目实际分布在多个行或列表层级中", "sentence",
+            ))
 
     for term in manifest.get("term_uses", []):
         english = term.get("official_english")

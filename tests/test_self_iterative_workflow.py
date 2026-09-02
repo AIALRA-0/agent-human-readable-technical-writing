@@ -62,6 +62,7 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("earliest answer occurrence", prompt)
         self.assertIn("incorrect attachment", prompt)
         self.assertIn("valid background support", prompt)
+        self.assertIn("background_claims` is a top-level initial-output field", prompt)
         self.assertIn("jointly define one method or state", prompt)
         self.assertIn("inspect every parenthetical English phrase", prompt)
         self.assertIn("reject any newly invented measurement", prompt)
@@ -237,6 +238,7 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("join their exact finding IDs with `+`", prompt)
         self.assertIn("put the marker before the title", prompt)
         self.assertIn("one no-op invalidates the whole transaction", prompt)
+        self.assertIn("do not insert a blank line inside one list", prompt)
 
     def test_initial_prompt_front_loads_preservation_and_background_support(self) -> None:
         prompt = matrix.initial_prompt(
@@ -646,7 +648,8 @@ limit = 3
         }
         repaired = json.loads(json.dumps(stale))
         repaired["parallel_groups"][0]["required_layout"] = "indented_list"
-        self.assertEqual(matrix.deterministic_findings(answer, stale), [])
+        findings = matrix.deterministic_findings(answer, stale)
+        self.assertIn("PARALLEL_GROUP_LAYOUT", {item["rule_id"] for item in findings})
         findings = [{
             "finding_id": "SEM-001", "rule_id": "PARALLEL_GROUP_LAYOUT", "status": "FAIL",
             "location": "CURRENT_MANIFEST.parallel_groups[PGRP-001].required_layout",
@@ -671,7 +674,7 @@ limit = 3
             "boundary_visibility": {"mode": "internal", "material_reason": None},
         }
         repaired = json.loads(json.dumps(stale))
-        repaired["parallel_groups"][0]["required_layout"] = "indented_list"
+        repaired["parallel_groups"][0]["rendered_as_indented_list"] = False
         with self.assertRaisesRegex(matrix.PatchError, "not bound"):
             matrix.apply_closure_transaction(
                 answer, stale, {"patches": [], "updated_manifest": repaired}, findings=[],
