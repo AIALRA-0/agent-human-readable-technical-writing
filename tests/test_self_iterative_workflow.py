@@ -49,6 +49,34 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("Never invent a style rule", prompt)
         self.assertIn("ordered-list markers", prompt)
 
+    def test_frozen_seed_evidence_preserves_unrejected_content_without_acceptance(self) -> None:
+        initial = {
+            "source_units": ["SRCU-001"],
+            "support_map": ["SRCU-001"],
+            "background_claims": [],
+        }
+        evidence = matrix.source_and_background_evidence(initial, "冻结内容")
+        contract = evidence["legacy_seed_repair_contract"]
+        self.assertEqual(evidence["frozen_legacy_draft"], "冻结内容")
+        self.assertEqual(contract["approval_status"], "rejected_as_delivery_not_user_accepted")
+        self.assertIn("Preserve every semantic unit", contract["policy"])
+        prompt = matrix.review_prompt({}, "冻结内容", {}, ["只修标点"], evidence)
+        self.assertIn("immutable user-supplied repair context", prompt)
+        self.assertIn("does not make the answer user-accepted", prompt)
+
+    def test_patch_prompt_deletes_a_complete_list_item_in_one_round(self) -> None:
+        manifest = {
+            "term_uses": [], "parallel_groups": [],
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        prompt = matrix.patch_prompt(
+            "- 保留\n- 删除\n\n后文", manifest,
+            [{"finding_id": "SEM-01-001", "old_text": "删除"}],
+        )
+        self.assertIn("whole list line including its marker and terminating newline", prompt)
+        self.assertIn("do not leave an empty list marker or an extra blank line", prompt)
+
     def test_clean_agent_commands_disable_unrelated_capabilities(self) -> None:
         args = argparse.Namespace(codex="codex", reasoning_effort="medium", timeout_seconds=10)
         with patch.object(matrix, "run_codex", return_value={"ok": True}) as mocked:

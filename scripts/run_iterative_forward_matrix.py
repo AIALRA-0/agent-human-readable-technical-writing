@@ -329,6 +329,29 @@ HOST_FROZEN_LEGACY_DRAFT:
 """
 
 
+def source_and_background_evidence(
+    initial: dict[str, Any], seed: str | None,
+) -> dict[str, Any]:
+    """Keep a rejected seed's repair scope distinct from user acceptance."""
+
+    evidence = {
+        key: initial[key]
+        for key in ("source_units", "support_map", "background_claims")
+    }
+    if seed is not None:
+        evidence["frozen_legacy_draft"] = seed
+        evidence["legacy_seed_repair_contract"] = {
+            "approval_status": "rejected_as_delivery_not_user_accepted",
+            "policy": (
+                "Preserve every semantic unit not explicitly identified as wrong in prior "
+                "user feedback; repair only the identified defects. This repair-scope evidence "
+                "does not set approved_by_user and does not override a direct contradiction in "
+                "the supplied source."
+            ),
+        }
+    return evidence
+
+
 def review_prompt(
     request: dict[str, Any], answer: str, manifest: dict[str, Any], feedback: list[str],
     evidence: dict[str, Any] | None = None,
@@ -343,7 +366,7 @@ Discover undeclared professional terms and parallel groups independently. Apply 
 
 Use SOURCE_AND_BACKGROUND_EVIDENCE when judging added explanation. A declared background claim with an explicit source reference or clearly marked general-knowledge nature is not an unsupported source claim merely because it is absent from CURRENT_MANIFEST. Do not require a blockquote for a user-supplied identifier or preservation token unless the answer is actually presenting it as quoted evidence. A natural complete sentence that introduces a following list, quotation, or example may end with a colon and is not a colon pseudo-heading. Check source completeness, facts, conditions, scope, numbers, exceptions, all parts of professional first use, title necessity and level, colon pseudo-headings, semicolon scope, internal evidence-label leakage, and whether each proposed repair can stay within one token, phrase, or sentence. Use REVIEW_REQUIRED only when no safe token, phrase, sentence, or manifest-only repair exists.
 
-When prior feedback explicitly preserves a mechanism or explanation from a frozen legacy draft, treat that named content as user-supplied preservation evidence rather than demanding a new external source. If an important limitation needs a next check but no procedure source is supplied, use only a natural non-factual direction such as “需要进一步核对相关条件”; do not invent diagnostic measurements or procedures. When CURRENT_MANIFEST sets boundary visibility to `internal` and prior feedback requires the boundary to stay hidden, do not demand user-visible boundary prose merely because the internal source ledger has limited coverage; override `internal` only for a concrete conclusion, operation, or safety consequence supported by the request.
+For a frozen legacy seed, SOURCE_AND_BACKGROUND_EVIDENCE includes `frozen_legacy_draft` and `legacy_seed_repair_contract`. Treat every semantic unit in that draft not explicitly identified as wrong by prior feedback as immutable user-supplied repair context. Do not remove or challenge such a unit merely because it lacks a new external source. This scopes the minimum repair only: it does not make the answer user-accepted and does not override a direct contradiction in the supplied source. When prior feedback explicitly preserves a mechanism or explanation from a frozen legacy draft, treat that named content as user-supplied preservation evidence rather than demanding a new external source. If an important limitation needs a next check but no procedure source is supplied, use only a natural non-factual direction such as “需要进一步核对相关条件”; do not invent diagnostic measurements or procedures. When CURRENT_MANIFEST sets boundary visibility to `internal` and prior feedback requires the boundary to stay hidden, do not demand user-visible boundary prose merely because the internal source ledger has limited coverage; override `internal` only for a concrete conclusion, operation, or safety consequence supported by the request.
 
 PRIOR_USER_FEEDBACK:
 {json.dumps(feedback, ensure_ascii=False)}
@@ -377,7 +400,7 @@ def patch_prompt(
     )
     return f"""Re-read the installed Skill rules named by these findings. Return only the exact patch object required by the output schema.
 
-Patch only the smallest complete erroneous unit. Allowed repair_scope values are token, phrase, and sentence. Do not replace a paragraph, section, adjacent sections, blueprint, or whole answer. Every answer patch in this transaction must bind the same CURRENT_SHA256 shown below, one supplied line node, exact old text, exact occurrence count, preservation requirements, and validators. Do not use a hash predicted from an earlier patch in the same batch. Never submit an answer patch whose old and new text are identical. Update the manifest to describe the patched answer without changing unrelated declarations. If every remaining defect is only a stale manifest declaration and the answer is already correct, return an empty `patches` array and change only `updated_manifest`; otherwise return at least one real answer patch.
+Patch only the smallest complete erroneous unit. Allowed repair_scope values are token, phrase, and sentence. Do not replace a paragraph, section, adjacent sections, blueprint, or whole answer. When deleting one complete list item, bind `old_text` to the whole list line including its marker and terminating newline, then replace that line with an empty string; do not leave an empty list marker or an extra blank line for a later repair round. This is a sentence-scope patch, not a paragraph rewrite. Every answer patch in this transaction must bind the same CURRENT_SHA256 shown below, one supplied line node, exact old text, exact occurrence count, preservation requirements, and validators. Do not use a hash predicted from an earlier patch in the same batch. Never submit an answer patch whose old and new text are identical. Update the manifest to describe the patched answer without changing unrelated declarations. If every remaining defect is only a stale manifest declaration and the answer is already correct, return an empty `patches` array and change only `updated_manifest`; otherwise return at least one real answer patch.
 {rejection}
 
 CURRENT_SHA256:
@@ -637,7 +660,7 @@ def run_case(
         raise ValueError("legacy pre-closure draft changed before the repair loop")
     answer = initial["answer"]
     manifest = {key: initial[key] for key in ("term_uses", "parallel_groups", "section_plan", "boundary_visibility")}
-    evidence = {key: initial[key] for key in ("source_units", "support_map", "background_claims")}
+    evidence = source_and_background_evidence(initial, seed)
     initial_manifest = json.loads(json.dumps(manifest, ensure_ascii=False))
     first_hash = sha256_text(answer)
     first_preservation = preservation_snapshot(answer)
