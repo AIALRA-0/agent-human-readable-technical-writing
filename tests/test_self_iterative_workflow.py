@@ -50,6 +50,8 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("ordered-list markers", prompt)
         self.assertIn("source-equivalent semantic occurrence", prompt)
         self.assertIn("later glossary definition does not satisfy", prompt)
+        self.assertIn("build a must-preserve checklist", prompt)
+        self.assertIn("associated location, symptom, example, or conclusion", prompt)
 
     def test_frozen_seed_evidence_preserves_unrejected_content_without_acceptance(self) -> None:
         initial = {
@@ -82,6 +84,17 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("do not leave an empty list marker or an extra blank line", prompt)
         self.assertIn("keep or add the colon on a complete sentence", prompt)
         self.assertIn("exactly one required blank line before and after", prompt)
+        self.assertIn("must-preserve finding must restore", prompt)
+
+    def test_initial_prompt_front_loads_preservation_and_background_support(self) -> None:
+        prompt = matrix.initial_prompt(
+            {"case_id": "FWD-R2-024", "base_operation": "EXPLAIN", "augmentation": "TEACHING"},
+            None,
+            ["必须保留：两种电压读数、0.7 V 差值和压降机制"],
+        )
+        self.assertIn("hard content requirement", prompt)
+        self.assertIn("named mechanism or relationship", prompt)
+        self.assertIn("declare every background claim actually needed", prompt)
 
     def test_natural_predicate_list_introductions_are_not_pseudo_headings(self) -> None:
         manifest = {
