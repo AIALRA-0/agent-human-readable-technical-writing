@@ -9,7 +9,7 @@
   },
   "scope": {
     "first_attempt": "R1",
-    "last_attempt": "R19",
+    "last_attempt": "Q49",
     "formal_qualification_completed": false,
     "note": "这些记录只证明编排器开发过程，不能替代正式 60 项三模型资格结果"
   },
@@ -203,6 +203,76 @@
       "terminal": "PASS",
       "observed_failure": "无",
       "resulting_change": "确认 FWD-R2-023 与 Sol 在当前开发修订上完成三轮最小修复"
+    },
+    {
+      "attempt_id": "R43",
+      "kind": "diagnostic",
+      "planned": 9,
+      "completed": 9,
+      "passed": 7,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "024 Sol 的清单修复无法降低确定性计数，024 Terra 分轮发现未经来源支持的英文和诊断步骤",
+      "resulting_change": "允许不增加确定性问题的清单单独修复，并增加来源支持的英文检查和无程序来源时的提示约束"
+    },
+    {
+      "attempt_id": "R44",
+      "kind": "diagnostic",
+      "planned": 9,
+      "completed": 9,
+      "passed": 9,
+      "terminal": "PASS",
+      "observed_failure": "无",
+      "resulting_change": "确认清单绑定、来源支持和诊断提示修复在 022、024、025 三模型诊断中通过"
+    },
+    {
+      "attempt_id": "Q45",
+      "kind": "qualification_attempt",
+      "planned": 60,
+      "completed": 5,
+      "passed": 2,
+      "terminal": "RUN_ERROR",
+      "observed_failure": "本地存储耗尽导致私有报告在原子持久化前失败",
+      "resulting_change": "保留原始运行目录到私有归档并停止该资格，不恢复、不计入人工轮次，后续资格运行固定使用 E 盘运行根"
+    },
+    {
+      "attempt_id": "Q46",
+      "kind": "qualification_attempt",
+      "planned": 60,
+      "completed": 9,
+      "passed": 8,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "022 Terra 把自然的顺序引导句误判为冒号伪标题",
+      "resulting_change": "将自然顺序引导句加入合法列表引导规则，保留裸冒号标签的阻断"
+    },
+    {
+      "attempt_id": "R47",
+      "kind": "diagnostic",
+      "planned": 9,
+      "completed": 9,
+      "passed": 6,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "022 Terra 仍分轮发现问题，024 Sol 和 Luna 分别升级无来源术语或在模型自报清单下放过英文",
+      "resulting_change": "增加同会话完整性补扫，并禁止模型自报清单为未经注册或来源支持的官方英文背书"
+    },
+    {
+      "attempt_id": "R48",
+      "kind": "diagnostic",
+      "planned": 9,
+      "completed": 9,
+      "passed": 9,
+      "terminal": "PASS",
+      "observed_failure": "024 Luna 首次宿主调用失败，第二次有限重试通过",
+      "resulting_change": "确认完整性补扫、术语证据门和一次宿主重试在三模型诊断中通过；首试错误保留在私有证据"
+    },
+    {
+      "attempt_id": "Q49",
+      "kind": "qualification_attempt",
+      "planned": 60,
+      "completed": 0,
+      "passed": 0,
+      "terminal": "ABORTED_NOT_REVIEWABLE",
+      "observed_failure": "资格运行只建立三个未完成任务目录，用户中断发生在任何原子结果、公开结果或私有报告写入以前",
+      "resulting_change": "永久保留私有原始目录，禁止恢复或物化，使用新资格编号从零开始"
     }
   ]
 }
