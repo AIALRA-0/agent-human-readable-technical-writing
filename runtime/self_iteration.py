@@ -163,6 +163,27 @@ def deterministic_findings(answer: str, manifest: Mapping[str, Any] | None = Non
                 "MISSING_BLOCK_SEPARATOR", f"LINE-{index + 1:04d}", line,
                 "普通正文与随后列表之间缺少空行", "token",
             ))
+    for index, line in enumerate(lines[1:-1], start=1):
+        if line.strip():
+            continue
+        previous = lines[index - 1]
+        following = lines[index + 1]
+        previous_item = re.match(r"^(\s*)(?:[-*+]\s+|\d+[.)]\s+)", previous)
+        following_item = re.match(r"^(\s*)(?:[-*+]\s+|\d+[.)]\s+)", following)
+        following_indent = len(following) - len(following.lstrip(" \t"))
+        previous_indent = len(previous_item.group(1)) if previous_item else 0
+        if previous_item and (
+            following_item
+            or (
+                following.strip()
+                and previous_indent > 0
+                and following_indent >= previous_indent
+            )
+        ):
+            findings.append(_finding(
+                "LIST_INTERNAL_BLANK_LINE", f"LINE-{index + 1:04d}", "\n",
+                "同一列表或嵌套列表内部出现空行", "token",
+            ))
     if re.search(r"\n[ \t]*\n[ \t]*\n", answer):
         findings.append(_finding(
             "EXCESSIVE_BLANK_LINES", "DOCUMENT", "\n\n\n",

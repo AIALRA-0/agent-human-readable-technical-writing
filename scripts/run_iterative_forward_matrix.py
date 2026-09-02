@@ -127,6 +127,19 @@ def read_jsonl(path: Path) -> list[dict[str, Any]]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
 
 
+def normalized_review_feedback(item: Mapping[str, Any]) -> list[str]:
+    """Keep user intent hard without turning regression examples into exact prose."""
+
+    return [
+        str(item["instruction"]),
+        *(
+            f"必须修复的性质（按语义验收，除非用户明确要求原样）：{value}"
+            for value in item.get("regressions", [])
+        ),
+        *(f"必须保留的语义：{value}" for value in item.get("correct_parts", [])),
+    ]
+
+
 def registry() -> Registry:
     value = Registry()
     for path in CONTRACTS.glob("*.schema.json"):
@@ -298,7 +311,7 @@ LEGACY_DRAFT:
 
 Read the complete Skill entrypoint and every file it requires for this request. You have no conversation history, expected answer, scoring rubric, or user configuration outside the installed Skill. Do not browse or inspect unrelated files.
 
-Return only the JSON object required by the supplied output schema. The answer is an internal first draft, not a user-approved result. Treat every explicit prior constraint prefixed `必须保留：` as a hard content requirement. Preserve its named fact, condition, range, number, mechanism, relationship, or source unit in substance; an associated location, symptom, or example is not a substitute for the named mechanism or relationship. Independently declare every professional term actually used in the answer, every semantic parallel group, section decision, and evidence-boundary visibility decision. For every parallel group, set `required_layout` to `compact_inline` only when the items are genuinely short, tightly related, and permitted to remain on one line under the semicolon rule; otherwise use `indented_list`. `rendered_as_indented_list` records the actual answer, not the desired repair. `core_terms` is topic-diversity metadata, not evidence that a phrase is professional. `term_uses` is not a request-term inventory: omit ordinary operational phrases and terms that do not occur in the answer. Do not invent parenthetical English for ordinary phrases. Every declared professional term must provide its verified official English and make `first_use_text` an exact substring containing that English. In a translation, put that complete professional first use at the source-equivalent semantic occurrence; a generic rendering followed by a later glossary entry is not sufficient. For EXPLAIN or TEACHING work, declare every background claim actually needed by the explanation with an explicit source reference or a clearly marked general-knowledge or inference basis; do not leave the required mechanism unsupported. Do not omit a declaration merely because the answer forgot to follow the corresponding rule.
+Return only the JSON object required by the supplied output schema. The answer is an internal first draft, not a user-approved result. Treat every explicit prior constraint prefixed `必须保留的语义：` as a hard content requirement. Preserve its named fact, condition, range, number, mechanism, relationship, or source unit in substance; an associated location, symptom, or example is not a substitute for the named mechanism or relationship. Treat `必须修复的性质` entries as semantic acceptance properties, not byte-for-byte replacement strings, unless the user's instruction explicitly says 原样、逐字、固定为, or quotes exact required text. Equivalent verbs such as 使用、执行、进行, or 采用 must not fail when the required official term and meaning are preserved. Independently declare every professional term actually used in the answer, every semantic parallel group, section decision, and evidence-boundary visibility decision. For every parallel group, set `required_layout` to `compact_inline` only when the items are genuinely short, tightly related, and permitted to remain on one line under the semicolon rule; otherwise use `indented_list`. Every `item_texts` value must be one exact single-line substring in the answer and must never contain a newline. `rendered_as_indented_list` records the actual answer, not the desired repair. `core_terms` is topic-diversity metadata, not evidence that a phrase is professional. `term_uses` is not a request-term inventory: omit ordinary operational phrases and terms that do not occur in the answer. Do not invent parenthetical English for ordinary phrases. Every declared professional term must provide its verified official English and make `first_use_text` an exact substring containing that English. In a translation, put that complete professional first use at the source-equivalent semantic occurrence; a generic rendering followed by a later glossary entry is not sufficient. For EXPLAIN or TEACHING work, declare every background claim actually needed by the explanation with an explicit source reference or a clearly marked general-knowledge or inference basis; do not leave the required mechanism unsupported. Do not omit a declaration merely because the answer forgot to follow the corresponding rule.
 
 Explicit prior review constraints for this case:
 {json.dumps(feedback, ensure_ascii=False)}
@@ -380,7 +393,7 @@ def review_prompt(
 
 Re-read the Skill, active Lucas profile, term registry, structure rules, component rules, and verification rules. Inspect only this request, current answer, manifest, and SOURCE_AND_BACKGROUND_EVIDENCE supplied in this prompt. Do not inspect the case root, parent run root, sibling worker, sibling reviewer, prior attempt directory, or any file outside this reviewer's own task and installed Skill directories; all case evidence needed for review is already embedded below. Do not rewrite the answer. Return only findings required by the output schema.
 
-Before checking structure or style, build a must-preserve checklist from every PRIOR_USER_FEEDBACK item prefixed `必须保留：` and check each named fact, condition, range, number, mechanism, relationship, and source unit against CURRENT_ANSWER. An associated location, symptom, example, or conclusion is not a substitute for a named mechanism or relationship. Report every currently discoverable blocking violation in this review; do not stage an already visible rule into a later round. Every blocking finding must be grounded in an explicit installed Skill rule, registry entry, source-preservation rule, or prior user feedback. Never invent a style rule or turn an advisory preference into FAIL. Standard Markdown ordered-list markers such as `1.` and `2.` are valid for ordered steps, do not require wording such as “第一步”, and do not require blank lines between sibling items.
+Before checking structure or style, build a must-preserve checklist from every PRIOR_USER_FEEDBACK item prefixed `必须保留的语义：` and check each named fact, condition, range, number, mechanism, relationship, and source unit against CURRENT_ANSWER. An associated location, symptom, example, or conclusion is not a substitute for a named mechanism or relationship. Treat `必须修复的性质` entries as semantic acceptance properties, not byte-for-byte strings, unless the user's own instruction explicitly requires 原样、逐字、固定为, or quotes exact required text. Do not fail equivalent verbs such as 使用、执行、进行, or 采用 when the required official term and meaning are preserved. Report every currently discoverable blocking violation in this review; do not stage an already visible rule into a later round. Every blocking finding must be grounded in an explicit installed Skill rule, registry entry, source-preservation rule, or prior user feedback. Never invent a style rule or turn an advisory preference into FAIL. Standard Markdown ordered-list markers such as `1.` and `2.` are valid for ordered steps, do not require wording such as “第一步”, and do not require blank lines between sibling items. Every declared `parallel_groups.item_texts` value must be one exact single-line answer substring; a multiline block is an invalid declaration and must be fixed in the same review.
 
 Discover undeclared professional terms and parallel groups independently. Apply a strict professional-term threshold: appearing in a technical, financial, operational, or other domain context is not enough. `core_terms`, topic keywords, a frozen legacy draft, a model-authored background claim whose source says no external source was provided, and a generic request to explain wording nearby never prove a stable professional identity or official English form. A phrase triggers the complete professional first-use contract only when the installed registry defines it, independently supplied source evidence gives it a stable formal identity, or the request explicitly identifies that exact phrase as a formal professional term. Ordinary modifiers, status labels, task-specific labels, numeric categories, and explanatory phrases remain common language; examples include sync window, pairing window, calibration offset, read-only check, current result, pending item, pre-tax, pressure energy, and pressure release. Explain an ordinary task-specific label naturally in Chinese and remove invented parenthetical English with a local FAIL repair; never return REVIEW_REQUIRED merely because that ordinary label lacks official English. Do not demand invented official English for common language or for words used only inside the explanation of an already declared term. A missing or stale manifest declaration is fixable when a safe token, phrase, sentence, or manifest-only repair can correct it: return FAIL rather than REVIEW_REQUIRED merely because the current manifest is incomplete.
 
@@ -420,7 +433,7 @@ def patch_prompt(
     )
     return f"""Re-read the installed Skill rules named by these findings. Return only the exact patch object required by the output schema.
 
-Patch only the smallest complete erroneous unit. Allowed repair_scope values are token, phrase, and sentence. Do not replace a paragraph, section, adjacent sections, blueprint, or whole answer. A repair for a must-preserve finding must restore the named fact, condition, range, number, mechanism, relationship, or source unit in substance; do not replace it with an associated location, symptom, example, or conclusion. When deleting one complete list item, bind `old_text` to the whole list line including its marker and terminating newline, then replace that line with an empty string; do not leave an empty list marker or an extra blank line for a later repair round. When converting inline parallel content into a list, keep or add the colon on a complete sentence that introduces that list and include exactly one required blank line before and after the new block in the same sentence patch; do not create a missing-colon or missing-block-separator defect for a later round. These are sentence-scope patches, not paragraph rewrites. Every answer patch in this transaction must bind the same CURRENT_SHA256 shown below, one supplied line node, exact old text, exact occurrence count, preservation requirements, and validators. Do not use a hash predicted from an earlier patch in the same batch. Never submit an answer patch whose old and new text are identical. Update the manifest to describe the patched answer without changing unrelated declarations. If every remaining defect is only a stale manifest declaration and the answer is already correct, return an empty `patches` array and change only `updated_manifest`; otherwise return at least one real answer patch.
+Patch only the smallest complete erroneous unit. Allowed repair_scope values are token, phrase, and sentence. Do not replace a paragraph, section, adjacent sections, blueprint, or whole answer. A repair for a must-preserve finding must restore the named fact, condition, range, number, mechanism, relationship, or source unit in substance; do not replace it with an associated location, symptom, example, or conclusion. When deleting one complete list item, bind `old_text` to the whole list line including its marker and terminating newline, then replace that line with an empty string; do not leave an empty list marker or an extra blank line for a later repair round. When converting ordinary prose into a new top-level block list, keep or add the colon on its complete introductory sentence and include exactly one required blank line around that top-level block in the same sentence patch. When adding a nested list inside an existing list item, keep the parent and child list contiguous with no blank line; an indented continuation belonging to that item also stays contiguous. Do not create a missing-colon, missing-block-separator, or list-internal-blank defect for a later round. Preserve non-exhaustive scope markers such as 等位置, 等情况, 其他, 不限于, or 不止 when rearranging content unless the finding explicitly authorizes changing that scope. Every `updated_manifest.parallel_groups.item_texts` value must be one exact single-line substring in the patched answer and must never contain a newline. These are sentence-scope patches, not paragraph rewrites. Every answer patch in this transaction must bind the same CURRENT_SHA256 shown below, one supplied line node, exact old text, exact occurrence count, preservation requirements, and validators. Do not use a hash predicted from an earlier patch in the same batch. Never submit an answer patch whose old and new text are identical. Update the manifest to describe the patched answer without changing unrelated declarations. If every remaining defect is only a stale manifest declaration and the answer is already correct, return an empty `patches` array and change only `updated_manifest`; otherwise return at least one real answer patch.
 {rejection}
 
 CURRENT_SHA256:
@@ -509,12 +522,26 @@ def normalize_patch_ids(payload: dict[str, Any], start: int) -> tuple[dict[str, 
 
 def apply_closure_transaction(
     answer: str, manifest: dict[str, Any], patch_payload: dict[str, Any],
+    evidence: dict[str, Any] | None = None,
 ) -> str:
     """Apply real answer patches or a strictly improving manifest-only repair."""
 
     patches = patch_payload["patches"]
     if patches:
-        return apply_minimal_transaction(answer, patches, line_nodes(answer))
+        before_findings = (
+            closure_deterministic_findings(answer, manifest, evidence)
+            if evidence is not None else deterministic_findings(answer, manifest)
+        )
+        patched = apply_minimal_transaction(answer, patches, line_nodes(answer))
+        after_findings = (
+            closure_deterministic_findings(patched, patch_payload["updated_manifest"], evidence)
+            if evidence is not None else deterministic_findings(patched, patch_payload["updated_manifest"])
+        )
+        before_rules = {str(item["rule_id"]) for item in before_findings}
+        introduced = sorted({str(item["rule_id"]) for item in after_findings} - before_rules)
+        if introduced:
+            raise PatchError("patch introduced deterministic finding(s): " + ", ".join(introduced))
+        return patched
     updated_manifest = patch_payload["updated_manifest"]
     if updated_manifest == manifest:
         raise PatchError("empty closure transaction did not change the manifest")
@@ -754,7 +781,7 @@ def run_case(
         try:
             if not submitted_finding_ids <= allowed_finding_ids:
                 raise PatchError("one patch references a finding outside the merged review set")
-            patched_answer = apply_closure_transaction(answer, manifest, patch_payload)
+            patched_answer = apply_closure_transaction(answer, manifest, patch_payload, evidence)
         except PatchError as error:
             previous_patch_rejection = str(error)
             rounds.append({
@@ -990,11 +1017,7 @@ def main() -> int:
         feedback_payload = json.loads(args.feedback.read_text(encoding="utf-8"))
         if isinstance(feedback_payload, dict) and isinstance(feedback_payload.get("decisions"), list):
             feedback = {
-                item["origin_case_id"]: [
-                    item["instruction"],
-                    *(f"必须修复：{value}" for value in item.get("regressions", [])),
-                    *(f"必须保留：{value}" for value in item.get("correct_parts", [])),
-                ]
+                item["origin_case_id"]: normalized_review_feedback(item)
                 for item in feedback_payload["decisions"]
             }
         elif isinstance(feedback_payload, dict):

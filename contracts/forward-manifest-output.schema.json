@@ -38,7 +38,7 @@
         "required": ["group_id", "item_texts", "required_layout", "rendered_as_indented_list"],
         "properties": {
           "group_id": {"type": "string", "pattern": "^PGRP-[0-9]{3,}$"},
-          "item_texts": {"type": "array", "minItems": 2, "items": {"type": "string", "minLength": 1}},
+          "item_texts": {"type": "array", "minItems": 2, "items": {"type": "string", "minLength": 1, "pattern": "^[^\\r\\n]+$"}},
           "required_layout": {"enum": ["compact_inline", "indented_list"]},
           "rendered_as_indented_list": {"type": "boolean"}
         }

@@ -52,6 +52,8 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("later glossary definition does not satisfy", prompt)
         self.assertIn("build a must-preserve checklist", prompt)
         self.assertIn("associated location, symptom, example, or conclusion", prompt)
+        self.assertIn("semantic acceptance properties, not byte-for-byte strings", prompt)
+        self.assertIn("Every declared `parallel_groups.item_texts` value", prompt)
 
     def test_frozen_seed_evidence_preserves_unrejected_content_without_acceptance(self) -> None:
         initial = {
@@ -82,19 +84,31 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         )
         self.assertIn("whole list line including its marker and terminating newline", prompt)
         self.assertIn("do not leave an empty list marker or an extra blank line", prompt)
-        self.assertIn("keep or add the colon on a complete sentence", prompt)
-        self.assertIn("exactly one required blank line before and after", prompt)
+        self.assertIn("keep or add the colon on its complete introductory sentence", prompt)
+        self.assertIn("exactly one required blank line around that top-level block", prompt)
         self.assertIn("must-preserve finding must restore", prompt)
+        self.assertIn("nested list inside an existing list item", prompt)
+        self.assertIn("Preserve non-exhaustive scope markers", prompt)
 
     def test_initial_prompt_front_loads_preservation_and_background_support(self) -> None:
         prompt = matrix.initial_prompt(
             {"case_id": "FWD-R2-024", "base_operation": "EXPLAIN", "augmentation": "TEACHING"},
             None,
-            ["必须保留：两种电压读数、0.7 V 差值和压降机制"],
+            ["必须保留的语义：两种电压读数、0.7 V 差值和压降机制"],
         )
         self.assertIn("hard content requirement", prompt)
         self.assertIn("named mechanism or relationship", prompt)
         self.assertIn("declare every background claim actually needed", prompt)
+
+    def test_review_feedback_is_semantic_unless_user_requires_exact_text(self) -> None:
+        feedback = matrix.normalized_review_feedback({
+            "instruction": "括号内英文需要大写",
+            "regressions": ["使用上锁隔离（Lockout）"],
+            "correct_parts": ["操作顺序保持不变"],
+        })
+        self.assertIn("按语义验收", feedback[1])
+        self.assertIn("必须保留的语义", feedback[2])
+        self.assertFalse(any(value.startswith("必须修复：") for value in feedback))
 
     def test_natural_predicate_list_introductions_are_not_pseudo_headings(self) -> None:
         manifest = {
@@ -337,6 +351,28 @@ limit = 3
         self.assertIn("MISSING_BLOCK_SEPARATOR", {item["rule_id"] for item in missing})
         self.assertNotIn("MISSING_BLOCK_SEPARATOR", {item["rule_id"] for item in valid})
 
+    def test_nested_lists_and_continuations_reject_internal_blank_lines(self) -> None:
+        manifest = {
+            "term_uses": [], "parallel_groups": [],
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        nested = "- 可能位置如下：\n\n  - 电源内阻"
+        continuation = "  - 接头\n\n  所以端子电压可能降低"
+        contiguous = "- 可能位置如下：\n  - 电源内阻\n  - 接头\n  所以端子电压可能降低"
+        self.assertIn(
+            "LIST_INTERNAL_BLANK_LINE",
+            {item["rule_id"] for item in matrix.deterministic_findings(nested, manifest)},
+        )
+        self.assertIn(
+            "LIST_INTERNAL_BLANK_LINE",
+            {item["rule_id"] for item in matrix.deterministic_findings(continuation, manifest)},
+        )
+        self.assertNotIn(
+            "LIST_INTERNAL_BLANK_LINE",
+            {item["rule_id"] for item in matrix.deterministic_findings(contiguous, manifest)},
+        )
+
     def test_declared_background_scope_marker_is_preserved(self) -> None:
         evidence = {"background_claims": [{
             "claim": "电源内阻、导线和接头等位置可能出现压降",
@@ -374,6 +410,29 @@ limit = 3
         with self.assertRaisesRegex(matrix.PatchError, "did not change"):
             matrix.apply_closure_transaction(answer, repaired, payload)
 
+    def test_answer_patch_cannot_introduce_a_scope_finding(self) -> None:
+        answer = "电源内阻、导线和接头等位置可能出现压降"
+        manifest = {
+            "term_uses": [], "parallel_groups": [],
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        evidence = {"background_claims": [{
+            "claim": answer, "source_reference": "一般电路知识",
+        }]}
+        payload = {
+            "patches": [{
+                "identity": {"patch_id": "PATCH-001", "finding_id": "SEM-01-001", "operation": "replace_exact"},
+                "target": {"document_sha256": matrix.sha256_text(answer), "node_id": "LINE-0001"},
+                "replacement": {"old_text": "等位置", "new_text": "位置", "expected_occurrences": 1},
+                "authorization": {"reason": "测试范围保护", "repair_scope": "phrase", "preserve": []},
+                "verification": {"rerun_validators": ["EVIDENCE_SCOPE_MARKER"]},
+            }],
+            "updated_manifest": manifest,
+        }
+        with self.assertRaisesRegex(matrix.PatchError, "EVIDENCE_SCOPE_MARKER"):
+            matrix.apply_closure_transaction(answer, manifest, payload, evidence)
+
     def test_patch_schema_allows_manifest_only_repair(self) -> None:
         manifest = {
             "term_uses": [], "parallel_groups": [],
@@ -384,6 +443,24 @@ limit = 3
             "boundary_visibility": {"mode": "internal", "material_reason": None},
         }
         matrix.validate_schema("closure-patch-output.schema.json", {"patches": [], "updated_manifest": manifest})
+
+    def test_parallel_group_schema_rejects_multiline_item_text(self) -> None:
+        manifest = {
+            "term_uses": [],
+            "parallel_groups": [{
+                "group_id": "PGRP-001", "item_texts": ["单行", "多行\n内容"],
+                "required_layout": "indented_list", "rendered_as_indented_list": True,
+            }],
+            "section_plan": {
+                "headings_required": False, "heading_levels": [],
+                "basis": "短内容无需标题", "colon_pseudo_headings_allowed": False,
+            },
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        with self.assertRaises(matrix.jsonschema.ValidationError):
+            matrix.validate_schema(
+                "closure-patch-output.schema.json", {"patches": [], "updated_manifest": manifest}
+            )
 
     def test_compact_inline_parallel_group_does_not_require_list_layout(self) -> None:
         manifest = {
