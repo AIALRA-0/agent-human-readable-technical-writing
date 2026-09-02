@@ -175,6 +175,11 @@ limit = 3
         self.assertEqual(concise["numbers"], duplicated["numbers"])
         self.assertNotEqual(concise, matrix.preservation_snapshot("按住 4 秒进入窗口"))
 
+    def test_preservation_snapshot_ignores_ordered_list_numbers(self) -> None:
+        before = matrix.preservation_snapshot("1. 按住圆键 4 秒\n2. 等待 45 秒\n3. 复核")
+        after = matrix.preservation_snapshot("1. 按住圆键 4 秒\n2. 等待 45 秒")
+        self.assertEqual(before, after)
+
     def test_manifest_invariants_cover_schema_unsupported_sets(self) -> None:
         payload = {
             "source_units": ["SRCU-001", "SRCU-001"], "support_map": ["SRCU-002"],
@@ -221,6 +226,25 @@ limit = 3
         }
         findings = matrix.deterministic_findings("需要核对以下内容：\n\n- 电源\n- 线路", manifest)
         self.assertNotIn("COLON_PSEUDO_HEADING", {item["rule_id"] for item in findings})
+
+    def test_prose_and_following_list_require_one_block_separator(self) -> None:
+        manifest = {
+            "term_uses": [], "parallel_groups": [],
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        missing = matrix.deterministic_findings("复核编号为 `B25`\n1. 按住圆键", manifest)
+        valid = matrix.deterministic_findings("复核编号为 `B25`\n\n1. 按住圆键", manifest)
+        self.assertIn("MISSING_BLOCK_SEPARATOR", {item["rule_id"] for item in missing})
+        self.assertNotIn("MISSING_BLOCK_SEPARATOR", {item["rule_id"] for item in valid})
+
+    def test_declared_background_scope_marker_is_preserved(self) -> None:
+        evidence = {"background_claims": [{
+            "claim": "电源内阻、导线和接头等位置可能出现压降",
+            "source_reference": "一般电路知识",
+        }]}
+        findings = matrix.evidence_scope_findings("电源内阻、导线和接头会出现压降", evidence)
+        self.assertEqual({item["old_text"] for item in findings}, {"等"})
 
     def test_manifest_only_repair_must_reduce_deterministic_findings(self) -> None:
         answer = "- 电源内部\n- 连接线路"

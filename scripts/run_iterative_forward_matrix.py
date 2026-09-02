@@ -202,8 +202,12 @@ def access_violations(events: list[dict[str, Any]], allowed_roots: list[Path]) -
 def preservation_snapshot(text: str) -> dict[str, Any]:
     """Freeze components and distinct numeric facts that a local repair must not disturb."""
 
+    numeric_text = "\n".join(
+        re.sub(r"^\s*(?:#{1,6}\s+)?\d+(?:\.\d+)*[.)]?\s+", "", line)
+        for line in text.splitlines()
+    )
     return {
-        "numbers": sorted(set(re.findall(r"(?<![A-Za-z0-9])[-+]?\d+(?:[.:]\d+)*(?:%|°C|\s*(?:V|万|项|分钟|个月))?", text))),
+        "numbers": sorted(set(re.findall(r"(?<![A-Za-z0-9])[-+]?\d+(?:[.:]\d+)*(?:%|°C|\s*(?:V|万|项|分钟|个月))?", numeric_text))),
         "fenced_blocks": re.findall(r"```[^\n]*\n.*?```", text, flags=re.DOTALL),
         "table_rows": [line for line in text.splitlines() if line.lstrip().startswith("|")],
         "image_links": re.findall(r"!\[[^\]]*\]\([^\n)]+\)", text),
@@ -330,6 +334,8 @@ Report every currently discoverable blocking violation in this review; do not st
 Discover undeclared professional terms and parallel groups independently. Apply a strict professional-term threshold: appearing in a technical, financial, operational, or other domain context is not enough. `core_terms`, topic keywords, and a generic request to explain wording nearby never prove a stable professional identity or official English form. A phrase triggers the complete professional first-use contract only when the installed registry defines it, supplied source evidence gives it a stable formal identity, or the request explicitly identifies that exact phrase as a formal professional term. Ordinary modifiers, status labels, task-specific labels, numeric categories, and explanatory phrases remain common language; examples include sync window, pairing window, calibration offset, read-only check, current result, pending item, pre-tax, pressure energy, and pressure release. Explain an ordinary task-specific label naturally in Chinese and remove invented parenthetical English with a local FAIL repair; never return REVIEW_REQUIRED merely because that ordinary label lacks official English. Do not demand invented official English for common language or for words used only inside the explanation of an already declared term. A missing or stale manifest declaration is fixable when a safe token, phrase, sentence, or manifest-only repair can correct it: return FAIL rather than REVIEW_REQUIRED merely because the current manifest is incomplete.
 
 Use SOURCE_AND_BACKGROUND_EVIDENCE when judging added explanation. A declared background claim with an explicit source reference or clearly marked general-knowledge nature is not an unsupported source claim merely because it is absent from CURRENT_MANIFEST. Do not require a blockquote for a user-supplied identifier or preservation token unless the answer is actually presenting it as quoted evidence. A natural complete sentence that introduces a following list, quotation, or example may end with a colon and is not a colon pseudo-heading. Check source completeness, facts, conditions, scope, numbers, exceptions, all parts of professional first use, title necessity and level, colon pseudo-headings, semicolon scope, internal evidence-label leakage, and whether each proposed repair can stay within one token, phrase, or sentence. Use REVIEW_REQUIRED only when no safe token, phrase, sentence, or manifest-only repair exists.
+
+When prior feedback explicitly preserves a mechanism or explanation from a frozen legacy draft, treat that named content as user-supplied preservation evidence rather than demanding a new external source. If an important limitation needs a next check but no procedure source is supplied, use only a natural non-factual direction such as “需要进一步核对相关条件”; do not invent diagnostic measurements or procedures. When CURRENT_MANIFEST sets boundary visibility to `internal` and prior feedback requires the boundary to stay hidden, do not demand user-visible boundary prose merely because the internal source ledger has limited coverage; override `internal` only for a concrete conclusion, operation, or safety consequence supported by the request.
 
 PRIOR_USER_FEEDBACK:
 {json.dumps(feedback, ensure_ascii=False)}
@@ -466,6 +472,32 @@ def apply_closure_transaction(
     if len(after_findings) >= len(before_findings):
         raise PatchError("manifest-only repair did not reduce deterministic findings")
     return answer
+
+
+def evidence_scope_findings(answer: str, evidence: dict[str, Any]) -> list[dict[str, Any]]:
+    """Protect explicit non-exhaustive scope in declared background claims."""
+
+    findings: list[dict[str, Any]] = []
+    for index, item in enumerate(evidence.get("background_claims", []), start=1):
+        claim = str(item.get("claim", ""))
+        if "等" in claim and not re.search(r"等(?:位置|情况|项目|内容|原因|因素|条件|范围|方式|[，、和与]|$)|其他|不限于|不止", answer):
+            findings.append({
+                "finding_id": f"EVIDENCE_SCOPE_MARKER:BG-{index:03d}:等",
+                "rule_id": "EVIDENCE_SCOPE_MARKER",
+                "status": "FAIL",
+                "location": f"BACKGROUND-{index:03d}",
+                "old_text": "等",
+                "reason": "已登记背景主张的非穷尽范围没有保留在答案中",
+                "repair_scope": "phrase",
+                "source": "deterministic",
+            })
+    return merge_findings(findings)
+
+
+def closure_deterministic_findings(
+    answer: str, manifest: dict[str, Any], evidence: dict[str, Any],
+) -> list[dict[str, Any]]:
+    return merge_findings(deterministic_findings(answer, manifest), evidence_scope_findings(answer, evidence))
 
 
 def parse_json_body(result: dict[str, Any], schema_name: str) -> dict[str, Any]:
@@ -609,7 +641,7 @@ def run_case(
 
     for repair_round in range(1, 4):
         before_answer = answer
-        deterministic = deterministic_findings(answer, manifest)
+        deterministic = closure_deterministic_findings(answer, manifest, evidence)
         semantic, review_result, review_violations = semantic_review(
             args, model, case_root, repair_round, request, answer, manifest, feedback, auth, evidence,
         )
@@ -674,7 +706,7 @@ def run_case(
         answer = patched_answer
         manifest = patch_payload["updated_manifest"]
         previous_patch_rejection = None
-        remaining = deterministic_findings(answer, manifest)
+        remaining = closure_deterministic_findings(answer, manifest, evidence)
         after = sha256_text(answer)
         rounds.append({
             "round": repair_round, "reread_rules": True,
@@ -704,7 +736,7 @@ def run_case(
         })
 
     if status == "FAIL":
-        deterministic = deterministic_findings(answer, manifest)
+        deterministic = closure_deterministic_findings(answer, manifest, evidence)
         semantic, review_result, review_violations = semantic_review(
             args, model, case_root, 4, request, answer, manifest, feedback, auth, evidence,
         )
@@ -735,7 +767,7 @@ def run_case(
         "skill_tree_sha256": getattr(args, "skill_tree_sha256", runtime_tree_digest()),
         "closure_runner_sha256": getattr(args, "closure_runner_sha256", closure_runner_digest()),
         "status": status, "first_draft_sha256": first_hash, "final_sha256": sha256_text(answer),
-        "repair_rounds": len(rounds), "first_attempt_hard_errors": len(deterministic_findings(initial["answer"], initial_manifest)),
+        "repair_rounds": len(rounds), "first_attempt_hard_errors": len(closure_deterministic_findings(initial["answer"], initial_manifest, evidence)),
         "access_violation_count": len(set(violations)), "preservation_status": preservation_status,
         "preservation_sha256": digest_json(final_preservation), "answer": answer,
         "source_units": initial["source_units"], "support_map": initial["support_map"],

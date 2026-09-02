@@ -88,6 +88,12 @@ registry:
     EXCESSIVE_BLANK_LINES:
       severity: MACHINE_FINAL
       description: 连续两个以上空行会造成无意义纵向稀疏，确定性检查直接阻断
+    MISSING_BLOCK_SEPARATOR:
+      severity: MACHINE_FINAL
+      description: 普通正文与随后列表之间必须保留一个空行，避免块级结构粘连
+    EVIDENCE_SCOPE_MARKER:
+      severity: MACHINE_FINAL
+      description: 已登记背景主张的非穷尽范围不能在局部修复中被收窄为封闭清单
     INLINE_CODE_MARKUP:
       severity: MACHINE_FINAL
       description: 任务合同登记的命令、字段、路径和代码标识必须使用反引号

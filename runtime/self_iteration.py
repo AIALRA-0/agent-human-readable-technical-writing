@@ -140,6 +140,20 @@ def deterministic_findings(answer: str, manifest: Mapping[str, Any] | None = Non
                 "PARENTHETICAL_ENGLISH_CASE", location, match.group(0),
                 "括号内普通英文没有使用标题式大小写或登记的官方写法", "token",
             ))
+    lines = answer.splitlines()
+    for index, line in enumerate(lines[1:], start=1):
+        previous = lines[index - 1]
+        if (
+            line.strip()
+            and re.match(r"^\s{0,3}(?:[-*+]\s+|\d+[.)]\s+)", line)
+            and previous.strip()
+            and not re.match(r"^\s{0,3}(?:[-*+]\s+|\d+[.)]\s+)", previous)
+            and not previous.lstrip().startswith((">", "#"))
+        ):
+            findings.append(_finding(
+                "MISSING_BLOCK_SEPARATOR", f"LINE-{index + 1:04d}", line,
+                "普通正文与随后列表之间缺少空行", "token",
+            ))
     if re.search(r"\n[ \t]*\n[ \t]*\n", answer):
         findings.append(_finding(
             "EXCESSIVE_BLANK_LINES", "DOCUMENT", "\n\n\n",
