@@ -31,6 +31,12 @@ CLEAN_AGENT_DISABLED_FEATURES = (
     "skill_mcp_dependency_install", "tool_suggest", "browser_use",
     "computer_use", "image_generation", "in_app_browser",
 )
+CLEAN_SKILL_PATH_INSTRUCTION = (
+    "Read installed Skill files only from the task-specific "
+    "`AIALRA_EVAL_SKILL_ROOT` environment variable. In PowerShell, join relative paths "
+    "to `$env:AIALRA_EVAL_SKILL_ROOT`; never type, infer, split, or reconstruct an absolute "
+    "run-root path. Do not probe an alternative path if a read fails."
+)
 WRITE_LOCK = Lock()
 
 sys.path.insert(0, str(ROOT))
@@ -523,9 +529,10 @@ def evidence_scope_findings(answer: str, evidence: dict[str, Any]) -> list[dict[
     """Protect explicit non-exhaustive scope in declared background claims."""
 
     findings: list[dict[str, Any]] = []
+    marker = r"等(?:位置|情况|项目|内容|原因|因素|条件|范围|方式|处|方面|环节|部位|[，、和与]|$)"
     for index, item in enumerate(evidence.get("background_claims", []), start=1):
         claim = str(item.get("claim", ""))
-        if "等" in claim and not re.search(r"等(?:位置|情况|项目|内容|原因|因素|条件|范围|方式|[，、和与]|$)|其他|不限于|不止", answer):
+        if re.search(marker, claim) and not re.search(rf"{marker}|其他|不限于|不止", answer):
             findings.append({
                 "finding_id": f"EVIDENCE_SCOPE_MARKER:BG-{index:03d}:等",
                 "rule_id": "EVIDENCE_SCOPE_MARKER",
@@ -582,13 +589,17 @@ def start_agent(
 ) -> dict[str, Any]:
     environment = os.environ.copy()
     environment["CODEX_HOME"] = str(codex_home)
+    environment["AIALRA_EVAL_SKILL_ROOT"] = str(
+        codex_home / "skills" / "human-readable-technical-writing"
+    )
+    safe_prompt = f"{CLEAN_SKILL_PATH_INSTRUCTION}\n\n{prompt}"
     schema_path = codex_home / "skills" / "human-readable-technical-writing" / "contracts" / schema_name
     command = [
         args.codex, "exec", "--json", "--skip-git-repo-check", "--ignore-user-config",
         "--ignore-rules", "-c", 'web_search="disabled"', "--model", model,
         "-c", f'model_reasoning_effort="{args.reasoning_effort}"',
         "--approve-for-me", "--output-schema", str(schema_path),
-        "-C", str(task_root), prompt,
+        "-C", str(task_root), safe_prompt,
     ]
     for feature in CLEAN_AGENT_DISABLED_FEATURES:
         command[2:2] = ["--disable", feature]
@@ -601,12 +612,16 @@ def resume_agent(
 ) -> dict[str, Any]:
     environment = os.environ.copy()
     environment["CODEX_HOME"] = str(codex_home)
+    environment["AIALRA_EVAL_SKILL_ROOT"] = str(
+        codex_home / "skills" / "human-readable-technical-writing"
+    )
+    safe_prompt = f"{CLEAN_SKILL_PATH_INSTRUCTION}\n\n{prompt}"
     schema_path = codex_home / "skills" / "human-readable-technical-writing" / "contracts" / schema_name
     command = [
         args.codex, "exec", "resume", "--json", "--ignore-user-config", "-c", 'web_search="disabled"',
         "--ignore-rules", "--skip-git-repo-check",
         "--model", model, "-c", f'model_reasoning_effort="{args.reasoning_effort}"',
-        "--output-schema", str(schema_path), session_id, prompt,
+        "--output-schema", str(schema_path), session_id, safe_prompt,
     ]
     for feature in CLEAN_AGENT_DISABLED_FEATURES:
         command[3:3] = ["--disable", feature]

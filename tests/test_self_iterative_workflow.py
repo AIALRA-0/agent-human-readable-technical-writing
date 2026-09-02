@@ -106,8 +106,14 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
             )
         self.assertEqual(result, {"ok": True})
         command = mocked.call_args.args[0]
+        environment = mocked.call_args.args[1]
         disabled = [command[index + 1] for index, value in enumerate(command[:-1]) if value == "--disable"]
         self.assertEqual(set(disabled), set(matrix.CLEAN_AGENT_DISABLED_FEATURES))
+        self.assertEqual(
+            environment["AIALRA_EVAL_SKILL_ROOT"],
+            str(Path("clean-home") / "skills" / "human-readable-technical-writing"),
+        )
+        self.assertIn("never type, infer, split, or reconstruct an absolute run-root path", command[-1])
 
     def test_case_filter_is_exposed_for_isolated_diagnostics(self) -> None:
         source = (ROOT / "scripts" / "run_iterative_forward_matrix.py").read_text(encoding="utf-8")
@@ -308,6 +314,17 @@ limit = 3
         }]}
         findings = matrix.evidence_scope_findings("电源内阻、导线和接头会出现压降", evidence)
         self.assertEqual({item["old_text"] for item in findings}, {"等"})
+        self.assertEqual(
+            matrix.evidence_scope_findings("电源内阻、导线和接头等处会出现压降", evidence),
+            [],
+        )
+
+    def test_waiting_is_not_misread_as_a_non_exhaustive_scope_marker(self) -> None:
+        evidence = {"background_claims": [{
+            "claim": "配对窗口指设备等待连接的时段",
+            "source_reference": "INFERENCE：基于来源的术语就近解释",
+        }]}
+        self.assertEqual(matrix.evidence_scope_findings("设备等待连接", evidence), [])
 
     def test_manifest_only_repair_must_reduce_deterministic_findings(self) -> None:
         answer = "- 电源内部\n- 连接线路"
