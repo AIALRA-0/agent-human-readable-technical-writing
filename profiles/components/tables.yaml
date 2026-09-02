@@ -8,11 +8,15 @@ profile:
       policy: before_explanation
       severity: PROFILE_REQUIRED
       description: 原表保留在解释前面，读者可以直接核对数据
+    source_integrity:
+      policy: preserve_headers_columns_rows_cells_and_order
+      severity: PROFILE_REQUIRED
+      description: 解释不得新增、删除、重排列或把说明塞入数据格；适配媒介时只转换外层标记，原表数据与结构必须保持可核对
   presentation:
     alignment:
       policy: github_render_verified_html
       severity: PROFILE_REQUIRED
-      description: GitHub 表格使用可访问 HTML 和居中容器，表题放在表格下方，并在 1280 像素与 390 像素、亮色与暗色主题中核对实际居中和横向溢出
+      description: 仅当任务合同 renderer 为 github_markdown 时，GitHub 表格使用可访问 HTML 和居中容器，表题放在表格下方，并在 1280 像素与 390 像素、亮色与暗色主题中核对实际居中和横向溢出；其他媒介登记适用限制
   required_coverage:
     overview:
       description: 说明表格整体回答什么
@@ -42,3 +46,7 @@ profile:
       description: 解释阅读方法、主要关系、趋势、异常和结论
     appendix:
       description: 只有大型表格需要逐格审计时才生成单元格附录
+  completion_gate:
+    policy: source_integrity_before_external_explanation
+    severity: PROFILE_REQUIRED
+    description: 先完成原表结构与数据核对，再在表格外说明列、行、值、异常、比较和限制；解释列不能替代原表，也不能改变原表列数

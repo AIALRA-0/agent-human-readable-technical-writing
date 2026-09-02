@@ -9,7 +9,7 @@
   },
   "scope": {
     "first_attempt": "R1",
-    "last_attempt": "Q49",
+    "last_attempt": "Q50",
     "formal_qualification_completed": false,
     "note": "这些记录只证明编排器开发过程，不能替代正式 60 项三模型资格结果"
   },
@@ -273,6 +273,16 @@
       "terminal": "ABORTED_NOT_REVIEWABLE",
       "observed_failure": "资格运行只建立三个未完成任务目录，用户中断发生在任何原子结果、公开结果或私有报告写入以前",
       "resulting_change": "永久保留私有原始目录，禁止恢复或物化，使用新资格编号从零开始"
+    },
+    {
+      "attempt_id": "Q50",
+      "kind": "qualification_attempt",
+      "planned": 60,
+      "completed": 24,
+      "passed": 21,
+      "terminal": "FAIL_FAST",
+      "observed_failure": "027 Luna 在三轮最小修复和终审后仍缺少图片元素功能说明，028 Terra 未保留原表结构并缺少可证明的呈现证据，028 Luna 宿主超时并在同批终态失败触发 fail-fast 后不再调度重试",
+      "resulting_change": "永久保留 Q50 私有原始报告和运行目录，不物化为正式资格结果；确认 fail-fast 对并发宿主错误的收尾语义，并补强图片、表格组件的通用生成前检查后，使用新资格编号重新开始"
     }
   ]
 }

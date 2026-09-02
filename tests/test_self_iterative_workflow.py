@@ -37,6 +37,9 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIsInstance(prompt, str)
         self.assertIn("FWD-R2-021", prompt)
         self.assertIn("never invent a measurement", prompt)
+        self.assertIn("component preflight", prompt)
+        self.assertIn("never add an explanation column", prompt)
+        self.assertIn("each effective element's function", prompt)
 
     def test_semantic_prompt_requires_evidence_before_term_escalation(self) -> None:
         evidence = {"background_claims": [{"claim": "压降机制", "source_reference": "基础电路原理"}]}
@@ -61,6 +64,9 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("jointly define one method or state", prompt)
         self.assertIn("inspect every parenthetical English phrase", prompt)
         self.assertIn("reject any newly invented measurement", prompt)
+        self.assertIn("added decision or explanation column", prompt)
+        self.assertIn("location-only statement is incomplete", prompt)
+        self.assertIn("Require GitHub render evidence only when", prompt)
 
     def test_first_review_completion_prompt_requires_all_dimensions(self) -> None:
         prompt = matrix.review_completion_prompt([{
@@ -72,6 +78,8 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("parallel group", prompt)
         self.assertIn("pseudo-heading", prompt)
         self.assertIn("unsupported procedures", prompt)
+        self.assertIn("per-element function", prompt)
+        self.assertIn("table source structure", prompt)
         self.assertIn("minimum patch scope", prompt)
 
     def test_registered_official_english_contains_safety_terms(self) -> None:

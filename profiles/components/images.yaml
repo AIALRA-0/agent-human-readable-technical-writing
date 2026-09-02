@@ -12,7 +12,7 @@ profile:
     alignment:
       policy: github_render_verified_center
       severity: PROFILE_REQUIRED
-      description: GitHub 图片与图题放入同一居中 HTML 容器，并在 1280 像素与 390 像素、亮色与暗色主题中核对实际居中和横向溢出
+      description: 仅当任务合同 renderer 为 github_markdown 时，GitHub 图片与图题放入同一居中 HTML 容器，并在 1280 像素与 390 像素、亮色与暗色主题中核对实际居中和横向溢出；其他媒介登记适用限制
     asset_quality:
       policy: separate_from_writing_quality
       severity: ADVISORY
@@ -32,6 +32,10 @@ profile:
       description: 说明图片支持的实际判断和影响
     limits:
       description: 说明缺少的证据、缺少这些证据为什么重要以及下一项验证方法
+  completion_gate:
+    policy: overview_reading_start_element_function_relationship_impact_limit
+    severity: PROFILE_REQUIRED
+    description: 每个有效元素必须同时有可定位的功能或作用说明；只有位置、外观或元素名称而没有功能与整体关系时，图片解释不完整；素材未提供功能依据时自然说明无法从图中确认
   provenance_layers:
     visible_fact:
       description: 图片直接显示的内容
