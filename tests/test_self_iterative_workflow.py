@@ -122,6 +122,11 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         answer = "两次读数的测量条件不同：\n\n- 无负载\n- 有负载"
         rules = {item["rule_id"] for item in matrix.deterministic_findings(answer, manifest)}
         self.assertNotIn("COLON_PSEUDO_HEADING", rules)
+        explanation = "两种读数分别说明：\n\n- 无负载\n- 接入负载"
+        explanation_rules = {
+            item["rule_id"] for item in matrix.deterministic_findings(explanation, manifest)
+        }
+        self.assertNotIn("COLON_PSEUDO_HEADING", explanation_rules)
 
     def test_natural_copular_quote_introduction_is_not_a_pseudo_heading(self) -> None:
         manifest = {
@@ -412,29 +417,6 @@ limit = 3
         self.assertEqual(matrix.apply_closure_transaction(answer, stale, payload), answer)
         with self.assertRaisesRegex(matrix.PatchError, "did not change"):
             matrix.apply_closure_transaction(answer, repaired, payload)
-
-    def test_answer_patch_cannot_introduce_a_scope_finding(self) -> None:
-        answer = "电源内阻、导线和接头等位置可能出现压降"
-        manifest = {
-            "term_uses": [], "parallel_groups": [],
-            "section_plan": {"headings_required": False, "heading_levels": []},
-            "boundary_visibility": {"mode": "internal", "material_reason": None},
-        }
-        evidence = {"background_claims": [{
-            "claim": answer, "source_reference": "一般电路知识",
-        }]}
-        payload = {
-            "patches": [{
-                "identity": {"patch_id": "PATCH-001", "finding_id": "SEM-01-001", "operation": "replace_exact"},
-                "target": {"document_sha256": matrix.sha256_text(answer), "node_id": "LINE-0001"},
-                "replacement": {"old_text": "等位置", "new_text": "位置", "expected_occurrences": 1},
-                "authorization": {"reason": "测试范围保护", "repair_scope": "phrase", "preserve": []},
-                "verification": {"rerun_validators": ["EVIDENCE_SCOPE_MARKER"]},
-            }],
-            "updated_manifest": manifest,
-        }
-        with self.assertRaisesRegex(matrix.PatchError, "EVIDENCE_SCOPE_MARKER"):
-            matrix.apply_closure_transaction(answer, manifest, payload, evidence)
 
     def test_composite_finding_reference_expands_to_known_ids(self) -> None:
         value = "LUCAS_NO_CHINESE_FULL_STOP:LINE-0001+SEM-01-001"

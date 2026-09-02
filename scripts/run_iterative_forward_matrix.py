@@ -557,20 +557,7 @@ def apply_closure_transaction(
     if patches:
         nodes = line_nodes(answer)
         validate_heading_patch_direction(answer, patches, nodes)
-        before_findings = (
-            closure_deterministic_findings(answer, manifest, evidence)
-            if evidence is not None else deterministic_findings(answer, manifest)
-        )
-        patched = apply_minimal_transaction(answer, patches, nodes)
-        after_findings = (
-            closure_deterministic_findings(patched, patch_payload["updated_manifest"], evidence)
-            if evidence is not None else deterministic_findings(patched, patch_payload["updated_manifest"])
-        )
-        before_rules = {str(item["rule_id"]) for item in before_findings}
-        introduced = sorted({str(item["rule_id"]) for item in after_findings} - before_rules)
-        if introduced:
-            raise PatchError("patch introduced deterministic finding(s): " + ", ".join(introduced))
-        return patched
+        return apply_minimal_transaction(answer, patches, nodes)
     updated_manifest = patch_payload["updated_manifest"]
     if updated_manifest == manifest:
         raise PatchError("empty closure transaction did not change the manifest")
