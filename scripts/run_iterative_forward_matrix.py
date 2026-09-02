@@ -13,11 +13,13 @@ import subprocess
 import sys
 from collections import deque
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
+from functools import lru_cache
 from pathlib import Path
 from threading import Lock
 from typing import Any, Iterable
 
 import jsonschema
+import yaml
 from referencing import Registry, Resource
 
 
@@ -424,6 +426,133 @@ CURRENT_ANSWER:
 """
 
 
+def review_completion_prompt(first_findings: list[dict[str, Any]]) -> str:
+    """Force one same-session completeness pass before the first repair transaction."""
+
+    return f"""The answer and manifest have not changed since your first semantic review
+
+Perform one same-session completeness pass before the repair Agent sees any finding
+Return the same review schema and include every still-valid first-pass finding plus every blocker you missed
+Do not rewrite the answer and do not defer a visible problem to a later repair round
+
+Check these dimensions independently and in this order:
+1. source facts, conditions, scope, numbers, exceptions, and required identifiers
+2. every professional term's grounded identity and complete first semantic occurrence
+3. every parallel group, nested list, semicolon, and natural list introduction
+4. section necessity, heading level, and colon pseudo-heading boundaries
+5. evidence limitation, actual impact, next-check direction, and unsupported procedures
+6. minimum patch scope and whether all current findings can be repaired together
+
+FIRST_PASS_FINDINGS:
+{json.dumps(first_findings, ensure_ascii=False, indent=2)}
+"""
+
+
+@lru_cache(maxsize=1)
+def registered_official_english() -> frozenset[str]:
+    """Return official English forms grounded by the installed term registry."""
+
+    payload = yaml.safe_load((ROOT / "registries" / "terms.yaml").read_text(encoding="utf-8"))
+    values: set[str] = set()
+    for item in payload["registry"]["terms"].values():
+        if item.get("official_english"):
+            values.add(str(item["official_english"]))
+        official_form = str(item.get("official_form", ""))
+        values.update(re.findall(r"[（(]([A-Za-z][A-Za-z0-9'’+./ -]{1,100})[）)]", official_form))
+    return frozenset(values)
+
+
+@lru_cache(maxsize=1)
+def registered_term_markers() -> frozenset[str]:
+    """Return stable human-visible forms that identify a registered term."""
+
+    payload = yaml.safe_load((ROOT / "registries" / "terms.yaml").read_text(encoding="utf-8"))
+    values: set[str] = set(registered_official_english())
+    for item in payload["registry"]["terms"].values():
+        official_form = str(item.get("official_form", "")).strip()
+        if official_form:
+            values.add(official_form)
+            chinese_form = re.split(r"[（(]", official_form, maxsplit=1)[0].strip()
+            if len(chinese_form) >= 2:
+                values.add(chinese_form)
+    return frozenset(values)
+
+
+def term_declaration_grounded(term: dict[str, Any], evidence: dict[str, Any]) -> bool:
+    """Do not let a model-authored manifest certify its own official English."""
+
+    english = term.get("official_english")
+    if not english:
+        return True
+    value = str(english)
+    return (
+        value in registered_official_english()
+        or value in str(evidence.get("source_text_for_parenthetical_english", ""))
+    )
+
+
+def unsupported_term_declaration_findings(
+    answer: str, manifest: dict[str, Any], evidence: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Reject unsupported official-English claims even when the model declared them itself."""
+
+    findings: list[dict[str, Any]] = []
+    for index, term in enumerate(manifest.get("term_uses", []), start=1):
+        if term_declaration_grounded(term, evidence):
+            continue
+        english = str(term.get("official_english", ""))
+        parenthetical = next(
+            (value for value in (f"（{english}）", f"({english})") if value in answer),
+            english,
+        )
+        findings.append({
+            "finding_id": f"UNVERIFIED_OFFICIAL_CASE:TERM-{index:03d}",
+            "rule_id": "UNVERIFIED_OFFICIAL_CASE",
+            "status": "FAIL",
+            "location": f"CURRENT_MANIFEST.term_uses[{index - 1}]",
+            "old_text": parenthetical,
+            "reason": "模型自报的官方英文既不在术语表中，也不在用户请求或冻结种子中；删除新增括号英文和对应术语声明，不要仅调整大小写",
+            "repair_scope": "phrase",
+            "source": "deterministic",
+        })
+    return findings
+
+
+def filter_ungrounded_professional_findings(
+    findings: list[dict[str, Any]], manifest: dict[str, Any], evidence: dict[str, Any],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Ignore reviewer attempts to promote unsupported topic labels into professional terms."""
+
+    grounded_terms = [
+        item for item in manifest.get("term_uses", [])
+        if term_declaration_grounded(item, evidence)
+    ]
+    source_text = str(evidence.get("source_text_for_parenthetical_english", ""))
+    registry_markers = registered_term_markers()
+    kept: list[dict[str, Any]] = []
+    discarded: list[dict[str, Any]] = []
+    for item in findings:
+        rule_id = str(item.get("rule_id", "")).upper()
+        if "PROFESSIONAL_FIRST_USE" not in rule_id and "TERM_FIRST_USE" not in rule_id:
+            kept.append(item)
+            continue
+        target = f"{item.get('location', '')}\n{item.get('old_text', '')}"
+        grounded = any(
+            str(term.get("term", "")) in target
+            or str(term.get("official_english", "")) in target
+            for term in grounded_terms
+            if term.get("term") or term.get("official_english")
+        )
+        grounded = grounded or any(marker in target for marker in registry_markers)
+        target_english = re.findall(r"[A-Za-z][A-Za-z0-9'’+./ -]{1,100}", target)
+        grounded = grounded or any(value.strip() in source_text for value in target_english)
+        if grounded:
+            kept.append(item)
+        else:
+            discarded.append(item)
+    return kept, discarded
+
+
 def patch_prompt(
     answer: str,
     manifest: dict[str, Any],
@@ -640,6 +769,7 @@ def closure_deterministic_findings(
         ),
         evidence_scope_findings(answer, evidence),
         required_reference_findings(answer, evidence),
+        unsupported_term_declaration_findings(answer, manifest, evidence),
     )
 
 
@@ -714,14 +844,35 @@ def semantic_review(
         "closure-review-output.schema.json",
     )
     payload = parse_json_body(result, "closure-review-output.schema.json")
+    review_results = [result]
+    raw_findings = list(payload["findings"])
+    if round_number == 1:
+        if not result.get("thread_id"):
+            raise RuntimeError("reviewer session id is missing; completeness rescan is impossible")
+        completion_result = resume_agent(
+            args, model, home, result["thread_id"],
+            review_completion_prompt(raw_findings), "closure-review-output.schema.json",
+        )
+        completion_payload = parse_json_body(completion_result, "closure-review-output.schema.json")
+        review_results.append(completion_result)
+        raw_findings = merge_findings(raw_findings, completion_payload["findings"])
+    raw_findings, host_filtered = filter_ungrounded_professional_findings(
+        raw_findings, manifest, evidence or {},
+    )
     findings = []
-    for index, raw in enumerate(payload["findings"], start=1):
+    for index, raw in enumerate(raw_findings, start=1):
         item = dict(raw)
         item["finding_id"] = f"SEM-{round_number:02d}-{index:03d}"
         item["source"] = "semantic"
         findings.append(item)
-    violations = access_violations(result["events"], [reviewer_root])
-    return findings, result, violations
+    combined_result = dict(result)
+    combined_result["events"] = [
+        event for review_result in review_results for event in review_result["events"]
+    ]
+    combined_result["review_passes"] = len(review_results)
+    combined_result["host_filtered_findings"] = host_filtered
+    violations = access_violations(combined_result["events"], [reviewer_root])
+    return findings, combined_result, violations
 
 
 def run_case(
@@ -802,11 +953,20 @@ def run_case(
             status = "PASS"
             if rounds:
                 rounds[-1]["result_status"] = "PASS"
-            private_iterations.append({"round": repair_round, "answer": answer, "deterministic": [], "semantic": [], "review_events": review_result["events"]})
+            private_iterations.append({
+                "round": repair_round, "answer": answer, "deterministic": [], "semantic": [],
+                "review_events": review_result["events"],
+                "review_host_filters": review_result.get("host_filtered_findings", []),
+            })
             break
         if any(item.get("status") == "REVIEW_REQUIRED" for item in combined):
             status = "REVIEW_REQUIRED"
-            private_iterations.append({"round": repair_round, "answer": answer, "deterministic": deterministic, "semantic": semantic, "review_events": review_result["events"]})
+            private_iterations.append({
+                "round": repair_round, "answer": answer,
+                "deterministic": deterministic, "semantic": semantic,
+                "review_events": review_result["events"],
+                "review_host_filters": review_result.get("host_filtered_findings", []),
+            })
             break
         before = sha256_text(answer)
         patch_result = resume_agent(
@@ -856,6 +1016,7 @@ def run_case(
                 "patch_id_mapping": patch_id_mapping,
                 "patch_rejection": previous_patch_rejection,
                 "review_events": review_result["events"], "patch_events": patch_result["events"],
+                "review_host_filters": review_result.get("host_filtered_findings", []),
             })
             continue
         answer = patched_answer
@@ -888,6 +1049,7 @@ def run_case(
             "patches": patch_payload["patches"], "submitted_patches": submitted_patch_payload["patches"],
             "patch_id_mapping": patch_id_mapping,
             "review_events": review_result["events"], "patch_events": patch_result["events"],
+            "review_host_filters": review_result.get("host_filtered_findings", []),
         })
 
     if status == "FAIL":
@@ -899,7 +1061,12 @@ def run_case(
         status = "PASS" if not merge_findings(deterministic, semantic) else "REVIEW_REQUIRED"
         if status == "PASS" and rounds:
             rounds[-1]["result_status"] = "PASS"
-        private_iterations.append({"round": "final-review", "answer": answer, "deterministic": deterministic, "semantic": semantic, "review_events": review_result["events"]})
+        private_iterations.append({
+            "round": "final-review", "answer": answer,
+            "deterministic": deterministic, "semantic": semantic,
+            "review_events": review_result["events"],
+            "review_host_filters": review_result.get("host_filtered_findings", []),
+        })
 
     if violations:
         status = "REVIEW_REQUIRED"

@@ -62,6 +62,119 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("inspect every parenthetical English phrase", prompt)
         self.assertIn("reject any newly invented measurement", prompt)
 
+    def test_first_review_completion_prompt_requires_all_dimensions(self) -> None:
+        prompt = matrix.review_completion_prompt([{
+            "rule_id": "SOURCE_FACT", "status": "FAIL", "location": "LINE-0001",
+            "old_text": "旧文", "reason": "缺少来源事实", "repair_scope": "sentence",
+        }])
+        self.assertIn("same-session completeness pass", prompt)
+        self.assertIn("professional term", prompt)
+        self.assertIn("parallel group", prompt)
+        self.assertIn("pseudo-heading", prompt)
+        self.assertIn("unsupported procedures", prompt)
+        self.assertIn("minimum patch scope", prompt)
+
+    def test_registered_official_english_contains_safety_terms(self) -> None:
+        values = matrix.registered_official_english()
+        self.assertIn("Lockout", values)
+        self.assertIn("Residual Pressure", values)
+
+    def test_model_manifest_cannot_self_certify_unsupported_official_english(self) -> None:
+        manifest = {
+            "term_uses": [{
+                "term": "开路电压", "official_english": "Open-Circuit Voltage",
+                "first_use_text": "开路电压（Open-Circuit Voltage）",
+            }],
+            "parallel_groups": [],
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        unsupported = matrix.closure_deterministic_findings(
+            "开路电压（Open-Circuit Voltage）为 12.6 V", manifest,
+            {"source_text_for_parenthetical_english": "开路电压读数为 12.6 V"},
+        )
+        self.assertIn("UNVERIFIED_OFFICIAL_CASE", {item["rule_id"] for item in unsupported})
+        manifest["term_uses"][0] = {
+            "term": "上锁隔离", "official_english": "Lockout",
+            "first_use_text": "上锁隔离（Lockout）",
+        }
+        registered = matrix.closure_deterministic_findings(
+            "上锁隔离（Lockout）可防止设备意外启动", manifest,
+            {"source_text_for_parenthetical_english": ""},
+        )
+        self.assertNotIn("UNVERIFIED_OFFICIAL_CASE", {item["rule_id"] for item in registered})
+        manifest["term_uses"][0] = {
+            "term": "开路电压", "official_english": "Open-Circuit Voltage",
+            "first_use_text": "开路电压（Open-Circuit Voltage）",
+        }
+        supplied = matrix.closure_deterministic_findings(
+            "开路电压（Open-Circuit Voltage）为 12.6 V", manifest,
+            {"source_text_for_parenthetical_english": "Source term: Open-Circuit Voltage"},
+        )
+        self.assertNotIn("UNVERIFIED_OFFICIAL_CASE", {item["rule_id"] for item in supplied})
+
+    def test_semantic_term_filter_keeps_only_grounded_professional_terms(self) -> None:
+        findings = [
+            {
+                "rule_id": "TERM_FIRST_USE_COMPLETE", "status": "FAIL",
+                "location": "开路电压", "old_text": "开路电压",
+                "reason": "增加官方英文", "repair_scope": "phrase",
+            },
+            {
+                "rule_id": "PROFESSIONAL_FIRST_USE", "status": "FAIL",
+                "location": "上锁隔离", "old_text": "上锁隔离",
+                "reason": "补全注册术语", "repair_scope": "sentence",
+            },
+        ]
+        kept, discarded = matrix.filter_ungrounded_professional_findings(findings, {}, {})
+        self.assertEqual([item["old_text"] for item in kept], ["上锁隔离"])
+        self.assertEqual([item["old_text"] for item in discarded], ["开路电压"])
+
+    def test_first_semantic_review_rescans_in_same_clean_session(self) -> None:
+        first = {
+            "findings": [{
+                "rule_id": "SOURCE_FACT", "status": "FAIL", "location": "LINE-0001",
+                "old_text": "甲", "reason": "缺少事实", "repair_scope": "sentence",
+            }],
+        }
+        completion = {
+            "findings": [
+                first["findings"][0],
+                {
+                    "rule_id": "COLON_PSEUDO_HEADING", "status": "FAIL",
+                    "location": "LINE-0002", "old_text": "操作：",
+                    "reason": "冒号伪标题", "repair_scope": "phrase",
+                },
+            ],
+        }
+        first_result = {
+            "exit_code": 0, "stderr": "", "events": [{"type": "first"}],
+            "body": json.dumps(first, ensure_ascii=False), "thread_id": "review-session",
+        }
+        completion_result = {
+            "exit_code": 0, "stderr": "", "events": [{"type": "completion"}],
+            "body": json.dumps(completion, ensure_ascii=False), "thread_id": "review-session",
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            auth = root / "auth.json"
+            auth.write_text("{}", encoding="utf-8")
+            with (
+                patch.object(matrix, "install_candidate"),
+                patch.object(matrix, "start_agent", return_value=first_result),
+                patch.object(matrix, "resume_agent", return_value=completion_result) as resumed,
+                patch.object(matrix, "access_violations", return_value=[]),
+            ):
+                findings, result, violations = matrix.semantic_review(
+                    argparse.Namespace(), "gpt-5.6-sol", root / "case", 1,
+                    {}, "甲\n操作：", {}, [], auth, {},
+                )
+        self.assertEqual([item["rule_id"] for item in findings], ["SOURCE_FACT", "COLON_PSEUDO_HEADING"])
+        self.assertEqual(result["review_passes"], 2)
+        self.assertEqual([item["type"] for item in result["events"]], ["first", "completion"])
+        self.assertEqual(violations, [])
+        resumed.assert_called_once()
+
     def test_patch_prompt_front_loads_exact_count_and_separator_rules(self) -> None:
         manifest = {
             "term_uses": [], "parallel_groups": [],
