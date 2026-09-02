@@ -304,7 +304,7 @@ def deterministic_findings(answer: str, manifest: Mapping[str, Any] | None = Non
     if boundary.get("mode") == "natural_when_material" and not boundary.get("material_reason"):
         findings.append(_finding(
             "BOUNDARY_MATERIAL_REASON", "MANIFEST", "natural_when_material",
-            "正文显示重要限制，但没有登记为什么会影响结论、操作或安全", "phrase", status=REVIEW_REQUIRED,
+            "正文显示重要限制，但没有登记为什么会影响结论、操作或安全", "phrase",
         ))
     return merge_findings(findings)
 

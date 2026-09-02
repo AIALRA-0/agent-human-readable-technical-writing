@@ -469,6 +469,25 @@ limit = 3
         with self.assertRaisesRegex(matrix.PatchError, "did not change"):
             matrix.apply_closure_transaction(answer, repaired, payload)
 
+    def test_missing_boundary_reason_is_repairable_instead_of_terminal(self) -> None:
+        answer = "泵隔离后仍可能存在压力"
+        manifest = {
+            "term_uses": [], "parallel_groups": [],
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "boundary_visibility": {"mode": "natural_when_material", "material_reason": None},
+        }
+        finding = next(
+            item for item in matrix.deterministic_findings(answer, manifest)
+            if item["rule_id"] == "BOUNDARY_MATERIAL_REASON"
+        )
+        self.assertEqual(finding["status"], "FAIL")
+        repaired = json.loads(json.dumps(manifest))
+        repaired["boundary_visibility"] = {"mode": "internal", "material_reason": None}
+        self.assertEqual(
+            matrix.apply_closure_transaction(answer, manifest, {"patches": [], "updated_manifest": repaired}),
+            answer,
+        )
+
     def test_composite_finding_reference_expands_to_known_ids(self) -> None:
         value = "LUCAS_NO_CHINESE_FULL_STOP:LINE-0001+SEM-01-001"
         self.assertEqual(
