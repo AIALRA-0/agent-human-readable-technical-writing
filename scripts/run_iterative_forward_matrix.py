@@ -433,7 +433,7 @@ def patch_prompt(
     )
     return f"""Re-read the installed Skill rules named by these findings. Return only the exact patch object required by the output schema.
 
-Patch only the smallest complete erroneous unit. Allowed repair_scope values are token, phrase, and sentence. Do not replace a paragraph, section, adjacent sections, blueprint, or whole answer. A repair for a must-preserve finding must restore the named fact, condition, range, number, mechanism, relationship, or source unit in substance; do not replace it with an associated location, symptom, example, or conclusion. When deleting one complete list item, bind `old_text` to the whole list line including its marker and terminating newline, then replace that line with an empty string; do not leave an empty list marker or an extra blank line for a later repair round. When converting ordinary prose into a new top-level block list, keep or add the colon on its complete introductory sentence and include exactly one required blank line around that top-level block in the same sentence patch. When adding a nested list inside an existing list item, keep the parent and child list contiguous with no blank line; an indented continuation belonging to that item also stays contiguous. Do not create a missing-colon, missing-block-separator, or list-internal-blank defect for a later round. Preserve non-exhaustive scope markers such as 等位置, 等情况, 其他, 不限于, or 不止 when rearranging content unless the finding explicitly authorizes changing that scope. Every `updated_manifest.parallel_groups.item_texts` value must be one exact single-line substring in the patched answer and must never contain a newline. These are sentence-scope patches, not paragraph rewrites. Every answer patch in this transaction must bind the same CURRENT_SHA256 shown below, one supplied line node, exact old text, exact occurrence count, preservation requirements, and validators. Do not use a hash predicted from an earlier patch in the same batch. Never submit an answer patch whose old and new text are identical. Update the manifest to describe the patched answer without changing unrelated declarations. If every remaining defect is only a stale manifest declaration and the answer is already correct, return an empty `patches` array and change only `updated_manifest`; otherwise return at least one real answer patch.
+Patch only the smallest complete erroneous unit. Allowed repair_scope values are token, phrase, and sentence. Do not replace a paragraph, section, adjacent sections, blueprint, or whole answer. A repair for a must-preserve finding must restore the named fact, condition, range, number, mechanism, relationship, or source unit in substance; do not replace it with an associated location, symptom, example, or conclusion. One sentence patch may fix several supplied findings: join their exact finding IDs with `+` in `identity.finding_id`, and never add an unknown ID. When a colon pseudo-heading must become a Markdown heading, replace the complete line and put the marker before the title, for example `## 操作`; never append `##` after the title or replace only the colon. Put a professional term's official English immediately after that term, for example `残余压力（Residual Pressure）`; never attach it to a nearby verb such as `注意`. When deleting one complete list item, bind `old_text` to the whole list line including its marker and terminating newline, then replace that line with an empty string; do not leave an empty list marker or an extra blank line for a later repair round. When converting ordinary prose into a new top-level block list, keep or add the colon on its complete introductory sentence and include exactly one required blank line around that top-level block in the same sentence patch. When adding a nested list inside an existing list item, keep the parent and child list contiguous with no blank line; an indented continuation belonging to that item also stays contiguous. Do not create a missing-colon, missing-block-separator, or list-internal-blank defect for a later round. Preserve non-exhaustive scope markers such as 等位置, 等情况, 其他, 不限于, or 不止 when rearranging content unless the finding explicitly authorizes changing that scope. Every `updated_manifest.parallel_groups.item_texts` value must be one exact single-line substring in the patched answer and must never contain a newline. These are sentence-scope patches, not paragraph rewrites. Every answer patch in this transaction must bind the same CURRENT_SHA256 shown below, one supplied line node, exact old text, exact occurrence count, preservation requirements, and validators. Do not use a hash predicted from an earlier patch in the same batch. Before submitting, remove every patch whose `old_text` and `new_text` are identical; one no-op invalidates the whole transaction. Update the manifest to describe the patched answer without changing unrelated declarations. If every remaining defect is only a stale manifest declaration and the answer is already correct, return an empty `patches` array and change only `updated_manifest`; otherwise return at least one real answer patch.
 {rejection}
 
 CURRENT_SHA256:
@@ -520,6 +520,33 @@ def normalize_patch_ids(payload: dict[str, Any], start: int) -> tuple[dict[str, 
     return normalized, mappings
 
 
+def referenced_finding_ids(value: str) -> set[str]:
+    """Expand a composite reference used when one sentence patch fixes several findings."""
+
+    return {item for item in value.split("+") if item}
+
+
+def validate_heading_patch_direction(
+    answer: str, patches: list[dict[str, Any]], nodes: dict[str, tuple[int, int]],
+) -> None:
+    """Reject Markdown markers appended after a label instead of placed before it."""
+
+    for patch in patches:
+        finding_ids = referenced_finding_ids(str(patch["identity"]["finding_id"]))
+        new_text = str(patch["replacement"]["new_text"])
+        if not any(value.startswith("COLON_PSEUDO_HEADING:") for value in finding_ids):
+            continue
+        if "#" not in new_text:
+            continue
+        node_start, node_end = nodes[str(patch["target"]["node_id"])]
+        node_text = answer[node_start:node_end]
+        old_text = str(patch["replacement"]["old_text"])
+        if old_text.rstrip("\r\n") != node_text.rstrip("\r\n") or not re.match(r"^#{1,6}\s+\S", new_text):
+            raise PatchError(
+                "Markdown heading repair must replace the complete line and place the marker before the title"
+            )
+
+
 def apply_closure_transaction(
     answer: str, manifest: dict[str, Any], patch_payload: dict[str, Any],
     evidence: dict[str, Any] | None = None,
@@ -528,11 +555,13 @@ def apply_closure_transaction(
 
     patches = patch_payload["patches"]
     if patches:
+        nodes = line_nodes(answer)
+        validate_heading_patch_direction(answer, patches, nodes)
         before_findings = (
             closure_deterministic_findings(answer, manifest, evidence)
             if evidence is not None else deterministic_findings(answer, manifest)
         )
-        patched = apply_minimal_transaction(answer, patches, line_nodes(answer))
+        patched = apply_minimal_transaction(answer, patches, nodes)
         after_findings = (
             closure_deterministic_findings(patched, patch_payload["updated_manifest"], evidence)
             if evidence is not None else deterministic_findings(patched, patch_payload["updated_manifest"])
@@ -774,7 +803,11 @@ def run_case(
         )
         submitted_patch_payload = parse_json_body(patch_result, "closure-patch-output.schema.json")
         allowed_finding_ids = {str(item["finding_id"]) for item in combined}
-        submitted_finding_ids = {str(item["identity"]["finding_id"]) for item in submitted_patch_payload["patches"]}
+        submitted_finding_ids = {
+            finding_id
+            for item in submitted_patch_payload["patches"]
+            for finding_id in referenced_finding_ids(str(item["identity"]["finding_id"]))
+        }
         patch_payload, patch_id_mapping = normalize_patch_ids(submitted_patch_payload, next_patch_number)
         next_patch_number += len(patch_payload["patches"])
         violations.extend(access_violations(patch_result["events"], [worker_home.parent]))

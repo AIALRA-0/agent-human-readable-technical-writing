@@ -89,6 +89,9 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("must-preserve finding must restore", prompt)
         self.assertIn("nested list inside an existing list item", prompt)
         self.assertIn("Preserve non-exhaustive scope markers", prompt)
+        self.assertIn("join their exact finding IDs with `+`", prompt)
+        self.assertIn("put the marker before the title", prompt)
+        self.assertIn("one no-op invalidates the whole transaction", prompt)
 
     def test_initial_prompt_front_loads_preservation_and_background_support(self) -> None:
         prompt = matrix.initial_prompt(
@@ -432,6 +435,37 @@ limit = 3
         }
         with self.assertRaisesRegex(matrix.PatchError, "EVIDENCE_SCOPE_MARKER"):
             matrix.apply_closure_transaction(answer, manifest, payload, evidence)
+
+    def test_composite_finding_reference_expands_to_known_ids(self) -> None:
+        value = "LUCAS_NO_CHINESE_FULL_STOP:LINE-0001+SEM-01-001"
+        self.assertEqual(
+            matrix.referenced_finding_ids(value),
+            {"LUCAS_NO_CHINESE_FULL_STOP:LINE-0001", "SEM-01-001"},
+        )
+
+    def test_markdown_heading_repair_rejects_marker_after_title(self) -> None:
+        answer = "操作：\n"
+        manifest = {
+            "term_uses": [], "parallel_groups": [],
+            "section_plan": {"headings_required": True, "heading_levels": [2]},
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        payload = {
+            "patches": [{
+                "identity": {
+                    "patch_id": "PATCH-001",
+                    "finding_id": "COLON_PSEUDO_HEADING:LINE-0001",
+                    "operation": "replace_exact",
+                },
+                "target": {"document_sha256": matrix.sha256_text(answer), "node_id": "LINE-0001"},
+                "replacement": {"old_text": "：\n", "new_text": "## \n", "expected_occurrences": 1},
+                "authorization": {"reason": "测试标题方向", "repair_scope": "token", "preserve": []},
+                "verification": {"rerun_validators": ["COLON_PSEUDO_HEADING"]},
+            }],
+            "updated_manifest": manifest,
+        }
+        with self.assertRaisesRegex(matrix.PatchError, "marker before the title"):
+            matrix.apply_closure_transaction(answer, manifest, payload)
 
     def test_patch_schema_allows_manifest_only_repair(self) -> None:
         manifest = {
