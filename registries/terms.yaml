@@ -1,7 +1,7 @@
 registry:
   identity:
     registry_id: canonical-terms
-    revision: round-4-generalization
+    revision: round-6-self-iterative-cross-model
     description: 只登记真实审核中出现的术语，正式形式和解释要求按照独立阅读范围执行
   defaults:
     reading_scope:
@@ -22,6 +22,26 @@ registry:
         - actual_impact
       description: 括号内普通英文名称和类别使用标题式大小写，官方写法保持原样并具有最高优先级，解释通过相邻正文自然完成
   terms:
+    LOCKOUT:
+      official_form: 上锁隔离（Lockout）
+      official_english: Lockout
+      abbreviation: null
+      parenthetical_english_case: title_case
+      official_case_precedence: true
+      definition: 使用锁具把能源隔离装置固定在安全位置，防止设备在检修期间被意外启动或重新获得能源
+      name_rationale: Lockout 表示通过个人控制的锁具保持能源隔离状态
+      required_meanings: [definition, current_use, observable_behavior, actual_impact, name_origin]
+      source: https://www.osha.gov/etools/lockout-tagout/tutorial/definitions
+    RESIDUAL_PRESSURE:
+      official_form: 残余压力（Residual Pressure）
+      official_english: Residual Pressure
+      abbreviation: null
+      parenthetical_english_case: title_case
+      official_case_precedence: true
+      definition: 设备停止或能源隔离后仍保留在管路、容器或执行机构中的压力
+      name_rationale: Residual Pressure 表示主要能源已经隔离以后仍然残留的压力能量
+      required_meanings: [definition, current_use, observable_behavior, actual_impact, name_origin]
+      source: https://www.osha.gov/etools/lockout-tagout/hot-topics/energy-control-program/energy-control-circuitry-prohibition
     npm:
       official_form: npm
       official_english: null

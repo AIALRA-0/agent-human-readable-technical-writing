@@ -52,18 +52,25 @@ def input_chars(item: dict[str, Any]) -> int:
 
 
 def round_final_gold(round_number: int) -> bool:
-    """Return true only when all 20 origins end in explicitly accepted Gold."""
+    """Return true only when all 20 origins end in three explicitly accepted model Golds."""
 
     lifecycle = FORWARD / f"round-{round_number}" / "lifecycle"
     records = [json.loads(path.read_text(encoding="utf-8")) for path in lifecycle.rglob("*.json")]
-    chains: dict[str, list[dict[str, Any]]] = {}
+    chains: dict[tuple[str, str | None], list[dict[str, Any]]] = {}
     for record in records:
-        chains.setdefault(record["identity"]["origin_case_id"], []).append(record)
-    if len(chains) != 20:
+        identity = record["identity"]
+        chains.setdefault((identity["origin_case_id"], identity.get("model")), []).append(record)
+    expected_models = {"gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"}
+    origins = {origin for origin, _ in chains}
+    if len(origins) != 20 or len(chains) != 60:
         return False
     return all(
-        max(chain, key=lambda item: item["identity"]["revision"])["identity"]["status"] == "gold"
-        for chain in chains.values()
+        {model for current_origin, model in chains if current_origin == origin} == expected_models
+        and all(
+            max(chains[(origin, model)], key=lambda item: item["identity"]["revision"])["identity"]["status"] == "gold"
+            for model in expected_models
+        )
+        for origin in origins
     )
 
 

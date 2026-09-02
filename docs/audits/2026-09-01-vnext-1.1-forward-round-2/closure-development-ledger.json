@@ -1,0 +1,208 @@
+{
+  "ledger_id": "vnext-1.1-round-2-closure-development",
+  "recorded_at": "2026-09-01",
+  "status": "development_history",
+  "privacy": {
+    "status": "public_safe",
+    "raw_answers_and_events": "private_archive_only",
+    "contains_user_acceptance": false
+  },
+  "scope": {
+    "first_attempt": "R1",
+    "last_attempt": "R19",
+    "formal_qualification_completed": false,
+    "note": "这些记录只证明编排器开发过程，不能替代正式 60 项三模型资格结果"
+  },
+  "attempts": [
+    {
+      "attempt_id": "R1",
+      "kind": "matrix_attempt",
+      "planned": 60,
+      "completed": 3,
+      "passed": 2,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "冻结的旧答案在清单修复阶段发生变化",
+      "resulting_change": "把旧答案与清单生成分离，禁止清单重试修改冻结正文"
+    },
+    {
+      "attempt_id": "R2",
+      "kind": "matrix_attempt",
+      "planned": 60,
+      "completed": 4,
+      "passed": 0,
+      "terminal": "RUN_ERROR",
+      "observed_failure": "无种子生成路径向文件接口传入空路径",
+      "resulting_change": "为有种子与无种子生成建立独立输入路径"
+    },
+    {
+      "attempt_id": "R3",
+      "kind": "matrix_attempt",
+      "planned": 60,
+      "completed": 2,
+      "passed": 0,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "访问审计把 Codex 运行基础设施误判为越界读取",
+      "resulting_change": "把宿主运行时路径加入受控基础设施范围"
+    },
+    {
+      "attempt_id": "R4",
+      "kind": "matrix_attempt",
+      "planned": 60,
+      "completed": 2,
+      "passed": 0,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "Windows 转义路径没有在访问审计前统一规范化",
+      "resulting_change": "规范化 JSON 转义路径和命令访问目标"
+    },
+    {
+      "attempt_id": "R5",
+      "kind": "matrix_attempt",
+      "planned": 60,
+      "completed": 2,
+      "passed": 1,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "局部补丁被提交器拒绝后没有进入同会话重试",
+      "resulting_change": "保存补丁拒绝原因并允许下一修复轮提交新补丁"
+    },
+    {
+      "attempt_id": "R6",
+      "kind": "diagnostic",
+      "planned": 1,
+      "completed": 1,
+      "passed": 0,
+      "terminal": "RUN_ERROR",
+      "observed_failure": "第二个补丁仍绑定旧文档摘要",
+      "resulting_change": "每轮补丁只绑定当前文档摘要"
+    },
+    {
+      "attempt_id": "R7",
+      "kind": "diagnostic",
+      "planned": 1,
+      "completed": 1,
+      "passed": 1,
+      "terminal": "PASS",
+      "observed_failure": "无",
+      "resulting_change": "确认补丁拒绝重试路径能够闭环"
+    },
+    {
+      "attempt_id": "R8",
+      "kind": "matrix_attempt",
+      "planned": 60,
+      "completed": 1,
+      "passed": 0,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "访问审计仍把隔离任务容器内的合法路径判为越界",
+      "resulting_change": "以当前 Agent 容器为访问边界，不允许读取相邻容器"
+    },
+    {
+      "attempt_id": "R9",
+      "kind": "matrix_attempt",
+      "planned": 60,
+      "completed": 2,
+      "passed": 1,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "命令输出中的路径文本和实际执行目标没有分离",
+      "resulting_change": "访问审计只读取执行命令和文件读取事件"
+    },
+    {
+      "attempt_id": "R10",
+      "kind": "matrix_attempt",
+      "planned": 60,
+      "completed": 5,
+      "passed": 4,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "术语与结构复核无法稳定区分普通说明和专业词",
+      "resulting_change": "增加专业词触发证据阈值，禁止仅凭主题字段创造英文"
+    },
+    {
+      "attempt_id": "R11",
+      "kind": "diagnostic",
+      "planned": 1,
+      "completed": 1,
+      "passed": 1,
+      "terminal": "PASS",
+      "observed_failure": "无",
+      "resulting_change": "确认专业词触发阈值修复有效"
+    },
+    {
+      "attempt_id": "R12",
+      "kind": "matrix_attempt",
+      "planned": 60,
+      "completed": 4,
+      "passed": 3,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "标题、排比和术语发现同时出现时补丁范围不稳定",
+      "resulting_change": "合并重复发现并限制补丁为字符、词组或单句"
+    },
+    {
+      "attempt_id": "R13",
+      "kind": "diagnostic",
+      "planned": 1,
+      "completed": 1,
+      "passed": 1,
+      "terminal": "PASS",
+      "observed_failure": "无",
+      "resulting_change": "确认多发现合并与最小补丁路径有效"
+    },
+    {
+      "attempt_id": "R14",
+      "kind": "matrix_attempt",
+      "planned": 60,
+      "completed": 8,
+      "passed": 7,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "同一句短审计内容被错误升级为无法局部修复",
+      "resulting_change": "允许安全的清单和答案清单同步补丁"
+    },
+    {
+      "attempt_id": "R15",
+      "kind": "diagnostic",
+      "planned": 1,
+      "completed": 1,
+      "passed": 1,
+      "terminal": "PASS",
+      "observed_failure": "无",
+      "resulting_change": "确认清单同步补丁闭环"
+    },
+    {
+      "attempt_id": "R16",
+      "kind": "matrix_attempt",
+      "planned": 60,
+      "completed": 8,
+      "passed": 7,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "同文多处出现时按全文计数拒绝了节点内合法替换",
+      "resulting_change": "把出现次数约束限定到已授权节点"
+    },
+    {
+      "attempt_id": "R17",
+      "kind": "diagnostic",
+      "planned": 1,
+      "completed": 1,
+      "passed": 1,
+      "terminal": "PASS",
+      "observed_failure": "无",
+      "resulting_change": "确认节点内出现次数修复有效"
+    },
+    {
+      "attempt_id": "R18",
+      "kind": "matrix_attempt",
+      "planned": 60,
+      "completed": 9,
+      "passed": 8,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "紧凑同排并列被错误要求全部转换为缩进列表",
+      "resulting_change": "为排比组区分 compact_inline 与 indented_list"
+    },
+    {
+      "attempt_id": "R19",
+      "kind": "diagnostic",
+      "planned": 1,
+      "completed": 1,
+      "passed": 1,
+      "terminal": "PASS",
+      "observed_failure": "无",
+      "resulting_change": "确认 FWD-R2-023 与 Sol 在当前开发修订上完成三轮最小修复"
+    }
+  ]
+}

@@ -88,6 +88,72 @@ class ForwardReviewPacketTests(unittest.TestCase):
             self.assertTrue(all(path.read_text(encoding="utf-8").count("## ") == 5 for path in batches))
             self.assertTrue((directory / "review-batches" / "INDEX.md").exists())
 
+    def test_three_model_packet_is_side_by_side_and_never_claims_acceptance(self) -> None:
+        models = {
+            "gpt-5.6-sol": "SOL",
+            "gpt-5.6-terra": "TERRA",
+            "gpt-5.6-luna": "LUNA",
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            requests: list[dict[str, object]] = []
+            results: list[dict[str, object]] = []
+            for number in range(1, 21):
+                case_id = f"FWD-R2-{number:03d}"
+                requests.append({
+                    "case_id": case_id, "base_operation": "EXPLAIN", "augmentation": "NONE",
+                    "components": ["TEXT"], "audience": "operator", "length_class": "short",
+                    "request": f"解释案例 {number}",
+                    "source": {"material_type": "text", "content": f"材料 {number}"},
+                })
+                for model, code in models.items():
+                    answer = f"{code} 答案 {number}"
+                    answer_hash = hashlib.sha256(answer.encode("utf-8")).hexdigest()
+                    repair = number == 1 and code == "SOL"
+                    rounds = [] if not repair else [{
+                        "round": 1, "reread_rules": True,
+                        "deterministic_finding_ids": ["DET-001"], "semantic_finding_ids": [],
+                        "finding_rule_ids": ["LUCAS_NO_CHINESE_FULL_STOP"], "patch_ids": ["PATCH-001"],
+                        "patch_summaries": [{
+                            "patch_id": "PATCH-001", "finding_id": "DET-001", "node_id": "LINE-0001",
+                            "repair_scope": "token", "summary": "只移除中文句号",
+                        }],
+                        "before_sha256": "a" * 64, "after_sha256": answer_hash, "result_status": "PASS",
+                    }]
+                    closure = {
+                        "model": model, "worker_session_id": "00000000-0000-0000-0000-000000000001",
+                        "first_draft_sha256": "a" * 64 if repair else answer_hash,
+                        "final_sha256": answer_hash, "max_repair_rounds": 3,
+                        "rounds": rounds, "status": "PASS",
+                    }
+                    results.append({
+                        "case_id": case_id, "model": model, "model_code": code, "status": "PASS",
+                        "first_draft_sha256": closure["first_draft_sha256"], "final_sha256": answer_hash,
+                        "repair_rounds": len(rounds), "first_attempt_hard_errors": 1 if repair else 0,
+                        "access_violation_count": 0, "answer": answer, "iterations": closure,
+                    })
+                    target = directory / "lifecycle" / "candidate" / f"CANDIDATE-{case_id}-{code}-R1.json"
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    target.write_text(json.dumps({
+                        "identity": {"case_id": f"CANDIDATE-{case_id}-{code}-R1", "origin_case_id": case_id, "model": model},
+                        "artifact": {"answer_sha256": answer_hash},
+                    }, ensure_ascii=False), encoding="utf-8")
+            (directory / "requests.jsonl").write_text(
+                "\n".join(json.dumps(item, ensure_ascii=False) for item in requests) + "\n", encoding="utf-8"
+            )
+            (directory / "closure-results.jsonl").write_text(
+                "\n".join(json.dumps(item, ensure_ascii=False) for item in results) + "\n", encoding="utf-8"
+            )
+            with patch.object(sys, "argv", ["build_forward_review_packet.py", "--round", "2", "--directory", str(directory)]):
+                self.assertEqual(review_packet.main(), 0)
+            complete = (directory / "REVIEW-PACKET.md").read_text(encoding="utf-8")
+            self.assertEqual(complete.count("\n## "), 20)
+            self.assertEqual(complete.count("\n### "), 60)
+            self.assertIn("LUCAS_NO_CHINESE_FULL_STOP", complete)
+            self.assertIn("只移除中文句号", complete)
+            self.assertIn("不代表用户接受", complete)
+            self.assertNotIn("自动接受", complete)
+
 
 class ForwardReviewApplicationTests(unittest.TestCase):
     """Require explicit, digest-bound decisions and sequential revisions."""
@@ -98,9 +164,23 @@ class ForwardReviewApplicationTests(unittest.TestCase):
         self.lifecycle = self.root / "evals" / "forward" / "round-2" / "lifecycle"
         for status in ("candidate", "gold", "rejected"):
             (self.lifecycle / status).mkdir(parents=True)
-        source_path = ROOT / "evals" / "forward" / "round-2" / "lifecycle" / "candidate" / "CANDIDATE-FWD-R2-021-R1.json"
+        source_path = ROOT / "evals" / "forward" / "round-2" / "lifecycle" / "rejected" / "REJECTED-FWD-R2-021-SOL.json"
         self.source = json.loads(source_path.read_text(encoding="utf-8"))
-        self.candidate_path = self.lifecycle / "candidate" / source_path.name
+        self.source["identity"].update({
+            "case_id": "CANDIDATE-FWD-R2-021-R1",
+            "status": "candidate",
+            "reviewed_at": None,
+            "profile_revision_at_review": None,
+        })
+        self.source["review"].update({
+            "decision_source": "pending_user_review",
+            "decision": "pending",
+            "reasons": [],
+            "correct_parts": [],
+            "regression_requirements": [],
+            "non_blocking_preferences": [],
+        })
+        self.candidate_path = self.lifecycle / "candidate" / "CANDIDATE-FWD-R2-021-R1.json"
         self.candidate_path.write_text(json.dumps(self.source, ensure_ascii=False), encoding="utf-8")
 
     def tearDown(self) -> None:
@@ -199,22 +279,25 @@ class ForwardRoundRequestTests(unittest.TestCase):
     def test_dynamic_streak_requires_two_later_perfect_rounds_after_a_failed_round(self) -> None:
         records: dict[str, dict[str, object]] = {}
 
-        def add(round_number: int, number: int, revision: int, status: str) -> None:
+        def add(round_number: int, number: int, revision: int, status: str, model: str) -> None:
             origin = f"FWD-R{round_number}-{(round_number - 1) * 20 + number:03d}"
             prefix = {"gold": "GOLD", "rejected": "REJECTED", "candidate": "CANDIDATE"}[status]
-            suffix = "" if revision == 1 and status != "candidate" else f"-R{revision}"
+            model_code = {"gpt-5.6-sol": "SOL", "gpt-5.6-terra": "TERRA", "gpt-5.6-luna": "LUNA"}[model]
+            suffix = f"-{model_code}" if status != "candidate" else f"-{model_code}-R{revision}"
             case_id = f"{prefix}-{origin}{suffix}"
-            records[case_id] = {"identity": {"case_id": case_id, "origin_case_id": origin, "revision": revision, "status": status}}
+            records[case_id] = {"identity": {"case_id": case_id, "origin_case_id": origin, "model": model, "revision": revision, "status": status}}
 
         for number in range(1, 21):
-            if number == 1:
-                add(2, number, 1, "rejected")
-                add(2, number, 2, "gold")
-            else:
-                add(2, number, 1, "gold")
+            for model in ("gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"):
+                if number == 1 and model == "gpt-5.6-sol":
+                    add(2, number, 1, "rejected", model)
+                    add(2, number, 2, "gold", model)
+                else:
+                    add(2, number, 1, "gold", model)
         for round_number in (3, 4):
             for number in range(1, 21):
-                add(round_number, number, 1, "gold")
+                for model in ("gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"):
+                    add(round_number, number, 1, "gold", model)
 
         failures: list[str] = []
         state = validate_vnext_lifecycle.validate_revision_chains(records, failures)

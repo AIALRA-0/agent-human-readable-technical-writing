@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AIALRA-0/agent-human-readable-technical-writing/contracts/closure-run.schema.json",
+  "title": "SelfIterativeClosureRun",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["model", "worker_session_id", "first_draft_sha256", "final_sha256", "max_repair_rounds", "rounds", "status"],
+  "properties": {
+    "model": {"type": "string", "minLength": 1},
+    "qualification_id": {"type": ["string", "null"], "minLength": 1},
+    "run_kind": {"enum": ["runtime", "diagnostic", "qualification"]},
+    "worker_session_id": {"type": "string", "minLength": 1},
+    "first_draft_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "final_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "max_repair_rounds": {"const": 3},
+    "rounds": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["round", "reread_rules", "deterministic_finding_ids", "semantic_finding_ids", "finding_rule_ids", "patch_ids", "patch_summaries", "before_sha256", "after_sha256", "result_status"],
+        "properties": {
+          "round": {"type": "integer", "minimum": 1, "maximum": 3},
+          "reread_rules": {"const": true},
+          "deterministic_finding_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "semantic_finding_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "finding_rule_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "patch_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^PATCH-[0-9]{3,}$"}},
+          "patch_summaries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["patch_id", "finding_id", "node_id", "repair_scope", "summary"],
+              "properties": {
+                "patch_id": {"type": "string", "pattern": "^PATCH-[0-9]{3,}$"},
+                "finding_id": {"type": "string", "minLength": 1},
+                "node_id": {"type": "string", "minLength": 1},
+                "repair_scope": {"enum": ["token", "phrase", "sentence"]},
+                "summary": {"type": "string", "minLength": 1}
+              }
+            }
+          },
+          "before_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "after_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "result_status": {"enum": ["PASS", "FAIL", "REVIEW_REQUIRED"]}
+        }
+      }
+    },
+    "status": {"enum": ["PASS", "REVIEW_REQUIRED"]}
+  }
+}

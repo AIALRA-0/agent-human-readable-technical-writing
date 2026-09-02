@@ -46,7 +46,9 @@ flowchart TD
 
 独立阅读单元使用 `reading_context: standalone`，并把 `known_terms` 设为空数组；连续文档只有在前文实际完成术语解释后，才能把对应术语加入 `known_terms`
 
-任务包含图片、表格或代码时，`component_order` 登记原始组件是否先于解释出现；两个以上承担同一作用的内容登记为 `parallel_groups`；代码任务登记 `annotated_code` 或 `line_by_line_explanation` 及每个有效语句的解释位置；使用注释代码时，`comment_alignment` 固定为每个代码块按照最长可注释代码行同行对齐并允许增加行宽，使用逐行解释时登记为 `not_applicable`；正文存在证据边界时，`boundary_requirements` 分别登记缺失证据、缺失证据的重要性和下一项验证方法
+任务包含图片、表格或代码时，`component_order` 登记原始组件是否先于解释出现；两个以上承担同一作用的内容登记为 `parallel_groups`；`section_plan` 根据内容区块决定是否需要标题、实际标题层级和分区依据，并固定禁止冒号伪标题；代码任务登记 `annotated_code` 或 `line_by_line_explanation` 及每个有效语句的解释位置；使用注释代码时，`comment_alignment` 固定为每个代码块按照最长可注释代码行同行对齐并允许增加行宽，使用逐行解释时登记为 `not_applicable`；`boundary_requirements` 登记缺失证据、重要性和下一项验证方法，`boundary_visibility` 固定为内部保存、重要时自然说明并禁止直接标签
+
+`delivery.iteration_policy` 固定要求重新读取规则、确定性复核、语义复核、最多三轮修复和最小完整单元补丁；调用方不得把初稿直接标记为可交付结果
 
 独立阅读单元中的专业名词需要登记官方中文、官方英文、缩写、中文定义、名称含义、名称依据、当前作用和实际影响；官方写法无法核对时，编译结果进入 `BLOCKED`，禁止自行创造全称
 

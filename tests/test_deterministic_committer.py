@@ -13,6 +13,7 @@ sys.path.insert(0, str(ROOT))
 
 from patcher.deterministic_committer import (  # noqa: E402
     PatchError,
+    apply_minimal_transaction,
     apply_transaction,
     commit_document,
     sha256_text,
@@ -121,6 +122,18 @@ class DeterministicCommitterTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(PatchError, "outside the authorized node"):
             apply_transaction(self.text, [patch], self.nodes)
+
+    def test_same_text_in_two_nodes_can_be_patched_in_only_one_node(self) -> None:
+        text = "lockout\nlockout\n"
+        nodes = {"LINE-0001": (0, 8), "LINE-0002": (8, len(text))}
+        patch = make_patch(
+            text,
+            patch_id="PATCH-LOCAL",
+            node_id="LINE-0001",
+            old_text="lockout",
+            new_text="Lockout",
+        )
+        self.assertEqual(apply_transaction(text, [patch], nodes), "Lockout\nlockout\n")
 
     def test_overlapping_patches_reject_entire_batch(self) -> None:
         patch_a = make_patch(
@@ -302,6 +315,33 @@ class DeterministicCommitterTests(unittest.TestCase):
         patch["verification"]["rerun_validators"] = []
         with self.assertRaisesRegex(PatchError, "non-empty list"):
             apply_transaction(self.text, [patch], self.nodes)
+
+    def test_self_iterative_repair_rejects_section_scope(self) -> None:
+        """The closure path cannot replace a section to hide one local failure."""
+
+        patch = make_patch(
+            self.text, patch_id="PATCH-021", node_id="SEG-01",
+            old_text="旧术语", new_text="登记术语",
+        )
+        patch["authorization"]["repair_scope"] = "section"
+        with self.assertRaisesRegex(PatchError, "scope is too broad"):
+            apply_minimal_transaction(self.text, [patch], self.nodes)
+
+    def test_self_iterative_repair_rejects_noop(self) -> None:
+        """A no-op cannot consume one of the three repair rounds."""
+
+        patch = make_patch(
+            self.text, patch_id="PATCH-022", node_id="SEG-01",
+            old_text="旧术语", new_text="旧术语",
+        )
+        with self.assertRaisesRegex(PatchError, "no-op patch"):
+            apply_minimal_transaction(self.text, [patch], self.nodes)
+
+    def test_self_iterative_repair_rejects_empty_batch(self) -> None:
+        """An empty patch round cannot be recorded as progress."""
+
+        with self.assertRaisesRegex(PatchError, "at least one patch"):
+            apply_minimal_transaction(self.text, [], self.nodes)
 
 
 if __name__ == "__main__":

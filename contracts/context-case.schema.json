@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": ["case_id", "dimension", "rule_level", "source", "candidate", "expected_disposition", "decision_basis", "review_status", "automatic_decision"],
   "properties": {
-    "case_id": {"type": "string", "pattern": "^CTX-R(?:2|4|5|6)-[0-9]{3}$"},
+    "case_id": {"type": "string", "pattern": "^CTX-R(?:2|4|5|6|7)-[0-9]{3}$"},
     "dimension": {"enum": ["actor_clarity", "punctuation_choice", "local_consistency", "paragraph_boundary", "official_term_form", "term_boundary", "parallel_group", "code_coverage", "comment_alignment", "content_sufficiency", "supersession", "long_context"]},
     "rule_level": {"enum": ["MACHINE_FINAL", "MACHINE_CANDIDATE", "ADVISORY"]},
     "source": {"type": "string", "minLength": 1},

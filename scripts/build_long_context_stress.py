@@ -41,7 +41,7 @@ def main() -> int:
         if not 1200 <= len(material) <= 3000:
             raise SystemExit(f"{case['id']} material length {len(material)} is outside 1200-3000")
         extra = "\n代码与日志原件：\n```python\ndef process(queue):\n    message = queue.get()\n    try:\n        handle(message)\n        message.ack()\n    except Exception:\n        message.nack(requeue=True)\n```\n```text\n10:00 m-17 nack attempt=1\n10:05 m-17 nack attempt=2\n```\n配置：max_attempts=3" if case["id"] == "LONG-007" else ""
-        prompt = f"""用户配置 `round-5-inline-alignment-aemp` 已启用。请使用已安装的 human-readable-technical-writing Skill，把下面长材料写成面向审核者的中文说明。必须全篇复核，保留条件、否定、例外、数字归属、来源冲突和术语局部边界；结尾明确写出“已复核全篇”，但不得把自动检查写成人工接受。普通中文正文不使用中文句号。{('保留原始代码，并另给每条有效语句都有同行注释且始终同行对齐的 Python 代码块。' if case['id'] == 'LONG-007' else '')}\n\n{material}{extra}"""
+        prompt = f"""用户配置 `round-6-self-iterative-cross-model` 已启用。请使用已安装的 human-readable-technical-writing Skill，把下面长材料写成面向审核者的中文说明。必须全篇复核，保留条件、否定、例外、数字归属、来源冲突和术语局部边界；结尾明确写出“已复核全篇”，但不得把自动检查写成人工接受。普通中文正文不使用中文句号。{('保留原始代码，并另给每条有效语句都有同行注释且始终同行对齐的 Python 代码块。' if case['id'] == 'LONG-007' else '')}\n\n{material}{extra}"""
         rows.append({"case_id": case["id"], "dimension": case["dimension"], "input_char_count": len(material + extra), "prompt": prompt, "required_patterns": case["required"] + ["已复核全篇"], "forbidden_patterns": case["forbidden"]})
     TARGET.parent.mkdir(parents=True, exist_ok=True)
     TARGET.write_text("".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows), encoding="utf-8", newline="\n")

@@ -1,12 +1,13 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-FWD-R2-024-R1",
+    "case_id": "REJECTED-FWD-R2-024-SOL",
     "origin_case_id": "FWD-R2-024",
-    "status": "candidate",
+    "status": "rejected",
     "revision": 1,
     "approved_by_user": false,
-    "reviewed_at": null,
-    "profile_revision_at_review": null
+    "reviewed_at": "2026-09-01",
+    "profile_revision_at_review": "round-6-self-iterative-cross-model",
+    "model": "gpt-5.6-sol"
   },
   "task": {
     "audience": "decision_maker",
@@ -65,11 +66,19 @@
     "revision_of": null
   },
   "review": {
-    "decision_source": "pending_user_review",
-    "decision": "pending",
-    "reasons": [],
-    "correct_parts": [],
-    "regression_requirements": [],
+    "decision_source": "explicit_user_review",
+    "decision": "rejected",
+    "reasons": [
+      "多个解释项目被分号压在同一行",
+      "生成正文含中文句号"
+    ],
+    "correct_parts": [
+      "保留两种电压读数、0.7 V 差值和压降机制"
+    ],
+    "regression_requirements": [
+      "多个解释项目换行并按层级缩进",
+      "删除生成中文句号"
+    ],
     "non_blocking_preferences": [],
     "privacy": {
       "status": "public_safe",

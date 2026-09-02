@@ -4,7 +4,7 @@
   "title": "TaskContract",
   "type": "object",
   "additionalProperties": false,
-  "required": ["identity", "operation", "context", "long_context", "terminology", "structure", "components", "code", "conversation", "presentation", "boundaries", "quality", "clarification"],
+  "required": ["identity", "delivery", "operation", "context", "long_context", "terminology", "structure", "components", "code", "conversation", "presentation", "boundaries", "quality", "clarification"],
   "properties": {
     "identity": {
       "type": "object", "additionalProperties": false,
@@ -12,7 +12,24 @@
       "properties": {
         "task_id": {"type": "string", "pattern": "^TASK-[A-Z0-9-]+$"},
         "contract_version": {"const": "1.1"},
-        "profile_revision": {"const": "round-5-inline-alignment-aemp"}
+        "profile_revision": {"const": "round-6-self-iterative-cross-model"}
+      }
+    },
+    "delivery": {
+      "type": "object", "additionalProperties": false,
+      "required": ["iteration_policy"],
+      "properties": {
+        "iteration_policy": {
+          "type": "object", "additionalProperties": false,
+          "required": ["reread_rules", "deterministic_review", "semantic_review", "max_repair_rounds", "patch_scope"],
+          "properties": {
+            "reread_rules": {"const": true},
+            "deterministic_review": {"const": true},
+            "semantic_review": {"const": true},
+            "max_repair_rounds": {"const": 3},
+            "patch_scope": {"const": "smallest_complete_unit"}
+          }
+        }
       }
     },
     "operation": {
@@ -123,7 +140,7 @@
     },
     "structure": {
       "type": "object", "additionalProperties": false,
-      "required": ["parallel_groups"],
+      "required": ["parallel_groups", "section_plan"],
       "properties": {
         "parallel_groups": {
           "type": "array",
@@ -137,6 +154,19 @@
               "required_layout": {"const": "indented_list"},
               "minimum_depth": {"type": "integer", "minimum": 1}
             }
+          }
+        },
+        "section_plan": {
+          "type": "object", "additionalProperties": false,
+          "required": ["headings_required", "heading_levels", "basis", "colon_pseudo_headings_allowed"],
+          "properties": {
+            "headings_required": {"type": "boolean"},
+            "heading_levels": {
+              "type": "array", "uniqueItems": true,
+              "items": {"type": "integer", "minimum": 1, "maximum": 6}
+            },
+            "basis": {"type": "string", "minLength": 1},
+            "colon_pseudo_headings_allowed": {"const": false}
           }
         }
       }
@@ -260,7 +290,7 @@
     },
     "boundaries": {
       "type": "object", "additionalProperties": false,
-      "required": ["boundary_requirements"],
+      "required": ["boundary_requirements", "boundary_visibility"],
       "properties": {
         "boundary_requirements": {
           "type": "array",
@@ -273,6 +303,15 @@
               "importance": {"type": "string", "minLength": 1},
               "next_verification": {"type": "string", "minLength": 1}
             }
+          }
+        },
+        "boundary_visibility": {
+          "type": "object", "additionalProperties": false,
+          "required": ["default", "material_exception", "direct_label_allowed"],
+          "properties": {
+            "default": {"const": "internal"},
+            "material_exception": {"const": "natural_when_material"},
+            "direct_label_allowed": {"const": false}
           }
         }
       }

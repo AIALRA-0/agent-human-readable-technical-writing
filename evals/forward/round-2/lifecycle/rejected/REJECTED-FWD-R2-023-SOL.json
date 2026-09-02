@@ -1,12 +1,13 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-FWD-R2-023-R1",
+    "case_id": "REJECTED-FWD-R2-023-SOL",
     "origin_case_id": "FWD-R2-023",
-    "status": "candidate",
+    "status": "rejected",
     "revision": 1,
     "approved_by_user": false,
-    "reviewed_at": null,
-    "profile_revision_at_review": null
+    "reviewed_at": "2026-09-01",
+    "profile_revision_at_review": "round-6-self-iterative-cross-model",
+    "model": "gpt-5.6-sol"
   },
   "task": {
     "audience": "technical_practitioner",
@@ -69,11 +70,17 @@
     "revision_of": null
   },
   "review": {
-    "decision_source": "pending_user_review",
-    "decision": "pending",
-    "reasons": [],
-    "correct_parts": [],
-    "regression_requirements": [],
+    "decision_source": "explicit_user_review",
+    "decision": "rejected",
+    "reasons": [
+      "生成正文含中文句号"
+    ],
+    "correct_parts": [
+      "抽样数量、差异数量、差额和未检查范围全部保持不变"
+    ],
+    "regression_requirements": [
+      "只做必要标点修复，不改写正确内容"
+    ],
     "non_blocking_preferences": [],
     "privacy": {
       "status": "public_safe",

@@ -58,6 +58,24 @@ registry:
     BOUNDARY_EVIDENCE:
       severity: PROFILE_REQUIRED
       description: 边界必须登记缺失证据、重要性和下一项验证
+    INTERNAL_BOUNDARY_LABEL:
+      severity: PROFILE_REQUIRED
+      description: 内部证据字段不得作为证据边界、验证边界或内部边界标签直接出现在用户正文
+    COLON_PSEUDO_HEADING:
+      severity: PROFILE_REQUIRED
+      description: 结构分区使用适当 Markdown 标题，禁止冒号结尾的伪标题
+    SECTION_PLAN_MISSING:
+      severity: PROFILE_REQUIRED
+      description: 多个独立内容区块必须按照任务合同使用必要标题
+    SECTION_PLAN_UNNECESSARY:
+      severity: PROFILE_REQUIRED
+      description: 短单主题内容不能为了套模板增加无必要标题
+    CLOSURE_NOT_COMPLETE:
+      severity: PROFILE_REQUIRED
+      description: 自迭代闭环未清零阻断问题时不能生成待审 Candidate
+    MINIMAL_PATCH_SCOPE:
+      severity: MACHINE_FINAL
+      description: 自迭代修复只能使用字符、词组或单句精确补丁，禁止整段或整节重写
     TABLE_CELL_COVERAGE:
       severity: PROFILE_REQUIRED
       description: 所有数据格通过列定义、值词典、行映射或单格说明完成覆盖
@@ -80,5 +98,5 @@ registry:
       severity: ADVISORY
       description: 同一解释单元优先统一引号、冒号和同类标记，不单独阻断交付
     COMMA_SEMICOLON_CHOICE:
-      severity: ADVISORY
-      description: 逗号与分号按照分句关系选择，不使用频率阈值或单字硬门
+      severity: PROFILE_REQUIRED
+      description: 分号只用于同一行紧凑并列或专业词说明，多项结构必须换行并按层级缩进

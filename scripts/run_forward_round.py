@@ -166,6 +166,9 @@ def persist(args: argparse.Namespace, directory: Path, requests: list[dict[str, 
 
 
 def main() -> int:
+    raise SystemExit(
+        "one-shot forward generation is disabled for vNext 1.1; use scripts/run_iterative_forward_matrix.py so every result completes isolated three-model closure"
+    )
     args = parse_args()
     if args.round_number < 2 or args.workers < 1 or args.workers > 8:
         raise SystemExit("round must be >=2 and workers must be between 1 and 8")

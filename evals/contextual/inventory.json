@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "grouping_key": "dimension",
+  "total_rows": 48,
+  "distribution": {
+    "actor_clarity": 4,
+    "code_coverage": 2,
+    "comment_alignment": 2,
+    "content_sufficiency": 3,
+    "local_consistency": 3,
+    "long_context": 10,
+    "official_term_form": 5,
+    "paragraph_boundary": 3,
+    "parallel_group": 5,
+    "punctuation_choice": 5,
+    "supersession": 2,
+    "term_boundary": 4
+  },
+  "files": [
+    {
+      "path": "round-2-context-cases.jsonl",
+      "sha256": "e2076e25ccc59af30be137a371214b1ad9c80704498072f3b22b20d17b53d19c",
+      "rows": 40,
+      "distribution": {
+        "actor_clarity": 4,
+        "code_coverage": 2,
+        "comment_alignment": 2,
+        "content_sufficiency": 2,
+        "local_consistency": 2,
+        "long_context": 8,
+        "official_term_form": 4,
+        "paragraph_boundary": 2,
+        "parallel_group": 4,
+        "punctuation_choice": 4,
+        "supersession": 2,
+        "term_boundary": 4
+      }
+    },
+    {
+      "path": "round-7-self-iteration-context-cases.jsonl",
+      "sha256": "294bf8d45d04580c075866e003238ff65b93ed3daab0f04aedb63a45df523cc5",
+      "rows": 8,
+      "distribution": {
+        "content_sufficiency": 1,
+        "local_consistency": 1,
+        "long_context": 2,
+        "official_term_form": 1,
+        "paragraph_boundary": 1,
+        "parallel_group": 1,
+        "punctuation_choice": 1
+      }
+    }
+  ]
+}

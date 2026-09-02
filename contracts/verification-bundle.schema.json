@@ -4,9 +4,10 @@
   "title": "VerificationBundle",
   "type": "object",
   "additionalProperties": false,
-  "required": ["task_contract", "long_context_coverage", "source_spans", "source_presentations", "source_atoms", "background_atoms", "inference_atoms", "segment_contracts", "support_maps", "term_uses", "parallel_group_coverage", "component_coverage", "boundary_coverage", "rendered_document"],
+  "required": ["task_contract", "iterations", "long_context_coverage", "source_spans", "source_presentations", "source_atoms", "background_atoms", "inference_atoms", "segment_contracts", "support_maps", "term_uses", "parallel_group_coverage", "component_coverage", "boundary_coverage", "rendered_document"],
   "properties": {
     "task_contract": {"$ref": "task-contract.schema.json"},
+    "iterations": {"$ref": "closure-run.schema.json"},
     "long_context_coverage": {
       "type": "object", "additionalProperties": false,
       "required": ["input_char_count", "length_class", "section_count", "full_document_check", "anchors", "term_scopes", "source_priorities"],

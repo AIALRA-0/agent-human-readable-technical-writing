@@ -127,8 +127,29 @@ def compile_contract(specification: dict[str, Any]) -> dict[str, Any]:
         requirement.setdefault("acronym_expansion_allowed", False)
         term_requirements.append(requirement)
 
+    section_count = int(specification.get("section_count", 1))
+    headings_required = bool(specification.get("headings_required", section_count > 1))
+    default_heading_level = 2 if renderer_name in {"github_markdown", "html", "word", "pdf"} else 3
+    section_plan = dict(specification.get("section_plan", {}))
+    section_plan.setdefault("headings_required", headings_required)
+    section_plan.setdefault("heading_levels", [default_heading_level] if headings_required else [])
+    section_plan.setdefault(
+        "basis",
+        "多个独立内容区块需要标题" if headings_required else "短单主题内容不需要标题",
+    )
+    section_plan.setdefault("colon_pseudo_headings_allowed", False)
+
     contract = {
-        "identity": {"task_id": specification["task_id"], "contract_version": "1.1", "profile_revision": "round-5-inline-alignment-aemp"},
+        "identity": {"task_id": specification["task_id"], "contract_version": "1.1", "profile_revision": "round-6-self-iterative-cross-model"},
+        "delivery": {
+            "iteration_policy": {
+                "reread_rules": True,
+                "deterministic_review": True,
+                "semantic_review": True,
+                "max_repair_rounds": 3,
+                "patch_scope": "smallest_complete_unit",
+            }
+        },
         "operation": {"base_operation": base_operation, "augmentation": specification["augmentation"], "source_coverage_target": source_coverage},
         "context": {
             "audience": specification["audience"], "genre": specification["genre"],
@@ -139,14 +160,17 @@ def compile_contract(specification: dict[str, Any]) -> dict[str, Any]:
             "content_task": specification.get("content_task", "explanation"),
             "input_char_count": input_char_count,
             "length_class": length_class,
-            "section_count": int(specification.get("section_count", 1)),
+            "section_count": section_count,
             "global_recheck_required": specification.get("global_recheck_required", global_recheck_required),
             "anchor_requirements": list(specification.get("long_context_anchors", [])),
             "term_scope_requirements": list(specification.get("term_scope_requirements", [])),
             "source_priority_requirements": list(specification.get("source_priority_requirements", [])),
         },
         "terminology": {"known_terms": known_terms, "term_requirements": term_requirements},
-        "structure": {"parallel_groups": list(specification.get("parallel_groups", []))},
+        "structure": {
+            "parallel_groups": list(specification.get("parallel_groups", [])),
+            "section_plan": section_plan,
+        },
         "components": {"component_order": component_order, "layout_exceptions": list(specification.get("layout_exceptions", []))},
         "code": {
             "coverage_mode": specification.get("code_coverage_mode", "not_applicable"),
@@ -172,7 +196,14 @@ def compile_contract(specification: dict[str, Any]) -> dict[str, Any]:
             "component_alignment": component_alignment,
             "render_evidence": list(specification.get("render_evidence", [])),
         },
-        "boundaries": {"boundary_requirements": list(specification.get("boundary_requirements", []))},
+        "boundaries": {
+            "boundary_requirements": list(specification.get("boundary_requirements", [])),
+            "boundary_visibility": specification.get("boundary_visibility", {
+                "default": "internal",
+                "material_exception": "natural_when_material",
+                "direct_label_allowed": False,
+            }),
+        },
         "quality": {
             "provenance_required": specification.get("provenance_required", True),
             "protected_categories": list(specification.get("protected_categories", ["NUMBER", "DATE", "VERSION", "PATH", "CODE_IDENTIFIER", "NEGATION", "CONDITION", "SCOPE", "MODALITY"])),
@@ -216,6 +247,55 @@ def verify_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
     findings: list[dict[str, str]] = []
     checks = 0
     task = bundle["task_contract"]
+    rendered_text = bundle["rendered_document"]["text"]
+    iterations = bundle["iterations"]
+    if iterations["final_sha256"] != bundle["rendered_document"]["sha256"]:
+        findings.append(_finding(
+            "CLOSURE_FINAL_HASH", "iterations/final_sha256",
+            "闭环最终摘要与渲染正文摘要不一致",
+            "验证结果可能属于另一个答案版本",
+            "重新绑定最终正文并执行闭环验证",
+        ))
+    if iterations["status"] != "PASS":
+        findings.append(_finding(
+            "CLOSURE_NOT_COMPLETE", "iterations/status",
+            "自迭代闭环没有在三轮以内清零阻断问题",
+            "当前正文不能成为待用户审核的 Candidate",
+            "保留运行证据并返回 REVIEW_REQUIRED", "REVIEW_REQUIRED",
+        ))
+    if [item["round"] for item in iterations["rounds"]] != list(range(1, len(iterations["rounds"]) + 1)):
+        findings.append(_finding(
+            "CLOSURE_ROUND_SEQUENCE", "iterations/rounds",
+            "闭环修复轮次不是从一开始连续递增",
+            "运行证据无法证明修复顺序",
+            "按真实执行顺序重新登记轮次",
+        ))
+    checks += 3
+
+    section_plan = task["structure"]["section_plan"]
+    authored_lines = []
+    in_fence = False
+    for line in rendered_text.splitlines():
+        if line.lstrip().startswith("```"):
+            in_fence = not in_fence
+            continue
+        if not in_fence and not line.lstrip().startswith((">", "![")):
+            authored_lines.append(line)
+    headings = [line for line in authored_lines if re.match(r"^#{1,6}\s+\S", line)]
+    actual_levels = {len(re.match(r"^(#+)", line).group(1)) for line in headings}
+    if section_plan["headings_required"] and not headings:
+        findings.append(_finding("SECTION_PLAN_MISSING", "rendered_document/text", "章节计划要求分区，但正文没有 Markdown 标题", "多个内容区块缺少可扫描结构", "按章节计划增加必要标题"))
+    if not section_plan["headings_required"] and headings:
+        findings.append(_finding("SECTION_PLAN_UNNECESSARY", "rendered_document/text", "短单主题内容仍然增加了标题", "结构重量超过当前内容需要", "删除不必要标题并保持正文内容"))
+    if headings and actual_levels != set(section_plan["heading_levels"]):
+        findings.append(_finding("SECTION_LEVEL_MISMATCH", "rendered_document/text", "正文标题层级与任务合同不一致", "章节层次无法按计划核对", "只调整命中的标题标记"))
+    pseudo_headings = [line for line in authored_lines if re.fullmatch(r"\s{0,3}[^#\-*+\d\n][^\n]{0,30}[：:]\s*", line)]
+    if pseudo_headings:
+        findings.append(_finding("COLON_PSEUDO_HEADING", "rendered_document/text", "正文使用冒号伪标题", "结构没有使用适当 Markdown 层级", "取消标题或改用任务合同登记的标题层级"))
+    boundary_labels = [line for line in authored_lines if re.search(r"(?:证据边界|验证边界|内部边界)\s*[：:]", line)]
+    if boundary_labels and not task["boundaries"]["boundary_visibility"]["direct_label_allowed"]:
+        findings.append(_finding("INTERNAL_BOUNDARY_LABEL", "rendered_document/text", "内部边界标签出现在用户正文", "内部合同概念干扰正常内容", "删除标签，只有重要限制才改为自然说明"))
+    checks += 5
     if task["clarification"]["status"] == "BLOCKED":
         findings.append(_finding("BLOCKING_CLARIFICATION", "task_contract/clarification", "任务合同仍有会改变结果的歧义", "继续成文可能改变事实、范围或输出规模", "取得用户决定后重新编译", "REVIEW_REQUIRED"))
     checks += 1

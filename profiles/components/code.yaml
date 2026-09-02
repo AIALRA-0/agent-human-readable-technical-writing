@@ -1,7 +1,7 @@
 profile:
   identity:
     profile_id: code-explanation
-    revision: round-5-inline-alignment-aemp
+    revision: round-6-self-iterative-cross-model
     description: 代码按照零先验读者处理，并保留原始代码后解释功能、原因、输入、结果和边界
   source_order:
     original_code:

@@ -11,6 +11,9 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from runtime.self_iteration import deterministic_findings  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:
@@ -71,6 +74,37 @@ def main() -> int:
     args = parse_args()
     directory = ROOT / "evals" / "forward" / f"round-{args.round_number}"
     requests = {item["case_id"]: item for item in [json.loads(line) for line in (directory / "requests.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]}
+    closure_path = directory / "closure-results.jsonl"
+    if closure_path.exists():
+        candidates = [json.loads(line) for line in closure_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+        findings: list[dict[str, str]] = []
+        for candidate in candidates:
+            case_id = candidate["case_id"]
+            label = f"{case_id}:{candidate['model']}"
+            if candidate.get("status") != "PASS":
+                findings.append(finding(label, "CLOSURE_NOT_COMPLETE", "三轮以内没有完成自迭代闭环"))
+                continue
+            manifest = {key: candidate[key] for key in ("term_uses", "parallel_groups", "section_plan", "boundary_visibility")}
+            for item in deterministic_findings(candidate["answer"], manifest):
+                findings.append(finding(label, item["rule_id"], f"{item['location']} {item['reason']}"))
+        expected = 20 * 3
+        if len(candidates) != expected:
+            findings.append(finding(f"round-{args.round_number}", "CROSS_MODEL_COUNT", f"闭环结果为 {len(candidates)}，预期 {expected}"))
+        result: dict[str, Any] = {
+            "round": args.round_number,
+            "status": "PASS" if not findings else "FAIL",
+            "checked_candidates": len(candidates),
+            "models": sorted({item.get("model") for item in candidates}),
+            "hard_error_count": len(findings),
+            "findings": findings,
+            "user_decisions": 0,
+            "next_round_allowed": False,
+            "automated_checks_are_user_acceptance": False,
+        }
+        (directory / "deterministic-findings.json").write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
+        print(json.dumps({"status": result["status"], "round": args.round_number, "checked": len(candidates), "hard_errors": len(findings)}, ensure_ascii=False))
+        return 0 if not findings or not args.require_pass else 1
+
     candidates = [json.loads(line) for line in (directory / "candidates.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]
     findings: list[dict[str, str]] = []
     for candidate in candidates:

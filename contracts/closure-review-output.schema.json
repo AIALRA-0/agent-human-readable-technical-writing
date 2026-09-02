@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AIALRA-0/agent-human-readable-technical-writing/contracts/closure-review-output.schema.json",
+  "title": "ClosureSemanticReviewOutput",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["findings"],
+  "properties": {
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["rule_id", "status", "location", "old_text", "reason", "repair_scope"],
+        "properties": {
+          "rule_id": {"type": "string", "minLength": 1},
+          "status": {"enum": ["FAIL", "REVIEW_REQUIRED"]},
+          "location": {"type": "string", "minLength": 1},
+          "old_text": {"type": "string", "minLength": 1},
+          "reason": {"type": "string", "minLength": 1},
+          "repair_scope": {"enum": ["token", "phrase", "sentence"]}
+        }
+      }
+    }
+  }
+}

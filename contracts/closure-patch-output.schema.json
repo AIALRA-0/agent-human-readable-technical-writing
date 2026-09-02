@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AIALRA-0/agent-human-readable-technical-writing/contracts/closure-patch-output.schema.json",
+  "title": "ClosurePatchOutput",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["patches", "updated_manifest"],
+  "properties": {
+    "patches": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/exactPatch"}},
+    "updated_manifest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["term_uses", "parallel_groups", "section_plan", "boundary_visibility"],
+      "properties": {
+        "term_uses": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["term", "official_english", "first_use_text"],
+            "properties": {
+              "term": {"type": "string", "minLength": 1},
+              "official_english": {"type": ["string", "null"]},
+              "first_use_text": {"type": "string", "minLength": 1}
+            }
+          }
+        },
+        "parallel_groups": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["group_id", "item_texts", "required_layout", "rendered_as_indented_list"],
+            "properties": {
+              "group_id": {"type": "string", "pattern": "^PGRP-[0-9]{3,}$"},
+              "item_texts": {"type": "array", "minItems": 2, "items": {"type": "string", "minLength": 1}},
+              "required_layout": {"enum": ["compact_inline", "indented_list"]},
+              "rendered_as_indented_list": {"type": "boolean"}
+            }
+          }
+        },
+        "section_plan": {
+          "type": "object", "additionalProperties": false,
+          "required": ["headings_required", "heading_levels", "basis", "colon_pseudo_headings_allowed"],
+          "properties": {
+            "headings_required": {"type": "boolean"},
+            "heading_levels": {"type": "array", "items": {"type": "integer", "minimum": 1, "maximum": 6}},
+            "basis": {"type": "string", "minLength": 1},
+            "colon_pseudo_headings_allowed": {"type": "boolean", "const": false}
+          }
+        },
+        "boundary_visibility": {
+          "type": "object", "additionalProperties": false,
+          "required": ["mode", "material_reason"],
+          "properties": {
+            "mode": {"enum": ["internal", "natural_when_material"]},
+            "material_reason": {"type": ["string", "null"]}
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "exactPatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity", "target", "replacement", "authorization", "verification"],
+      "properties": {
+        "identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["patch_id", "finding_id", "operation"],
+          "properties": {
+            "patch_id": {"type": "string", "pattern": "^PATCH-[0-9]{3,}$"},
+            "finding_id": {"type": "string", "minLength": 1},
+            "operation": {"type": "string", "const": "replace_exact"}
+          }
+        },
+        "target": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["document_sha256", "node_id"],
+          "properties": {
+            "document_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "node_id": {"type": "string", "minLength": 1}
+          }
+        },
+        "replacement": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["old_text", "new_text", "expected_occurrences"],
+          "properties": {
+            "old_text": {"type": "string", "minLength": 1},
+            "new_text": {"type": "string"},
+            "expected_occurrences": {"type": "integer", "minimum": 1}
+          }
+        },
+        "authorization": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reason", "repair_scope", "preserve"],
+          "properties": {
+            "reason": {"type": "string", "minLength": 1},
+            "repair_scope": {"enum": ["token", "phrase", "sentence"]},
+            "preserve": {"type": "array", "items": {"type": "string", "minLength": 1}}
+          }
+        },
+        "verification": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["rerun_validators"],
+          "properties": {
+            "rerun_validators": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+          }
+        }
+      }
+    }
+  }
+}

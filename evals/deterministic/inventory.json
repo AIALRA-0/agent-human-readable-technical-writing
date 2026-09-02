@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "grouping_key": "category",
+  "total_rows": 288,
+  "distribution": {
+    "code_comment_alignment": 8,
+    "code_coverage_mode": 6,
+    "code_explanation": 16,
+    "content_sufficiency": 8,
+    "conversation_supersession": 4,
+    "github_render_evidence": 6,
+    "image_explanation": 16,
+    "layout_lists_paragraphs": 20,
+    "lifecycle_schema": 20,
+    "long_context_coverage": 16,
+    "mermaid_caption_explanation": 16,
+    "parallel_group_layout": 8,
+    "presentation_spacing": 16,
+    "privacy_source_retention": 8,
+    "provenance_support_boundary": 20,
+    "self_iteration_protocol": 36,
+    "table_explanation": 16,
+    "term_meaning_contract": 8,
+    "terms_official_standalone": 40
+  },
+  "files": [
+    {
+      "path": "round-4-generalization-cases.jsonl",
+      "sha256": "c75bd481303db6f7668cb80cd9e9b5f56141a79912637c8a00289ece6a2fcc63",
+      "rows": 32,
+      "distribution": {
+        "code_coverage_mode": 6,
+        "conversation_supersession": 4,
+        "github_render_evidence": 6,
+        "parallel_group_layout": 8,
+        "term_meaning_contract": 8
+      }
+    },
+    {
+      "path": "round-5-finalization-cases.jsonl",
+      "sha256": "e6e5d9675499415f9be77ef7b74b4c590ae4d4fea07bccfebf32abc7cd7da543",
+      "rows": 16,
+      "distribution": {
+        "code_comment_alignment": 8,
+        "content_sufficiency": 8
+      }
+    },
+    {
+      "path": "round-6-long-context-cases.jsonl",
+      "sha256": "9e655658d2e75b2334cd9d08301f803c193e7989bfa6d2e4f90bcbc6e79612c0",
+      "rows": 16,
+      "distribution": {
+        "long_context_coverage": 16
+      }
+    },
+    {
+      "path": "round-7-self-iteration-cases.jsonl",
+      "sha256": "4fa1ab4a3027c380f9b96c2b3d6463671fe241e3ee78afb73929681e1a327a15",
+      "rows": 36,
+      "distribution": {
+        "self_iteration_protocol": 36
+      }
+    },
+    {
+      "path": "vnext-1.1-minimal-cases.jsonl",
+      "sha256": "d68eae2babf0800335584b0e26d61bf82e4d4b1c935a27f76df207f6c57830d0",
+      "rows": 188,
+      "distribution": {
+        "code_explanation": 16,
+        "image_explanation": 16,
+        "layout_lists_paragraphs": 20,
+        "lifecycle_schema": 20,
+        "mermaid_caption_explanation": 16,
+        "presentation_spacing": 16,
+        "privacy_source_retention": 8,
+        "provenance_support_boundary": 20,
+        "table_explanation": 16,
+        "terms_official_standalone": 40
+      }
+    }
+  ]
+}

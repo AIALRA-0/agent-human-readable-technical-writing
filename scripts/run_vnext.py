@@ -13,6 +13,7 @@ if str(ROOT) not in sys.path:
 
 from patcher.deterministic_committer.committer import PatchError, commit_document, sha256_text
 from runtime.engine import compile_contract, report_summary, verify_bundle
+from runtime.self_iteration import close_answer
 
 
 def read_json(path: str) -> dict:
@@ -26,7 +27,7 @@ def main() -> int:
 
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command", required=True)
-    for name in ("compile", "verify", "report"):
+    for name in ("compile", "verify", "report", "close"):
         command = subparsers.add_parser(name)
         command.add_argument("--input", required=True)
         command.add_argument("--output")
@@ -43,6 +44,12 @@ def main() -> int:
             result = verify_bundle(payload)
         elif arguments.command == "report":
             result = report_summary(payload)
+        elif arguments.command == "close":
+            final_answer, iterations = close_answer(
+                payload["initial_answer"], payload["model"], payload["worker_session_id"],
+                payload["manifest"], payload.get("repair_rounds", []),
+            )
+            result = {"status": iterations["status"], "final_answer": final_answer, "iterations": iterations}
         else:
             document_path = Path(payload["document_path"])
             old_hash = sha256_text(document_path.read_text(encoding="utf-8"))

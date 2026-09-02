@@ -138,13 +138,14 @@ def forward_paths() -> list[Path]:
     return paths
 
 
-def load_forward_evidence(failures: list[str]) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]:
+def load_forward_evidence(failures: list[str]) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]], dict[tuple[str, str], dict[str, Any]]]:
     """Load immutable attempt-one requests and candidates from every forward round."""
 
     request_validator = validator("forward-request.schema.json", [])
     candidate_validator = validator("forward-candidate.schema.json", [])
     requests: dict[str, dict[str, Any]] = {}
     originals: dict[str, dict[str, Any]] = {}
+    closures: dict[tuple[str, str], dict[str, Any]] = {}
     for directory in sorted(FORWARD_ROOT.glob("round-*")):
         if not directory.is_dir():
             continue
@@ -186,14 +187,28 @@ def load_forward_evidence(failures: list[str]) -> tuple[dict[str, dict[str, Any]
             if candidate.get("answer_sha256") != digest(candidate.get("answer", "")):
                 failures.append(f"{case_id}: immutable answer digest differs")
             originals[case_id] = candidate
-    return requests, originals
+        closure_path = directory / "closure-results.jsonl"
+        if closure_path.exists():
+            rows = [json.loads(line) for line in closure_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+            if len(rows) != 60:
+                failures.append(f"{directory.name}: expected 60 three-model closure results")
+            for item in rows:
+                key = (item["case_id"], item["model"])
+                if key in closures:
+                    failures.append(f"duplicate closure result: {key}")
+                if item.get("status") != "PASS":
+                    failures.append(f"{item['case_id']} {item['model']}: closure did not pass")
+                if item.get("final_sha256") != digest(item.get("answer", "")):
+                    failures.append(f"{item['case_id']} {item['model']}: closure final digest differs")
+                closures[key] = item
+    return requests, originals, closures
 
 
 def validate_forward_records(failures: list[str]) -> tuple[Counter[str], list[str], dict[str, dict[str, Any]]]:
     """Validate generalized rounds, revisions, immutable attempts, and revision ancestry."""
 
-    lifecycle_validator = validator("forward-lifecycle.schema.json", ["forward-request.schema.json"])
-    requests, originals = load_forward_evidence(failures)
+    lifecycle_validator = validator("forward-lifecycle.schema.json", ["forward-request.schema.json", "closure-run.schema.json"])
+    requests, originals, closures = load_forward_evidence(failures)
     records: dict[str, dict[str, Any]] = {}
     counts: Counter[str] = Counter()
     candidates: list[str] = []
@@ -221,7 +236,10 @@ def validate_forward_records(failures: list[str]) -> tuple[Counter[str], list[st
         if original is None or request is None:
             failures.append(f"{path.name}: immutable forward source is missing")
             continue
-        if case["source"]["original_answer_sha256"] != original["answer_sha256"]:
+        model = identity.get("model")
+        closure = closures.get((origin, model)) if model else None
+        expected_initial = closure["first_draft_sha256"] if closure else original["answer_sha256"]
+        if case["source"]["original_answer_sha256"] != expected_initial:
             failures.append(f"{path.name}: original answer digest changed")
         if case["source"]["original_request_sha256"] != original["request_sha256"]:
             failures.append(f"{path.name}: original request digest changed")
@@ -229,6 +247,14 @@ def validate_forward_records(failures: list[str]) -> tuple[Counter[str], list[st
             failures.append(f"{path.name}: request differs from immutable forward request")
         if identity["revision"] == 1 and status in {"gold", "rejected"} and case["artifact"]["answer"] != original["answer"]:
             failures.append(f"{path.name}: reviewed first attempt was rewritten")
+        if model and status == "candidate":
+            if closure is None:
+                failures.append(f"{path.name}: model-specific candidate lacks closure evidence")
+            else:
+                if case["artifact"].get("closure") != closure["iterations"]:
+                    failures.append(f"{path.name}: lifecycle closure ledger differs from run evidence")
+                if case["artifact"]["answer_sha256"] != closure["final_sha256"]:
+                    failures.append(f"{path.name}: candidate answer differs from closed result")
 
         if set(case["source"]["source_units"]) != set(case["source"]["support_map"]):
             failures.append(f"{path.name}: source-unit coverage is incomplete")
@@ -342,10 +368,6 @@ def validate_generic_review_bindings(
     """Bind each generic decision to one terminal revision and optional successor."""
 
     decisions: Counter[str] = Counter()
-    by_origin_revision = {
-        (record["identity"]["origin_case_id"], record["identity"]["revision"]): record
-        for record in records.values()
-    }
     for ledger in ledgers:
         for decision in ledger["decisions"]:
             decisions[decision["decision"]] += 1
@@ -364,9 +386,7 @@ def validate_generic_review_bindings(
                 failures.append(f"{decision['resulting_record_id']}: profile revision differs from ledger")
             if decision["decision"] == "rejected":
                 specification = decision["next_candidate"]
-                successor = by_origin_revision.get(
-                    (result["identity"]["origin_case_id"], result["identity"]["revision"] + 1)
-                )
+                successor = records.get(specification["candidate_id"])
                 if successor is None:
                     failures.append(f"{decision['resulting_record_id']}: rejected revision lacks successor")
                 elif successor["artifact"]["answer_sha256"] != specification["answer_sha256"]:
@@ -377,39 +397,55 @@ def validate_generic_review_bindings(
 def validate_revision_chains(records: dict[str, dict[str, Any]], failures: list[str]) -> dict[int, dict[str, Any]]:
     """Validate one contiguous chain per immutable origin and derive round state."""
 
-    chains: dict[str, list[dict[str, Any]]] = {}
+    chains: dict[tuple[str, str | None], list[dict[str, Any]]] = {}
     for record in records.values():
         origin = record["identity"]["origin_case_id"]
-        chains.setdefault(origin, []).append(record)
+        model = record["identity"].get("model")
+        chains.setdefault((origin, model), []).append(record)
     round_state: dict[int, dict[str, Any]] = {}
-    for origin, chain in chains.items():
+    per_round_chains: dict[int, dict[tuple[str, str | None], list[dict[str, Any]]]] = {}
+    for (origin, model), chain in chains.items():
         ordered = sorted(chain, key=lambda item: item["identity"]["revision"])
         revisions = [item["identity"]["revision"] for item in ordered]
         if revisions != list(range(1, max(revisions) + 1)):
-            failures.append(f"{origin}: revision chain is not contiguous")
+            failures.append(f"{origin} {model or 'legacy'}: revision chain is not contiguous")
         if len(revisions) != len(set(revisions)):
-            failures.append(f"{origin}: more than one record exists for one revision")
+            failures.append(f"{origin} {model or 'legacy'}: more than one record exists for one revision")
         if any(item["identity"]["status"] != "rejected" for item in ordered[:-1]):
-            failures.append(f"{origin}: only the final revision may be Gold or Candidate")
+            failures.append(f"{origin} {model or 'legacy'}: only the final revision may be Gold or Candidate")
         if ordered[-1]["identity"]["status"] == "rejected":
-            failures.append(f"{origin}: rejected terminal revision lacks a pending successor")
+            failures.append(f"{origin} {model or 'legacy'}: rejected terminal revision lacks a pending successor")
         match = re.fullmatch(r"FWD-R([1-9][0-9]*)-[0-9]{3}", origin)
         if match is None:
             failures.append(f"{origin}: invalid origin identifier")
             continue
         round_number = int(match.group(1))
-        state = round_state.setdefault(round_number, {"origins": 0, "r1_reviewed": 0, "r1_accepted": 0, "final_gold": 0})
-        state["origins"] += 1
-        first = ordered[0]
-        if first["identity"]["status"] in {"gold", "rejected"}:
-            state["r1_reviewed"] += 1
-        if first["identity"]["status"] == "gold":
-            state["r1_accepted"] += 1
-        if ordered[-1]["identity"]["status"] == "gold":
-            state["final_gold"] += 1
-    for round_number, state in round_state.items():
-        if state["origins"] != 20:
-            failures.append(f"round {round_number}: lifecycle has {state['origins']} origins instead of 20")
+        per_round_chains.setdefault(round_number, {})[(origin, model)] = ordered
+    for round_number, round_chains in per_round_chains.items():
+        origins = sorted({origin for origin, _ in round_chains})
+        models = {model for _, model in round_chains}
+        expected_chains = 20 if round_number == 1 else 60
+        if len(origins) != 20:
+            failures.append(f"round {round_number}: lifecycle has {len(origins)} origins instead of 20")
+        if len(round_chains) != expected_chains:
+            failures.append(f"round {round_number}: lifecycle has {len(round_chains)} model chains instead of {expected_chains}")
+        if round_number >= 2 and models != {"gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"}:
+            failures.append(f"round {round_number}: three-model lifecycle set is incomplete")
+        r1_reviewed = 0
+        r1_accepted = 0
+        final_gold = 0
+        for origin in origins:
+            variants = [round_chains.get((origin, model)) for model in ({None} if round_number == 1 else {"gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna"})]
+            if all(chain and chain[0]["identity"]["status"] in {"gold", "rejected"} for chain in variants):
+                r1_reviewed += 1
+            if all(chain and chain[0]["identity"]["status"] == "gold" for chain in variants):
+                r1_accepted += 1
+            if all(chain and chain[-1]["identity"]["status"] == "gold" for chain in variants):
+                final_gold += 1
+        round_state[round_number] = {
+            "origins": len(origins), "chains": len(round_chains),
+            "r1_reviewed": r1_reviewed, "r1_accepted": r1_accepted, "final_gold": final_gold,
+        }
     for round_number in sorted(number for number in round_state if number >= 3):
         previous = round_state.get(round_number - 1)
         if previous is None or previous["final_gold"] != 20:
@@ -543,10 +579,10 @@ def main() -> int:
         counts = anchor_counts + forward_counts
         expected = review["post_review_counts"]
         require(anchor_counts == Counter({key: value for key, value in expected["anchor"].items() if key != "total"}), f"anchor post-review counts differ: {dict(anchor_counts)}")
-        generated_origins = sum(state["origins"] for number, state in round_state.items() if number >= 2)
-        expected_combined = Counter({"gold": 32 + decisions["accepted"], "rejected": 30 + decisions["rejected"], "candidate": generated_origins - decisions["accepted"]})
+        generated_chains = sum(state.get("chains", state["origins"]) for number, state in round_state.items() if number >= 2)
+        expected_combined = Counter({"gold": 32 + decisions["accepted"], "rejected": 30 + decisions["rejected"], "candidate": generated_chains - decisions["accepted"]})
         require(counts == expected_combined, f"dynamic combined lifecycle counts differ: {dict(counts)}")
-        require(sum(counts.values()) == 62 + generated_origins + decisions["rejected"], "dynamic lifecycle total differs from generated origins and rejections")
+        require(sum(counts.values()) == 62 + generated_chains + decisions["rejected"], "dynamic lifecycle total differs from generated model chains and rejections")
         candidates = anchor_candidates + forward_candidates
         baseline_expected = [candidate for candidate in expected_candidates if candidate in candidates]
         require(sorted(baseline_expected) == sorted(anchor_candidates), "legacy candidate transitions differ from round-five ledger")

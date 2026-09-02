@@ -1,7 +1,7 @@
 profile:
   identity:
     profile_id: lucas
-    revision: round-5-inline-alignment-aemp
+    revision: round-6-self-iterative-cross-model
     description: Lucas 已明确确认的个人写作要求
   punctuation:
     chinese_full_stop:
@@ -9,9 +9,9 @@ profile:
       severity: PROFILE_REQUIRED
       description: 生成的普通中文正文不使用中文句号
     internal_pause:
-      policy: context_sensitive_comma_or_semicolon
-      severity: ADVISORY
-      description: 短停顿和紧密衔接使用逗号，较长并列或对比关系使用分号，不设置机械数量阈值
+      policy: compact_parallel_or_term_semicolon_only
+      severity: PROFILE_REQUIRED
+      description: 分号只用于同一行的紧凑并列分句或专业词说明，一旦内容构成多个独立项目就换行并按层级缩进
     paragraph_ending:
       policy: no_trailing_full_stop_or_semicolon
       severity: PROFILE_REQUIRED
@@ -22,9 +22,13 @@ profile:
       description: 逐字引文、日志、代码和用户要求原样保留的材料不改标点
   structure:
     section_numbering:
-      policy: dotted_decimal
+      policy: adaptive_markdown_heading
       severity: PROFILE_REQUIRED
-      description: 多章节标题使用 1.、1.1. 和 1.1.1. 形式
+      description: 根据内容结构选择需要的 Markdown 标题层级，短单主题内容不设置标题，多章节文档需要编号时再使用 1.、1.1. 和 1.1.1. 形式
+    colon_pseudo_heading:
+      policy: forbidden
+      severity: PROFILE_REQUIRED
+      description: 禁止使用操作、术语、证据边界等冒号结尾的伪标题，需要分区时使用适当 Markdown 标题，不需要分区时直接成文
     captions:
       policy: below_object
       severity: PROFILE_REQUIRED
@@ -56,7 +60,7 @@ profile:
     mermaid_explanation:
       policy: post_figure_explanation
       severity: PROFILE_REQUIRED
-      description: 每张 Mermaid 图后解释节点关系、流程结果和证据边界
+      description: 每张 Mermaid 图后解释节点关系和流程结果，只有证据限制影响理解、决定或操作时才自然说明
   terminology:
     standalone_scope:
       policy: reset_known_terms
@@ -92,6 +96,10 @@ profile:
       policy: evidence_gap_importance_next_check
       severity: PROFILE_REQUIRED
       description: 否定边界说明缺少的证据、缺失原因造成的影响和下一项核对方法
+    boundary_visibility:
+      policy: internal_then_natural_when_material
+      severity: PROFILE_REQUIRED
+      description: 证据边界默认只进入内部验证包，只有影响结论、操作或安全时才在正文自然说明，禁止直接输出证据边界、验证边界或内部边界标签
     logic:
       policy: forward
       severity: ADVISORY
@@ -117,6 +125,19 @@ profile:
       policy: line_by_line_explanation
       severity: PROFILE_REQUIRED
       description: JSON 等不能合法添加注释的格式保留原文并逐行解释，同行对齐不适用
+  delivery:
+    self_iteration:
+      policy: reread_check_patch_up_to_three
+      severity: PROFILE_REQUIRED
+      description: 初稿不得直接交付，生成后重新读取适用规则，合并脚本和语义复核发现，只修改最小完整错误单元并最多复验三轮
+    repair_scope:
+      policy: smallest_complete_unit
+      severity: MACHINE_FINAL
+      description: 能用字符、词组或单句补丁修复时禁止重写整段、整节或全文，无法安全局部修复时返回 REVIEW_REQUIRED
+    user_visible_artifact:
+      policy: closed_result_only
+      severity: PROFILE_REQUIRED
+      description: 普通用户只看到阻断问题清零后的最终答案，内部初稿和自动修复轮次不冒充人工修订或用户接受
   source_presentation:
     short_verbatim_text:
       policy: blockquote

@@ -1,12 +1,13 @@
 {
   "identity": {
-    "case_id": "CANDIDATE-FWD-R2-021-R1",
+    "case_id": "REJECTED-FWD-R2-021-SOL",
     "origin_case_id": "FWD-R2-021",
-    "status": "candidate",
+    "status": "rejected",
     "revision": 1,
     "approved_by_user": false,
-    "reviewed_at": null,
-    "profile_revision_at_review": null
+    "reviewed_at": "2026-09-01",
+    "profile_revision_at_review": "round-6-self-iterative-cross-model",
+    "model": "gpt-5.6-sol"
   },
   "task": {
     "audience": "zero_prior_knowledge",
@@ -70,11 +71,19 @@
     "revision_of": null
   },
   "review": {
-    "decision_source": "pending_user_review",
-    "decision": "pending",
-    "reasons": [],
-    "correct_parts": [],
-    "regression_requirements": [],
+    "decision_source": "explicit_user_review",
+    "decision": "rejected",
+    "reasons": [
+      "生成正文含中文句号",
+      "完成项、待处理项和只读状态挤在同一行，排版不够清晰"
+    ],
+    "correct_parts": [
+      "保留复核编号 B21、12 项已完成、2 项待权限恢复和未进行复制"
+    ],
+    "regression_requirements": [
+      "删除生成中文句号",
+      "把多个状态事实换行并保持原数字与范围"
+    ],
     "non_blocking_preferences": [],
     "privacy": {
       "status": "public_safe",

@@ -184,6 +184,32 @@ def validate_conversation_supersession(rule_id: str, payload: dict[str, Any]) ->
     return [] if checks.get(rule_id, False) else [f"{rule_id} failed"]
 
 
+def validate_self_iteration(rule_id: str, payload: dict[str, Any]) -> ValidationResult:
+    """Validate observable closure declarations without treating automation as acceptance."""
+
+    checks = {
+        "CLOSURE_NO_CHINESE_FULL_STOP": payload.get("generated_full_stop_count") == 0,
+        "CLOSURE_PARENTHETICAL_CASE": payload.get("parenthetical_case") in {"title_case", "official_case"},
+        "CLOSURE_TERM_ENGLISH": not payload.get("professional_term") or bool(payload.get("official_english")),
+        "CLOSURE_NO_COLON_PSEUDO_HEADING": payload.get("colon_pseudo_heading_count") == 0,
+        "CLOSURE_ADAPTIVE_HEADING": payload.get("actual_heading_levels") == payload.get("planned_heading_levels"),
+        "CLOSURE_SEMICOLON_BOUNDARY": payload.get("semicolon_uses", []) == payload.get("allowed_semicolon_uses", []),
+        "CLOSURE_INTERNAL_LABEL_HIDDEN": not payload.get("internal_boundary_label_visible"),
+        "CLOSURE_NATURAL_MATERIAL_LIMIT": not payload.get("material_boundary") or bool(payload.get("natural_limitation")),
+        "CLOSURE_PARALLEL_DECLARED": set(payload.get("observed_parallel_groups", [])) <= set(payload.get("declared_parallel_groups", [])),
+        "CLOSURE_PATCH_HASH": payload.get("bound_sha256") == payload.get("current_sha256"),
+        "CLOSURE_PATCH_UNIQUE_TARGET": payload.get("actual_occurrences") == payload.get("expected_occurrences") == 1,
+        "CLOSURE_PATCH_MINIMAL_SCOPE": payload.get("repair_scope") in {"token", "phrase", "sentence"},
+        "CLOSURE_FINDINGS_DEDUPED": len(payload.get("finding_keys", [])) == len(set(payload.get("finding_keys", []))),
+        "CLOSURE_PATCH_CHANGES_TEXT": payload.get("old_text") != payload.get("new_text"),
+        "CLOSURE_THREE_ROUND_STOP": int(payload.get("repair_rounds", 0)) <= 3,
+        "CLOSURE_REVIEW_REQUIRED": payload.get("remaining_blockers", 0) == 0 or payload.get("status") == "REVIEW_REQUIRED",
+        "CLOSURE_SOURCE_PRESERVED": payload.get("source_hash_before") == payload.get("source_hash_after"),
+        "CLOSURE_NOT_USER_ACCEPTANCE": payload.get("automated_checks_are_user_acceptance") is False,
+    }
+    return [] if checks.get(rule_id, False) else [f"{rule_id} failed"]
+
+
 def _missing_text(text: str, required: list[str]) -> ValidationResult:
     """Return every required registered fragment missing from text."""
 
@@ -408,6 +434,7 @@ VALIDATORS: dict[str, Callable[[str, dict[str, Any]], ValidationResult]] = {
     "content_sufficiency": validate_content_sufficiency,
     "long_context_coverage": validate_long_context,
     "conversation_supersession": validate_conversation_supersession,
+    "self_iteration_protocol": validate_self_iteration,
 }
 
 

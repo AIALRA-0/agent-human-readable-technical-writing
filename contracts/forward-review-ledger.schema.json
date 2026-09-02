@@ -29,7 +29,7 @@
         "additionalProperties": false,
         "required": ["reviewed_candidate_id", "reviewed_answer_sha256", "decision", "user_instruction", "reasons", "correct_parts", "regression_requirements", "non_blocking_preferences", "resulting_record_id", "next_candidate"],
         "properties": {
-          "reviewed_candidate_id": {"type": "string", "pattern": "^CANDIDATE-FWD-R[1-9][0-9]*-[0-9]{3}-R[1-9][0-9]*$"},
+          "reviewed_candidate_id": {"type": "string", "pattern": "^CANDIDATE-FWD-R[1-9][0-9]*-[0-9]{3}(?:-(?:SOL|TERRA|LUNA))?-R[1-9][0-9]*$"},
           "reviewed_answer_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
           "decision": {"enum": ["accepted", "rejected"]},
           "user_instruction": {"type": "string", "minLength": 1},
@@ -37,7 +37,7 @@
           "correct_parts": {"type": "array", "items": {"type": "string", "minLength": 1}},
           "regression_requirements": {"type": "array", "items": {"type": "string", "minLength": 1}},
           "non_blocking_preferences": {"type": "array", "items": {"type": "string", "minLength": 1}},
-          "resulting_record_id": {"type": "string", "pattern": "^(?:GOLD|REJECTED)-FWD-R[1-9][0-9]*-[0-9]{3}(?:-R[2-9][0-9]*)?$"},
+          "resulting_record_id": {"type": "string", "pattern": "^(?:GOLD|REJECTED)-FWD-R[1-9][0-9]*-[0-9]{3}(?:-(?:SOL|TERRA|LUNA))?(?:-R[2-9][0-9]*)?$"},
           "next_candidate": {
             "oneOf": [
               {"type": "null"},
@@ -46,7 +46,7 @@
                 "additionalProperties": false,
                 "required": ["candidate_id", "answer", "answer_sha256"],
                 "properties": {
-                  "candidate_id": {"type": "string", "pattern": "^CANDIDATE-FWD-R[1-9][0-9]*-[0-9]{3}-R[2-9][0-9]*$"},
+                  "candidate_id": {"type": "string", "pattern": "^CANDIDATE-FWD-R[1-9][0-9]*-[0-9]{3}(?:-(?:SOL|TERRA|LUNA))?-R[2-9][0-9]*$"},
                   "answer": {"type": "string", "minLength": 1},
                   "answer_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
                 }

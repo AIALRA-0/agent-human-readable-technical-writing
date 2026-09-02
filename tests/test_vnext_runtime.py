@@ -13,6 +13,8 @@ sys.path.insert(0, str(ROOT))
 
 from runtime.align_inline_comments import align_text, check_alignment  # noqa: E402
 from runtime.engine import compile_contract, verify_bundle  # noqa: E402
+from runtime.self_iteration import close_answer, deterministic_findings  # noqa: E402
+from patcher.deterministic_committer import sha256_text  # noqa: E402
 
 
 class VNextRuntimeTests(unittest.TestCase):
@@ -28,6 +30,12 @@ class VNextRuntimeTests(unittest.TestCase):
         })
         return {
             "task_contract": contract,
+            "iterations": {
+                "model": "runtime-test", "worker_session_id": "runtime-test-session",
+                "first_draft_sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+                "final_sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+                "max_repair_rounds": 3, "rounds": [], "status": "PASS",
+            },
             "long_context_coverage": {
                 "input_char_count": 1, "length_class": "very_short", "section_count": 1,
                 "full_document_check": False, "anchors": [], "term_scopes": [], "source_priorities": [],
@@ -91,9 +99,10 @@ class VNextRuntimeTests(unittest.TestCase):
             "audience": "general_reader", "genre": "readme", "media": ["github_markdown"],
             "components": ["TEXT", "IMAGE"],
         })
-        self.assertEqual("round-5-inline-alignment-aemp", contract["identity"]["profile_revision"])
+        self.assertEqual("round-6-self-iterative-cross-model", contract["identity"]["profile_revision"])
         self.assertTrue(contract["presentation"]["renderer"]["exact_object_alignment"])
         self.assertEqual("center", contract["presentation"]["component_alignment"]["caption"])
+        self.assertEqual(3, contract["delivery"]["iteration_policy"]["max_repair_rounds"])
 
     def test_missing_source_allocation_fails(self) -> None:
         """A required source atom cannot disappear between understanding and rendering."""
@@ -133,6 +142,7 @@ class VNextRuntimeTests(unittest.TestCase):
         })
         bundle["rendered_document"]["text"] = source + "\n" + bundle["rendered_document"]["text"]
         bundle["rendered_document"]["sha256"] = hashlib.sha256(bundle["rendered_document"]["text"].encode("utf-8")).hexdigest()
+        bundle["iterations"]["final_sha256"] = bundle["rendered_document"]["sha256"]
         report = verify_bundle(bundle)
         self.assertEqual("FAIL", report["status"])
         self.assertIn("MERMAID_VERTICAL_DEFAULT", {item["rule_id"] for item in report["findings"]})
@@ -154,6 +164,7 @@ class VNextRuntimeTests(unittest.TestCase):
         text = "任务已接收\n\n\n"
         bundle["rendered_document"]["text"] = text
         bundle["rendered_document"]["sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        bundle["iterations"]["final_sha256"] = bundle["rendered_document"]["sha256"]
         report = verify_bundle(bundle)
         self.assertIn("EXCESSIVE_BLANK_LINES", {item["rule_id"] for item in report["findings"]})
 
@@ -172,6 +183,7 @@ class VNextRuntimeTests(unittest.TestCase):
         text = excerpt + "\n\n任务已接收"
         bundle["rendered_document"]["text"] = text
         bundle["rendered_document"]["sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        bundle["iterations"]["final_sha256"] = bundle["rendered_document"]["sha256"]
         self.assertEqual("PASS", verify_bundle(bundle)["status"])
 
     def test_inline_code_token_requires_backticks(self) -> None:
@@ -189,6 +201,7 @@ class VNextRuntimeTests(unittest.TestCase):
         bundle["rendered_document"]["text"] = "任务已接收。"
         bundle["rendered_document"]["sentences"][0]["text"] = "任务已接收。"
         bundle["rendered_document"]["sha256"] = hashlib.sha256("任务已接收。".encode("utf-8")).hexdigest()
+        bundle["iterations"]["final_sha256"] = bundle["rendered_document"]["sha256"]
         self.assertEqual("FAIL", verify_bundle(bundle)["status"])
 
     def add_term(self, bundle: dict, requirement: dict, use: dict, text: str) -> None:
@@ -199,6 +212,7 @@ class VNextRuntimeTests(unittest.TestCase):
         bundle["rendered_document"]["text"] = text
         bundle["rendered_document"]["sentences"][0]["text"] = text
         bundle["rendered_document"]["sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        bundle["iterations"]["final_sha256"] = bundle["rendered_document"]["sha256"]
 
     def test_registered_parenthetical_title_case_passes(self) -> None:
         """Registered prose passes and literal machine or evidence contexts stay unchanged."""
@@ -357,6 +371,7 @@ class VNextRuntimeTests(unittest.TestCase):
         text = source + "\n\n" + bundle["rendered_document"]["text"]
         bundle["rendered_document"]["text"] = text
         bundle["rendered_document"]["sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        bundle["iterations"]["final_sha256"] = bundle["rendered_document"]["sha256"]
 
     def test_annotated_code_mode_passes(self) -> None:
         """Legal code comments can satisfy per-unit coverage."""
@@ -449,6 +464,7 @@ class VNextRuntimeTests(unittest.TestCase):
         text = "静置 10 分钟；任务已接收"
         bundle["rendered_document"]["text"] = text
         bundle["rendered_document"]["sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        bundle["iterations"]["final_sha256"] = bundle["rendered_document"]["sha256"]
         report = verify_bundle(bundle)
         self.assertIn("SUPERSEDED_REQUIREMENT_LEAK", {item["rule_id"] for item in report["findings"]})
 
@@ -463,6 +479,7 @@ class VNextRuntimeTests(unittest.TestCase):
         text = "静置 10 分钟；任务已接收"
         bundle["rendered_document"]["text"] = text
         bundle["rendered_document"]["sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        bundle["iterations"]["final_sha256"] = bundle["rendered_document"]["sha256"]
         self.assertEqual("PASS", verify_bundle(bundle)["status"])
 
     def configure_long_context(self, bundle: dict) -> None:
@@ -499,6 +516,10 @@ class VNextRuntimeTests(unittest.TestCase):
             ],
             "source_priorities": [{"conflict_id": "LC-CONFLICT-001", "selected_source_id": "POLICY-NEW", "surfaced": True}],
         }
+        text = "### 全文复核\n\n" + bundle["rendered_document"]["text"]
+        bundle["rendered_document"]["text"] = text
+        bundle["rendered_document"]["sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        bundle["iterations"]["final_sha256"] = bundle["rendered_document"]["sha256"]
 
     def test_compile_classifies_five_length_ranges(self) -> None:
         """The compiler binds the agreed low-token Unicode ranges exactly."""
@@ -594,6 +615,7 @@ class VNextRuntimeTests(unittest.TestCase):
         text = source + "\n\n" + bundle["rendered_document"]["text"]
         bundle["rendered_document"]["text"] = text
         bundle["rendered_document"]["sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        bundle["iterations"]["final_sha256"] = bundle["rendered_document"]["sha256"]
 
     def test_github_visual_requires_four_render_results(self) -> None:
         """Source alignment markup alone cannot prove the rendered result."""
@@ -632,6 +654,111 @@ class VNextRuntimeTests(unittest.TestCase):
         self.add_term(bundle, requirement, use, "TTL 生存时间（Time to Live）规定缓存时长")
         report = verify_bundle(bundle)
         self.assertIn("TERM_FIRST_USE_COVERAGE", {item["rule_id"] for item in report["findings"]})
+
+    def test_compile_records_adaptive_section_and_internal_boundary_policy(self) -> None:
+        """Short answers need no heading while multi-section answers receive a real level."""
+
+        short = compile_contract({
+            "task_id": "TASK-SECTION-SHORT", "base_operation": "TRANSFORM", "augmentation": "NONE",
+            "audience": "operator", "genre": "status", "media": ["chat"], "components": ["TEXT"],
+        })
+        self.assertFalse(short["structure"]["section_plan"]["headings_required"])
+        self.assertEqual([], short["structure"]["section_plan"]["heading_levels"])
+        self.assertFalse(short["boundaries"]["boundary_visibility"]["direct_label_allowed"])
+        long = compile_contract({
+            "task_id": "TASK-SECTION-LONG", "base_operation": "EXPLAIN", "augmentation": "TEACHING",
+            "audience": "beginner", "genre": "tutorial", "media": ["chat"], "components": ["TEXT"],
+            "section_count": 3,
+        })
+        self.assertTrue(long["structure"]["section_plan"]["headings_required"])
+        self.assertEqual([3], long["structure"]["section_plan"]["heading_levels"])
+
+    def test_deterministic_self_review_finds_new_profile_failures(self) -> None:
+        """The closure checker catches punctuation, pseudo headings, casing, and internal labels."""
+
+        answer = "操作：\n\n使用上锁隔离（lockout）。\n\n证据边界：仍需复核；"
+        rules = {item["rule_id"] for item in deterministic_findings(answer)}
+        self.assertTrue({
+            "COLON_PSEUDO_HEADING", "PARENTHETICAL_ENGLISH_CASE",
+            "LUCAS_NO_CHINESE_FULL_STOP", "INTERNAL_BOUNDARY_LABEL",
+            "LUCAS_NO_TRAILING_SEMICOLON",
+        } <= rules)
+
+    def test_inline_colon_pseudo_heading_is_detected(self) -> None:
+        """A label followed by content is still a pseudo heading when it starts the line."""
+
+        rules = {item["rule_id"] for item in deterministic_findings("操作：启动泵")}
+        self.assertIn("COLON_PSEUDO_HEADING", rules)
+
+    def test_registered_official_lowercase_parenthetical_is_preserved(self) -> None:
+        """Official mixed casing takes precedence over generic title-case mechanics."""
+
+        manifest = {
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "parallel_groups": [], "boundary_visibility": {"mode": "internal", "material_reason": None},
+            "term_uses": [{"term": "平台", "official_english": "eBay", "first_use_text": "平台（eBay）"}],
+        }
+        rules = {item["rule_id"] for item in deterministic_findings("平台（eBay）用于发布商品", manifest)}
+        self.assertNotIn("PARENTHETICAL_ENGLISH_CASE", rules)
+
+    def test_review_required_finding_stops_without_patch(self) -> None:
+        """A finding that cannot be repaired locally never becomes an automatic pass."""
+
+        final, ledger = close_answer(
+            "来源关系无法局部修复", "gpt-5.6-terra", "session-2",
+            {"section_plan": {"headings_required": False, "heading_levels": []}, "parallel_groups": [], "term_uses": [], "boundary_visibility": {"mode": "internal", "material_reason": None}},
+            [{"semantic_findings": [{
+                "finding_id": "SEM-001", "rule_id": "SOURCE_RELATION", "status": "REVIEW_REQUIRED",
+                "location": "LINE-0001", "old_text": "来源关系", "reason": "局部修改会改变已确认事实", "repair_scope": "sentence",
+            }], "patches": []}],
+        )
+        self.assertEqual("来源关系无法局部修复", final)
+        self.assertEqual("REVIEW_REQUIRED", ledger["status"])
+        self.assertEqual([], ledger["rounds"])
+
+    def test_parallel_manifest_cannot_fake_markdown_list_rendering(self) -> None:
+        """Separate bare lines do not satisfy a declared indented-list requirement."""
+
+        answer = "已核对 12 项\n  2 项待权限恢复"
+        manifest = {
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "term_uses": [], "boundary_visibility": {"mode": "internal", "material_reason": None},
+            "parallel_groups": [{
+                "group_id": "PGRP-001", "item_texts": ["已核对 12 项", "2 项待权限恢复"],
+                "rendered_as_indented_list": True,
+            }],
+        }
+        rules = {item["rule_id"] for item in deterministic_findings(answer, manifest)}
+        self.assertIn("PARALLEL_GROUP_LAYOUT", rules)
+
+    def test_close_answer_applies_one_minimal_round(self) -> None:
+        """One exact punctuation patch can close without regenerating the sentence."""
+
+        answer = "任务已接收。"
+        patch = {
+            "identity": {"patch_id": "PATCH-901", "finding_id": "LUCAS_NO_CHINESE_FULL_STOP:LINE-0001", "operation": "replace_exact"},
+            "target": {"document_sha256": sha256_text(answer), "node_id": "LINE-0001"},
+            "replacement": {"old_text": "。", "new_text": "", "expected_occurrences": 1},
+            "authorization": {"reason": "删除生成正文中的中文句号", "repair_scope": "token", "preserve": ["句子其余内容"]},
+            "verification": {"rerun_validators": ["deterministic_findings"]},
+        }
+        final, ledger = close_answer(
+            answer, "gpt-5.6-sol", "session-1",
+            {"section_plan": {"headings_required": False, "heading_levels": []}, "parallel_groups": [], "term_uses": [], "boundary_visibility": {"mode": "internal", "material_reason": None}},
+            [{"semantic_findings": [], "patches": [patch]}],
+        )
+        self.assertEqual("任务已接收", final)
+        self.assertEqual("PASS", ledger["status"])
+        self.assertEqual(1, len(ledger["rounds"]))
+
+    def test_incomplete_closure_bundle_requires_review(self) -> None:
+        """A non-passing closure cannot become a review candidate."""
+
+        bundle = self.build_bundle()
+        bundle["iterations"]["status"] = "REVIEW_REQUIRED"
+        report = verify_bundle(bundle)
+        self.assertEqual("REVIEW_REQUIRED", report["status"])
+        self.assertIn("CLOSURE_NOT_COMPLETE", {item["rule_id"] for item in report["findings"]})
 
 
 if __name__ == "__main__":

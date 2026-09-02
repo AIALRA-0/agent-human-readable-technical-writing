@@ -20,6 +20,7 @@ class PatchError(ValueError):
 
 
 Validator = Callable[[str], Sequence[str] | None]
+MINIMAL_REPAIR_SCOPES = {"token", "phrase", "sentence"}
 
 
 @dataclass(frozen=True)
@@ -117,13 +118,14 @@ def _prepare_edits(
         if not isinstance(expected, int) or isinstance(expected, bool) or expected < 1:
             raise PatchError(f"{patch_id}: expected_occurrences must be a positive integer")
 
-        positions = _find_occurrences(text, old_text)
+        node_text = text[node_start:node_end]
+        positions = [node_start + position for position in _find_occurrences(node_text, old_text)]
         if len(positions) != expected:
+            if not positions and _find_occurrences(text, old_text):
+                raise PatchError(f"{patch_id}: old_text occurs outside the authorized node")
             raise PatchError(
                 f"{patch_id}: expected {expected} occurrence(s), found {len(positions)}"
             )
-        if any(position < node_start or position + len(old_text) > node_end for position in positions):
-            raise PatchError(f"{patch_id}: old_text occurs outside the authorized node")
 
         edits.extend(
             _Edit(
@@ -170,6 +172,28 @@ def apply_transaction(
     return result
 
 
+def apply_minimal_transaction(
+    text: str,
+    patches: Iterable[Mapping[str, object]],
+    node_ranges: Mapping[str, tuple[int, int]],
+    validators: Iterable[Validator] = (),
+) -> str:
+    """Apply only token, phrase, or sentence patches for self-iterative delivery."""
+
+    materialized = list(patches)
+    if not materialized:
+        raise PatchError("minimal repair requires at least one patch")
+    for patch in materialized:
+        authorization = _require_mapping(patch.get("authorization"), "authorization")
+        replacement = _require_mapping(patch.get("replacement"), "replacement")
+        patch_id = str(_require_mapping(patch.get("identity"), "identity").get("patch_id", ""))
+        if authorization.get("repair_scope") not in MINIMAL_REPAIR_SCOPES:
+            raise PatchError(f"{patch_id}: self-iterative repair scope is too broad")
+        if replacement.get("old_text") == replacement.get("new_text"):
+            raise PatchError(f"{patch_id}: no-op patch is not allowed")
+    return apply_transaction(text, materialized, node_ranges, validators)
+
+
 def commit_document(
     path: str | os.PathLike[str],
     patches: Iterable[Mapping[str, object]],
@@ -202,4 +226,36 @@ def commit_document(
             pass
         raise
 
+    return sha256_text(result)
+
+
+def commit_minimal_document(
+    path: str | os.PathLike[str],
+    patches: Iterable[Mapping[str, object]],
+    node_ranges: Mapping[str, tuple[int, int]],
+    validators: Iterable[Validator] = (),
+) -> str:
+    """Atomically commit a self-iterative repair after minimal-scope validation."""
+
+    document_path = Path(path)
+    original = document_path.read_text(encoding="utf-8")
+    result = apply_minimal_transaction(original, patches, node_ranges, validators)
+    descriptor, temporary_name = tempfile.mkstemp(
+        dir=document_path.parent,
+        prefix=f".{document_path.name}.",
+        suffix=".tmp",
+        text=True,
+    )
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="") as handle:
+            handle.write(result)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary_name, document_path)
+    except Exception:
+        try:
+            os.unlink(temporary_name)
+        except FileNotFoundError:
+            pass
+        raise
     return sha256_text(result)

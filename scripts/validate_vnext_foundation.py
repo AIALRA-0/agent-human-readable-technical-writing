@@ -36,6 +36,8 @@ def validate_contract_schemas() -> int:
         "context-case.schema.json", "evaluation-case.schema.json", "forward-candidate.schema.json",
         "forward-request.schema.json", "forward-review-ledger.schema.json", "forward-lifecycle.schema.json",
         "forward-round-report.schema.json", "task-contract.schema.json", "verification-bundle.schema.json",
+        "closure-run.schema.json", "closure-review-output.schema.json", "closure-patch-output.schema.json",
+        "forward-generation-output.schema.json",
     }
     actual_names = {path.name for path in schema_paths}
     require(required_names <= actual_names, f"required contract schemas are missing: {sorted(required_names - actual_names)}")
@@ -238,7 +240,7 @@ def main() -> int:
         print(json.dumps({"status": "FAIL", "completed": results, "reason": str(error), "impact": "candidate branch must not be published", "next": "repair the reported deterministic defect and rerun"}, ensure_ascii=False, indent=2))
         return 1
 
-    print(json.dumps({"status": "PASS", "results": results, "reason": "all vNext foundation checks completed without deterministic defects", "impact": "the authority document, contracts, reviewed records, links, assets, and public-file privacy patterns are internally consistent", "next": "run the 252 fixtures, lifecycle validation, contextual cases, long-context evidence, and forward-candidate checks"}, ensure_ascii=False, indent=2))
+    print(json.dumps({"status": "PASS", "results": results, "reason": "all vNext foundation checks completed without deterministic defects", "impact": "the authority document, contracts, reviewed records, links, assets, and public-file privacy patterns are internally consistent", "next": "run every discovered fixture, lifecycle validation, contextual cases, self-iterative closure, long-context evidence, and forward-candidate checks"}, ensure_ascii=False, indent=2))
     return 0
 
 

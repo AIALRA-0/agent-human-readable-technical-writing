@@ -1,9 +1,10 @@
-"""Execute and summarize the 252 deterministic vNext fixtures."""
+"""Execute every inventoried deterministic vNext fixture."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import hashlib
 import sys
 from collections import Counter
 from pathlib import Path
@@ -16,32 +17,7 @@ sys.path.insert(0, str(ROOT))
 from validators.vnext_minimal import validate_fixture  # noqa: E402
 
 
-DEFAULT_FIXTURES = [
-    ROOT / "evals" / "deterministic" / "vnext-1.1-minimal-cases.jsonl",
-    ROOT / "evals" / "deterministic" / "round-4-generalization-cases.jsonl",
-    ROOT / "evals" / "deterministic" / "round-5-finalization-cases.jsonl",
-    ROOT / "evals" / "deterministic" / "round-6-long-context-cases.jsonl",
-]
-EXPECTED_COUNTS = {
-    "lifecycle_schema": 20,
-    "terms_official_standalone": 40,
-    "layout_lists_paragraphs": 20,
-    "mermaid_caption_explanation": 16,
-    "provenance_support_boundary": 20,
-    "image_explanation": 16,
-    "table_explanation": 16,
-    "code_explanation": 16,
-    "privacy_source_retention": 8,
-    "presentation_spacing": 16,
-    "term_meaning_contract": 8,
-    "parallel_group_layout": 8,
-    "github_render_evidence": 6,
-    "code_coverage_mode": 6,
-    "conversation_supersession": 4,
-    "code_comment_alignment": 8,
-    "content_sufficiency": 8,
-    "long_context_coverage": 16,
-}
+INVENTORY = ROOT / "evals" / "deterministic" / "inventory.json"
 
 
 def load_cases(path: Path) -> list[dict[str, Any]]:
@@ -87,20 +63,34 @@ def main() -> int:
     parser.add_argument("--report", type=Path)
     arguments = parser.parse_args()
 
-    fixture_paths = [arguments.fixtures] if arguments.fixtures else DEFAULT_FIXTURES
+    inventory_errors: list[str] = []
+    inventory: dict[str, Any] | None = None
+    if arguments.fixtures:
+        fixture_paths = [arguments.fixtures]
+    else:
+        inventory = json.loads(INVENTORY.read_text(encoding="utf-8"))
+        fixture_paths = [INVENTORY.parent / item["path"] for item in inventory["files"]]
+        actual_files = {path.name for path in INVENTORY.parent.glob("*.jsonl")}
+        declared_files = {path.name for path in fixture_paths}
+        if actual_files != declared_files:
+            inventory_errors.append(f"fixture file set differs: declared={sorted(declared_files)} actual={sorted(actual_files)}")
+        for item, path in zip(inventory["files"], fixture_paths):
+            actual_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+            if actual_hash != item["sha256"]:
+                inventory_errors.append(f"{path.name}: SHA-256 differs from inventory")
     cases = [case for path in fixture_paths for case in load_cases(path)]
     case_ids = [case["case_id"] for case in cases]
     if len(case_ids) != len(set(case_ids)):
         raise ValueError("fixture case identifiers must be unique across files")
     results, counts = run_cases(cases)
     mismatches = [result for result in results if not result["matched"]]
-    count_errors = {
-        category: {"expected": expected, "actual": counts.get(category, 0)}
-        for category, expected in EXPECTED_COUNTS.items()
-        if counts.get(category, 0) != expected
-    }
-    unexpected_categories = sorted(set(counts) - set(EXPECTED_COUNTS))
-    passed = len(cases) == 252 and not mismatches and not count_errors and not unexpected_categories
+    count_errors: dict[str, Any] = {}
+    if inventory is not None:
+        if len(cases) != inventory["total_rows"]:
+            count_errors["total_rows"] = {"expected": inventory["total_rows"], "actual": len(cases)}
+        if dict(sorted(counts.items())) != inventory["distribution"]:
+            count_errors["distribution"] = {"expected": inventory["distribution"], "actual": dict(sorted(counts.items()))}
+    passed = not mismatches and not count_errors and not inventory_errors
     report = {
         "status": "PASS" if passed else "FAIL",
         "summary": {
@@ -109,11 +99,11 @@ def main() -> int:
             "mismatched": len(mismatches),
             "category_counts": dict(sorted(counts.items())),
         },
-        "reason": "every independently executed rule produced its reviewed pass or fail result" if passed else "one or more executable fixtures disagreed with the reviewed expectation or required count",
-        "impact": "the vNext deterministic gate has executable positive and negative coverage for all eighteen active categories" if passed else "the deterministic gate cannot be used for candidate review until every mismatch is resolved",
+        "reason": "every inventoried rule produced its reviewed pass or fail result" if passed else "one or more executable fixtures disagreed with its expectation or committed inventory",
+        "impact": f"the deterministic gate has executable coverage for {len(counts)} active categories" if passed else "the deterministic gate cannot be used for candidate review until every mismatch is resolved",
         "next": "run lifecycle, contextual, and forward-candidate validation" if passed else "inspect the reported rule and repair only its validator or fixture",
         "count_errors": count_errors,
-        "unexpected_categories": unexpected_categories,
+        "inventory_errors": inventory_errors,
         "mismatches": mismatches,
     }
     if arguments.report:
