@@ -77,7 +77,7 @@ profile:
     translation_english_name:
       policy: retain_official_english
       severity: PROFILE_REQUIRED
-      description: 翻译任务默认在专业名词首次出现时保留官方英文名称，连续文档只有在前文已经完成解释后才能使用简称
+      description: 翻译任务默认在对应源语义首次出现的位置使用正式中文并保留官方英文名称，不能先用泛称代替、再依靠后置术语表补救；连续文档只有在前文已经完成解释后才能使用简称
   conversation:
     superseded_requirements:
       policy: current_effective_only

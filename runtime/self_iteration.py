@@ -115,7 +115,7 @@ def deterministic_findings(answer: str, manifest: Mapping[str, Any] | None = Non
         natural_introduction = bool(
             colon_match
             and re.search(
-                r"(?:如下|包括|分别为|分为|需要核对|需要完成|可按|例如|即|原因是|测量条件不同|会发生以下变化|以下(?:内容|项目|事项|步骤|对象|证据|变化))$",
+                r"(?:如下|包括|分别为|分为|需要核对|需要完成|可按|例如|即|原因是|测量条件不同|会发生以下变化|以下(?:内容|项目|事项|步骤|对象|证据|变化)|(?:以下|下面).*(?:是|为).+)$",
                 colon_match.group(1).strip(),
             )
         )

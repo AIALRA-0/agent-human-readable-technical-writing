@@ -48,6 +48,8 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("Do not inspect the case root", prompt)
         self.assertIn("Never invent a style rule", prompt)
         self.assertIn("ordered-list markers", prompt)
+        self.assertIn("source-equivalent semantic occurrence", prompt)
+        self.assertIn("later glossary definition does not satisfy", prompt)
 
     def test_frozen_seed_evidence_preserves_unrejected_content_without_acceptance(self) -> None:
         initial = {
@@ -79,6 +81,7 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("whole list line including its marker and terminating newline", prompt)
         self.assertIn("do not leave an empty list marker or an extra blank line", prompt)
         self.assertIn("keep or add the colon on a complete sentence", prompt)
+        self.assertIn("exactly one required blank line before and after", prompt)
 
     def test_natural_predicate_list_introductions_are_not_pseudo_headings(self) -> None:
         manifest = {
@@ -89,6 +92,20 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         answer = "两次读数的测量条件不同：\n\n- 无负载\n- 有负载"
         rules = {item["rule_id"] for item in matrix.deterministic_findings(answer, manifest)}
         self.assertNotIn("COLON_PSEUDO_HEADING", rules)
+
+    def test_natural_copular_quote_introduction_is_not_a_pseudo_heading(self) -> None:
+        manifest = {
+            "term_uses": [], "parallel_groups": [],
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        answer = "以下内容是原始读数：\n\n> 无负载读数 12.6 V"
+        rules = {item["rule_id"] for item in matrix.deterministic_findings(answer, manifest)}
+        self.assertNotIn("COLON_PSEUDO_HEADING", rules)
+        pseudo_rules = {
+            item["rule_id"] for item in matrix.deterministic_findings("原始读数：", manifest)
+        }
+        self.assertIn("COLON_PSEUDO_HEADING", pseudo_rules)
 
     def test_reference_identifier_is_a_first_round_deterministic_finding(self) -> None:
         evidence = {"required_reference_tokens": ["B24"]}
