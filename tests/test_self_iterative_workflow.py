@@ -54,6 +54,8 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("associated location, symptom, example, or conclusion", prompt)
         self.assertIn("semantic acceptance properties, not byte-for-byte strings", prompt)
         self.assertIn("Every declared `parallel_groups.item_texts` value", prompt)
+        self.assertIn("earliest answer occurrence", prompt)
+        self.assertIn("incorrect attachment", prompt)
 
     def test_frozen_seed_evidence_preserves_unrejected_content_without_acceptance(self) -> None:
         initial = {
@@ -379,6 +381,44 @@ limit = 3
         self.assertNotIn(
             "LIST_INTERNAL_BLANK_LINE",
             {item["rule_id"] for item in matrix.deterministic_findings(contiguous, manifest)},
+        )
+
+    def test_nested_child_indent_cannot_capture_shared_explanation(self) -> None:
+        manifest = {
+            "term_uses": [], "parallel_groups": [],
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        ambiguous = "- 接入负载后产生电流\n  - 电源内阻\n  - 接头等位置\n  这些位置会出现压降"
+        parent_bound = "- 接入负载后，以下位置会出现压降\n  - 电源内阻\n  - 接头等位置"
+        self.assertIn(
+            "NESTED_LIST_AMBIGUOUS_CONTINUATION",
+            {item["rule_id"] for item in matrix.deterministic_findings(ambiguous, manifest)},
+        )
+        self.assertNotIn(
+            "NESTED_LIST_AMBIGUOUS_CONTINUATION",
+            {item["rule_id"] for item in matrix.deterministic_findings(parent_bound, manifest)},
+        )
+
+    def test_later_glossary_cannot_complete_professional_first_use(self) -> None:
+        manifest = {
+            "term_uses": [{
+                "term": "残余压力", "official_english": "Residual Pressure",
+                "first_use_text": "残余压力（Residual Pressure）",
+            }],
+            "parallel_groups": [],
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        deferred = "- 注意残余压力（Residual Pressure）\n- 残余压力（Residual Pressure）：能源隔离后仍残留的压力能量"
+        complete_first = "- 残余压力（Residual Pressure）：能源隔离后仍残留的压力能量"
+        self.assertIn(
+            "TERM_FIRST_USE_DEFERRED",
+            {item["rule_id"] for item in matrix.deterministic_findings(deferred, manifest)},
+        )
+        self.assertNotIn(
+            "TERM_FIRST_USE_DEFERRED",
+            {item["rule_id"] for item in matrix.deterministic_findings(complete_first, manifest)},
         )
 
     def test_declared_background_scope_marker_is_preserved(self) -> None:

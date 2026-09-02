@@ -75,6 +75,7 @@ def deterministic_findings(answer: str, manifest: Mapping[str, Any] | None = Non
 
     findings: list[dict[str, str]] = []
     authored = _authored_lines(answer)
+    authored_numbers = {number for number, _ in authored}
     official_english = {
         str(item.get("official_english"))
         for item in (manifest or {}).get("term_uses", [])
@@ -162,6 +163,21 @@ def deterministic_findings(answer: str, manifest: Mapping[str, Any] | None = Non
             findings.append(_finding(
                 "MISSING_BLOCK_SEPARATOR", f"LINE-{index + 1:04d}", line,
                 "普通正文与随后列表之间缺少空行", "token",
+            ))
+        previous_nested_item = re.match(r"^(\s+)(?:[-*+]\s+|\d+[.)]\s+)", previous)
+        current_item = re.match(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)", line)
+        current_indent = len(line) - len(line.lstrip(" \t"))
+        if (
+            previous_nested_item
+            and line.strip()
+            and not current_item
+            and current_indent == len(previous_nested_item.group(1))
+            and index in authored_numbers
+            and index + 1 in authored_numbers
+        ):
+            findings.append(_finding(
+                "NESTED_LIST_AMBIGUOUS_CONTINUATION", f"LINE-{index + 1:04d}", line,
+                "共同说明与最后一个嵌套项目使用相同缩进，结构上会错误附着到该子项；应该把共同说明放到父项中，再列出子项", "sentence",
             ))
     for index, line in enumerate(lines[1:-1], start=1):
         if line.strip():
@@ -255,6 +271,27 @@ def deterministic_findings(answer: str, manifest: Mapping[str, Any] | None = Non
                 "TERM_FIRST_USE_ENGLISH", str(term.get("term", "term")), first_use or str(term.get("term", "")),
                 "专业词首次出现没有保留登记的官方英文", "phrase",
             ))
+        first_occurrence = next(
+            ((number, line) for number, line in authored if first_use and first_use in line),
+            None,
+        )
+        if first_occurrence:
+            first_number, first_line = first_occurrence
+            deferred_definition = next((
+                (number, line)
+                for number, line in authored
+                if number > first_number
+                and re.sub(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)", "", line).startswith(
+                    (f"{first_use}：", f"{first_use}:")
+                )
+            ), None)
+            if deferred_definition and not re.sub(
+                r"^\s*(?:[-*+]\s+|\d+[.)]\s+)", "", first_line,
+            ).startswith((f"{first_use}：", f"{first_use}:")):
+                findings.append(_finding(
+                    "TERM_FIRST_USE_DEFERRED", f"LINE-{first_number:04d}", first_line,
+                    "专业词首次出现只保留名称，完整解释被推迟到后置定义；必须在首次语义位置完成解释", "sentence",
+                ))
 
     boundary = manifest.get("boundary_visibility", {})
     if boundary.get("mode") == "internal" and re.search(r"证据边界|验证边界|内部边界", "\n".join(line for _, line in authored)):
