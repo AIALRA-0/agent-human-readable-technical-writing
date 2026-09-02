@@ -358,6 +358,10 @@ limit = 3
         self.assertNotIn("COLON_PSEUDO_HEADING", {item["rule_id"] for item in findings})
         procedural = matrix.deterministic_findings("首次配对请按以下步骤进行：\n\n- 按住圆键", manifest)
         self.assertNotIn("COLON_PSEUDO_HEADING", {item["rule_id"] for item in procedural})
+        ordered = matrix.deterministic_findings("请按以下顺序操作：\n\n- 隔离能源\n- 核对状态", manifest)
+        self.assertNotIn("COLON_PSEUDO_HEADING", {item["rule_id"] for item in ordered})
+        bare_label = matrix.deterministic_findings("操作：\n\n- 隔离能源", manifest)
+        self.assertIn("COLON_PSEUDO_HEADING", {item["rule_id"] for item in bare_label})
 
     def test_inline_review_metadata_is_not_a_colon_pseudo_heading(self) -> None:
         manifest = {
