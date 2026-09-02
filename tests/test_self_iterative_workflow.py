@@ -36,6 +36,7 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         prompt = matrix.initial_prompt({"case_id": "FWD-R2-021"}, None, [])
         self.assertIsInstance(prompt, str)
         self.assertIn("FWD-R2-021", prompt)
+        self.assertIn("never invent a measurement", prompt)
 
     def test_semantic_prompt_requires_evidence_before_term_escalation(self) -> None:
         evidence = {"background_claims": [{"claim": "压降机制", "source_reference": "基础电路原理"}]}
@@ -58,6 +59,8 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("incorrect attachment", prompt)
         self.assertIn("valid background support", prompt)
         self.assertIn("jointly define one method or state", prompt)
+        self.assertIn("inspect every parenthetical English phrase", prompt)
+        self.assertIn("reject any newly invented measurement", prompt)
 
     def test_patch_prompt_front_loads_exact_count_and_separator_rules(self) -> None:
         manifest = {
@@ -466,7 +469,25 @@ limit = 3
         }]}
         self.assertEqual(matrix.evidence_scope_findings("设备等待连接", evidence), [])
 
-    def test_manifest_only_repair_must_reduce_deterministic_findings(self) -> None:
+    def test_generated_title_case_parenthetical_english_requires_source_or_registration(self) -> None:
+        manifest = {
+            "term_uses": [], "parallel_groups": [],
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        answer = "开路电压（Open-Circuit Voltage）为 12.6 V"
+        unsupported = matrix.closure_deterministic_findings(
+            answer, manifest, {"source_text_for_parenthetical_english": ""},
+        )
+        self.assertIn("PARENTHETICAL_ENGLISH_CASE", {item["rule_id"] for item in unsupported})
+        supported = matrix.closure_deterministic_findings(
+            answer,
+            manifest,
+            {"source_text_for_parenthetical_english": "原文使用 Open-Circuit Voltage"},
+        )
+        self.assertNotIn("PARENTHETICAL_ENGLISH_CASE", {item["rule_id"] for item in supported})
+
+    def test_manifest_only_repair_must_not_worsen_deterministic_findings(self) -> None:
         answer = "- 电源内部\n- 连接线路"
         stale = {
             "term_uses": [],
@@ -483,6 +504,62 @@ limit = 3
         self.assertEqual(matrix.apply_closure_transaction(answer, stale, payload), answer)
         with self.assertRaisesRegex(matrix.PatchError, "did not change"):
             matrix.apply_closure_transaction(answer, repaired, payload)
+
+    def test_semantic_manifest_only_repair_may_leave_zero_deterministic_findings(self) -> None:
+        answer = "- 开路电压为 12.6 V\n- 负载电压为 11.9 V"
+        stale = {
+            "term_uses": [],
+            "parallel_groups": [{
+                "group_id": "PGRP-001", "item_texts": ["12.6 V", "11.9 V"],
+                "required_layout": "compact_inline", "rendered_as_indented_list": True,
+            }],
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        repaired = json.loads(json.dumps(stale))
+        repaired["parallel_groups"][0]["required_layout"] = "indented_list"
+        self.assertEqual(matrix.deterministic_findings(answer, stale), [])
+        findings = [{
+            "finding_id": "SEM-001", "rule_id": "PARALLEL_GROUP_LAYOUT", "status": "FAIL",
+            "location": "CURRENT_MANIFEST.parallel_groups[PGRP-001].required_layout",
+            "old_text": "compact_inline", "reason": "清单布局与正文不一致", "repair_scope": "token",
+        }]
+        self.assertEqual(
+            matrix.apply_closure_transaction(
+                answer, stale, {"patches": [], "updated_manifest": repaired}, findings=findings,
+            ),
+            answer,
+        )
+
+    def test_semantic_manifest_only_repair_requires_manifest_finding_binding(self) -> None:
+        answer = "- 开路电压为 12.6 V\n- 负载电压为 11.9 V"
+        stale = {
+            "term_uses": [],
+            "parallel_groups": [{
+                "group_id": "PGRP-001", "item_texts": ["12.6 V", "11.9 V"],
+                "required_layout": "compact_inline", "rendered_as_indented_list": True,
+            }],
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        repaired = json.loads(json.dumps(stale))
+        repaired["parallel_groups"][0]["required_layout"] = "indented_list"
+        with self.assertRaisesRegex(matrix.PatchError, "not bound"):
+            matrix.apply_closure_transaction(
+                answer, stale, {"patches": [], "updated_manifest": repaired}, findings=[],
+            )
+
+    def test_manifest_only_repair_cannot_introduce_deterministic_findings(self) -> None:
+        answer = "原始读数"
+        clean = {
+            "term_uses": [], "parallel_groups": [],
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        broken = json.loads(json.dumps(clean))
+        broken["section_plan"] = {"headings_required": True, "heading_levels": []}
+        with self.assertRaisesRegex(matrix.PatchError, "introduced deterministic findings"):
+            matrix.apply_closure_transaction(answer, clean, {"patches": [], "updated_manifest": broken})
 
     def test_missing_boundary_reason_is_repairable_instead_of_terminal(self) -> None:
         answer = "泵隔离后仍可能存在压力"

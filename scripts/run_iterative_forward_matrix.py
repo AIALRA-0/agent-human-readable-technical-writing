@@ -311,7 +311,7 @@ LEGACY_DRAFT:
 
 Read the complete Skill entrypoint and every file it requires for this request. You have no conversation history, expected answer, scoring rubric, or user configuration outside the installed Skill. Do not browse or inspect unrelated files.
 
-Return only the JSON object required by the supplied output schema. The answer is an internal first draft, not a user-approved result. Treat every explicit prior constraint prefixed `必须保留的语义：` as a hard content requirement. Preserve its named fact, condition, range, number, mechanism, relationship, or source unit in substance; an associated location, symptom, or example is not a substitute for the named mechanism or relationship. Treat `必须修复的性质` entries as semantic acceptance properties, not byte-for-byte replacement strings, unless the user's instruction explicitly says 原样、逐字、固定为, or quotes exact required text. Equivalent verbs such as 使用、执行、进行, or 采用 must not fail when the required official term and meaning are preserved. Independently declare every professional term actually used in the answer, every semantic parallel group, section decision, and evidence-boundary visibility decision. For every parallel group, set `required_layout` to `compact_inline` only when the items are genuinely short, tightly related, and permitted to remain on one line under the semicolon rule; otherwise use `indented_list`. Every `item_texts` value must be one exact single-line substring in the answer and must never contain a newline. `rendered_as_indented_list` records the actual answer, not the desired repair. `core_terms` is topic-diversity metadata, not evidence that a phrase is professional. `term_uses` is not a request-term inventory: omit ordinary operational phrases and terms that do not occur in the answer. Do not invent parenthetical English for ordinary phrases. Every declared professional term must provide its verified official English and make `first_use_text` an exact substring containing that English. In a translation, put that complete professional first use at the source-equivalent semantic occurrence; a generic rendering followed by a later glossary entry is not sufficient. For EXPLAIN or TEACHING work, declare every background claim actually needed by the explanation with an explicit source reference or a clearly marked general-knowledge or inference basis; do not leave the required mechanism unsupported. Do not omit a declaration merely because the answer forgot to follow the corresponding rule.
+Return only the JSON object required by the supplied output schema. The answer is an internal first draft, not a user-approved result. Treat every explicit prior constraint prefixed `必须保留的语义：` as a hard content requirement. Preserve its named fact, condition, range, number, mechanism, relationship, or source unit in substance; an associated location, symptom, or example is not a substitute for the named mechanism or relationship. Treat `必须修复的性质` entries as semantic acceptance properties, not byte-for-byte replacement strings, unless the user's instruction explicitly says 原样、逐字、固定为, or quotes exact required text. Equivalent verbs such as 使用、执行、进行, or 采用 must not fail when the required official term and meaning are preserved. Independently declare every professional term actually used in the answer, every semantic parallel group, section decision, and evidence-boundary visibility decision. For every parallel group, set `required_layout` to `compact_inline` only when the items are genuinely short, tightly related, and permitted to remain on one line under the semicolon rule; otherwise use `indented_list`. Every `item_texts` value must be one exact single-line substring in the answer and must never contain a newline. `rendered_as_indented_list` records the actual answer, not the desired repair. `core_terms` is topic-diversity metadata, not evidence that a phrase is professional. `term_uses` is not a request-term inventory: omit ordinary operational phrases and terms that do not occur in the answer. Do not invent parenthetical English for ordinary phrases. Every declared professional term must provide its verified official English and make `first_use_text` an exact substring containing that English. In a translation, put that complete professional first use at the source-equivalent semantic occurrence; a generic rendering followed by a later glossary entry is not sufficient. For EXPLAIN or TEACHING work, declare every background claim actually needed by the explanation with an explicit source reference or a clearly marked general-knowledge or inference basis; do not leave the required mechanism unsupported. When a material evidence gap needs a next check but no procedure source was supplied, state only a non-factual direction such as `需要进一步核对相关条件`; never invent a measurement, diagnostic step, threshold, or operating procedure. Do not omit a declaration merely because the answer forgot to follow the corresponding rule.
 
 Explicit prior review constraints for this case:
 {json.dumps(feedback, ensure_ascii=False)}
@@ -370,6 +370,9 @@ def source_and_background_evidence(
         key: initial[key]
         for key in ("source_units", "support_map", "background_claims")
     }
+    evidence["source_text_for_parenthetical_english"] = json.dumps(
+        request or {}, ensure_ascii=False, sort_keys=True,
+    ) + ("\n" + seed if seed is not None else "")
     evidence["required_reference_tokens"] = required_reference_tokens(request or {})
     if seed is not None:
         evidence["frozen_legacy_draft"] = seed
@@ -400,7 +403,7 @@ Before checking structure or style, build a must-preserve checklist from every P
 
 Discover undeclared professional terms and parallel groups independently. Apply a strict professional-term threshold: appearing in a technical, financial, operational, or other domain context is not enough. `core_terms`, topic keywords, a frozen legacy draft, a model-authored background claim whose source says no external source was provided, and a generic request to explain wording nearby never prove a stable professional identity or official English form. A phrase triggers the complete professional first-use contract only when the installed registry defines it, independently supplied source evidence gives it a stable formal identity, or the request explicitly identifies that exact phrase as a formal professional term. An installed registry entry's sourced definition and name rationale are valid background support even when CURRENT_MANIFEST omitted or malformed the matching background claim; report the stale manifest as locally fixable instead of calling the registered meaning unsupported. Ordinary modifiers, status labels, task-specific labels, numeric categories, and explanatory phrases remain common language; examples include sync window, pairing window, calibration offset, read-only check, current result, pending item, pre-tax, pressure energy, and pressure release. Explain an ordinary task-specific label naturally in Chinese and remove invented parenthetical English with a local FAIL repair; never return REVIEW_REQUIRED merely because that ordinary label lacks official English. Do not demand invented official English for common language or for words used only inside the explanation of an already declared term. A missing or stale manifest declaration is fixable when a safe token, phrase, sentence, or manifest-only repair can correct it: return FAIL rather than REVIEW_REQUIRED merely because the current manifest is incomplete. Do not split a registered term's established compound action or a joint condition into a nested list merely because Chinese uses `并`; phrases such as `隔离泵的能源并上锁` and `泵停止并完成上锁隔离后` may remain inline when their parts jointly define one method or state and are not independently ordered items.
 
-Use SOURCE_AND_BACKGROUND_EVIDENCE when judging added explanation. A declared background claim with an explicit source reference or clearly marked general-knowledge nature is not an unsupported source claim merely because it is absent from CURRENT_MANIFEST. Do not require a blockquote for a user-supplied identifier or preservation token unless the answer is actually presenting it as quoted evidence. A human-facing audit or review number such as `B23` is not automatically a code identifier and does not require backticks. A same-line form such as `复核编号 B23：抽查 18 张` is compact audit metadata followed by its value, not a colon pseudo-heading. A natural complete sentence that introduces a following list, quotation, or example may end with a colon and is not a colon pseudo-heading. Very short, tightly related audit facts may remain on one line separated by semicolons when the manifest declares `compact_inline`; do not force them into a list merely because there are several facts. In a translation, when a source phrase maps to a declared professional term, require the complete professional first-use form at that source-equivalent semantic occurrence; a generic rendering followed by a later glossary definition does not satisfy source-term preservation. For `COMPRESS + NONE`, when the source itself already states an unchecked or unknown range, preserving that limitation is sufficient; do not invent an impact claim, recommendation, or next-check action that the source does not support. Check source completeness, facts, conditions, scope, numbers, exceptions, all parts of professional first use, title necessity and level, colon pseudo-headings, semicolon scope, internal evidence-label leakage, and whether each proposed repair can stay within one token, phrase, or sentence. Use REVIEW_REQUIRED only when no safe token, phrase, sentence, or manifest-only repair exists.
+Use SOURCE_AND_BACKGROUND_EVIDENCE when judging added explanation. A declared background claim with an explicit source reference or clearly marked general-knowledge nature is not an unsupported source claim merely because it is absent from CURRENT_MANIFEST. Do not require a blockquote for a user-supplied identifier or preservation token unless the answer is actually presenting it as quoted evidence. A human-facing audit or review number such as `B23` is not automatically a code identifier and does not require backticks. A same-line form such as `复核编号 B23：抽查 18 张` is compact audit metadata followed by its value, not a colon pseudo-heading. A natural complete sentence that introduces a following list, quotation, or example may end with a colon and is not a colon pseudo-heading. Very short, tightly related audit facts may remain on one line separated by semicolons when the manifest declares `compact_inline`; do not force them into a list merely because there are several facts. In a translation, when a source phrase maps to a declared professional term, require the complete professional first-use form at that source-equivalent semantic occurrence; a generic rendering followed by a later glossary definition does not satisfy source-term preservation. For `COMPRESS + NONE`, when the source itself already states an unchecked or unknown range, preserving that limitation is sufficient; do not invent an impact claim, recommendation, or next-check action that the source does not support. In this first review pass, explicitly inspect every parenthetical English phrase against `term_uses` and supplied evidence, then inspect every evidence-gap sentence for the limitation, its actual impact, and the next-check direction. If no procedure source was supplied, reject any newly invented measurement, diagnostic step, threshold, or operating procedure and require only a non-factual direction. Report those findings together with all other currently visible blockers. Check source completeness, facts, conditions, scope, numbers, exceptions, all parts of professional first use, title necessity and level, colon pseudo-headings, semicolon scope, internal evidence-label leakage, and whether each proposed repair can stay within one token, phrase, or sentence. Use REVIEW_REQUIRED only when no safe token, phrase, sentence, or manifest-only repair exists.
 
 For a frozen legacy seed, SOURCE_AND_BACKGROUND_EVIDENCE includes `frozen_legacy_draft` and `legacy_seed_repair_contract`. Treat every semantic unit in that draft not explicitly identified as wrong by prior feedback as immutable user-supplied repair context. Do not remove or challenge such a unit merely because it lacks a new external source. “The content is correct” preserves those semantic units; it does not prohibit a sourced local addition required by a directly applicable current hard contract, such as completing professional first use. This scopes the minimum repair only: it does not make the answer user-accepted and does not override a direct contradiction in the supplied source. When prior feedback explicitly preserves a mechanism or explanation from a frozen legacy draft, treat that named content as user-supplied preservation evidence rather than demanding a new external source. If an important limitation needs a next check but no procedure source is supplied, use only a natural non-factual direction such as “需要进一步核对相关条件”; do not invent diagnostic measurements or procedures. When CURRENT_MANIFEST sets boundary visibility to `internal` and prior feedback requires the boundary to stay hidden, do not demand user-visible boundary prose merely because the internal source ledger has limited coverage; override `internal` only for a concrete conclusion, operation, or safety consequence supported by the request.
 
@@ -553,8 +556,9 @@ def validate_heading_patch_direction(
 def apply_closure_transaction(
     answer: str, manifest: dict[str, Any], patch_payload: dict[str, Any],
     evidence: dict[str, Any] | None = None,
+    findings: list[dict[str, Any]] | None = None,
 ) -> str:
-    """Apply real answer patches or a strictly improving manifest-only repair."""
+    """Apply answer patches or a non-worsening manifest-only semantic repair."""
 
     patches = patch_payload["patches"]
     if patches:
@@ -564,10 +568,23 @@ def apply_closure_transaction(
     updated_manifest = patch_payload["updated_manifest"]
     if updated_manifest == manifest:
         raise PatchError("empty closure transaction did not change the manifest")
-    before_findings = deterministic_findings(answer, manifest)
-    after_findings = deterministic_findings(answer, updated_manifest)
-    if len(after_findings) >= len(before_findings):
-        raise PatchError("manifest-only repair did not reduce deterministic findings")
+    before_findings = closure_deterministic_findings(answer, manifest, evidence or {})
+    after_findings = closure_deterministic_findings(answer, updated_manifest, evidence or {})
+    if len(after_findings) > len(before_findings):
+        raise PatchError("manifest-only repair introduced deterministic findings")
+    if len(after_findings) == len(before_findings):
+        before_text = json.dumps(manifest, ensure_ascii=False, sort_keys=True)
+        after_text = json.dumps(updated_manifest, ensure_ascii=False, sort_keys=True)
+        manifest_findings = [
+            item for item in (findings or [])
+            if "MANIFEST" in str(item.get("location", "")).upper()
+            and str(item.get("old_text", ""))
+        ]
+        if not any(
+            before_text.count(str(item["old_text"])) > after_text.count(str(item["old_text"]))
+            for item in manifest_findings
+        ):
+            raise PatchError("manifest-only repair was not bound to a supplied manifest finding")
     return answer
 
 
@@ -614,8 +631,13 @@ def required_reference_findings(answer: str, evidence: dict[str, Any]) -> list[d
 def closure_deterministic_findings(
     answer: str, manifest: dict[str, Any], evidence: dict[str, Any],
 ) -> list[dict[str, Any]]:
+    supported_source = evidence.get("source_text_for_parenthetical_english")
     return merge_findings(
-        deterministic_findings(answer, manifest),
+        deterministic_findings(
+            answer,
+            manifest,
+            str(supported_source) if supported_source is not None else None,
+        ),
         evidence_scope_findings(answer, evidence),
         required_reference_findings(answer, evidence),
     )
@@ -804,7 +826,7 @@ def run_case(
         try:
             if not submitted_finding_ids <= allowed_finding_ids:
                 raise PatchError("one patch references a finding outside the merged review set")
-            patched_answer = apply_closure_transaction(answer, manifest, patch_payload, evidence)
+            patched_answer = apply_closure_transaction(answer, manifest, patch_payload, evidence, combined)
         except PatchError as error:
             previous_patch_rejection = str(error)
             rounds.append({

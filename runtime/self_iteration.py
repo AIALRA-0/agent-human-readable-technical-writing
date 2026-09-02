@@ -70,7 +70,11 @@ def _authored_lines(text: str) -> list[tuple[int, str]]:
     return result
 
 
-def deterministic_findings(answer: str, manifest: Mapping[str, Any] | None = None) -> list[dict[str, str]]:
+def deterministic_findings(
+    answer: str,
+    manifest: Mapping[str, Any] | None = None,
+    supported_parenthetical_source: str | None = None,
+) -> list[dict[str, str]]:
     """Find profile-required defects without deciding open-ended writing quality."""
 
     findings: list[dict[str, str]] = []
@@ -143,12 +147,19 @@ def deterministic_findings(answer: str, manifest: Mapping[str, Any] | None = Non
                 "INTERNAL_BOUNDARY_LABEL", location, line,
                 "内部证据字段泄漏到用户可见正文", "sentence",
             ))
-        for match in re.finditer(r"[（(]([a-z][A-Za-z0-9 -]{1,80})[）)]", line):
+        parenthetical_pattern = (
+            r"[（(]([A-Za-z][A-Za-z0-9'’+./ -]{1,80})[）)]"
+            if supported_parenthetical_source is not None
+            else r"[（(]([a-z][A-Za-z0-9 -]{1,80})[）)]"
+        )
+        for match in re.finditer(parenthetical_pattern, line):
             if match.group(1) in official_english:
+                continue
+            if supported_parenthetical_source is not None and match.group(1) in supported_parenthetical_source:
                 continue
             findings.append(_finding(
                 "PARENTHETICAL_ENGLISH_CASE", location, match.group(0),
-                "括号内普通英文没有使用标题式大小写或登记的官方写法", "token",
+                "括号内普通英文没有使用标题式大小写，或者新增英文没有来源与术语登记支持", "token",
             ))
     lines = answer.splitlines()
     for index, line in enumerate(lines[1:], start=1):
