@@ -329,8 +329,21 @@ HOST_FROZEN_LEGACY_DRAFT:
 """
 
 
+def required_reference_tokens(request: dict[str, Any]) -> list[str]:
+    """Extract stable machine identifiers from user-supplied reference content."""
+
+    tokens: set[str] = set()
+    for reference in request.get("references", []):
+        content = str(reference.get("content", ""))
+        tokens.update(re.findall(
+            r"(?<![A-Za-z0-9_])(?=[A-Z0-9_-]*\d)[A-Z][A-Z0-9_-]{1,79}(?![A-Za-z0-9_])",
+            content,
+        ))
+    return sorted(tokens)
+
+
 def source_and_background_evidence(
-    initial: dict[str, Any], seed: str | None,
+    initial: dict[str, Any], seed: str | None, request: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Keep a rejected seed's repair scope distinct from user acceptance."""
 
@@ -338,6 +351,7 @@ def source_and_background_evidence(
         key: initial[key]
         for key in ("source_units", "support_map", "background_claims")
     }
+    evidence["required_reference_tokens"] = required_reference_tokens(request or {})
     if seed is not None:
         evidence["frozen_legacy_draft"] = seed
         evidence["legacy_seed_repair_contract"] = {
@@ -362,7 +376,7 @@ Re-read the Skill, active Lucas profile, term registry, structure rules, compone
 
 Report every currently discoverable blocking violation in this review; do not stage an already visible rule into a later round. Every blocking finding must be grounded in an explicit installed Skill rule, registry entry, source-preservation rule, or prior user feedback. Never invent a style rule or turn an advisory preference into FAIL. Standard Markdown ordered-list markers such as `1.` and `2.` are valid for ordered steps, do not require wording such as “第一步”, and do not require blank lines between sibling items.
 
-Discover undeclared professional terms and parallel groups independently. Apply a strict professional-term threshold: appearing in a technical, financial, operational, or other domain context is not enough. `core_terms`, topic keywords, and a generic request to explain wording nearby never prove a stable professional identity or official English form. A phrase triggers the complete professional first-use contract only when the installed registry defines it, supplied source evidence gives it a stable formal identity, or the request explicitly identifies that exact phrase as a formal professional term. Ordinary modifiers, status labels, task-specific labels, numeric categories, and explanatory phrases remain common language; examples include sync window, pairing window, calibration offset, read-only check, current result, pending item, pre-tax, pressure energy, and pressure release. Explain an ordinary task-specific label naturally in Chinese and remove invented parenthetical English with a local FAIL repair; never return REVIEW_REQUIRED merely because that ordinary label lacks official English. Do not demand invented official English for common language or for words used only inside the explanation of an already declared term. A missing or stale manifest declaration is fixable when a safe token, phrase, sentence, or manifest-only repair can correct it: return FAIL rather than REVIEW_REQUIRED merely because the current manifest is incomplete.
+Discover undeclared professional terms and parallel groups independently. Apply a strict professional-term threshold: appearing in a technical, financial, operational, or other domain context is not enough. `core_terms`, topic keywords, a frozen legacy draft, a model-authored background claim whose source says no external source was provided, and a generic request to explain wording nearby never prove a stable professional identity or official English form. A phrase triggers the complete professional first-use contract only when the installed registry defines it, independently supplied source evidence gives it a stable formal identity, or the request explicitly identifies that exact phrase as a formal professional term. Ordinary modifiers, status labels, task-specific labels, numeric categories, and explanatory phrases remain common language; examples include sync window, pairing window, calibration offset, read-only check, current result, pending item, pre-tax, pressure energy, and pressure release. Explain an ordinary task-specific label naturally in Chinese and remove invented parenthetical English with a local FAIL repair; never return REVIEW_REQUIRED merely because that ordinary label lacks official English. Do not demand invented official English for common language or for words used only inside the explanation of an already declared term. A missing or stale manifest declaration is fixable when a safe token, phrase, sentence, or manifest-only repair can correct it: return FAIL rather than REVIEW_REQUIRED merely because the current manifest is incomplete.
 
 Use SOURCE_AND_BACKGROUND_EVIDENCE when judging added explanation. A declared background claim with an explicit source reference or clearly marked general-knowledge nature is not an unsupported source claim merely because it is absent from CURRENT_MANIFEST. Do not require a blockquote for a user-supplied identifier or preservation token unless the answer is actually presenting it as quoted evidence. A natural complete sentence that introduces a following list, quotation, or example may end with a colon and is not a colon pseudo-heading. Check source completeness, facts, conditions, scope, numbers, exceptions, all parts of professional first use, title necessity and level, colon pseudo-headings, semicolon scope, internal evidence-label leakage, and whether each proposed repair can stay within one token, phrase, or sentence. Use REVIEW_REQUIRED only when no safe token, phrase, sentence, or manifest-only repair exists.
 
@@ -400,7 +414,7 @@ def patch_prompt(
     )
     return f"""Re-read the installed Skill rules named by these findings. Return only the exact patch object required by the output schema.
 
-Patch only the smallest complete erroneous unit. Allowed repair_scope values are token, phrase, and sentence. Do not replace a paragraph, section, adjacent sections, blueprint, or whole answer. When deleting one complete list item, bind `old_text` to the whole list line including its marker and terminating newline, then replace that line with an empty string; do not leave an empty list marker or an extra blank line for a later repair round. This is a sentence-scope patch, not a paragraph rewrite. Every answer patch in this transaction must bind the same CURRENT_SHA256 shown below, one supplied line node, exact old text, exact occurrence count, preservation requirements, and validators. Do not use a hash predicted from an earlier patch in the same batch. Never submit an answer patch whose old and new text are identical. Update the manifest to describe the patched answer without changing unrelated declarations. If every remaining defect is only a stale manifest declaration and the answer is already correct, return an empty `patches` array and change only `updated_manifest`; otherwise return at least one real answer patch.
+Patch only the smallest complete erroneous unit. Allowed repair_scope values are token, phrase, and sentence. Do not replace a paragraph, section, adjacent sections, blueprint, or whole answer. When deleting one complete list item, bind `old_text` to the whole list line including its marker and terminating newline, then replace that line with an empty string; do not leave an empty list marker or an extra blank line for a later repair round. When converting inline parallel content into a list, keep or add the colon on a complete sentence that introduces that list inside the same sentence patch; do not create a new missing-colon defect for a later round. These are sentence-scope patches, not paragraph rewrites. Every answer patch in this transaction must bind the same CURRENT_SHA256 shown below, one supplied line node, exact old text, exact occurrence count, preservation requirements, and validators. Do not use a hash predicted from an earlier patch in the same batch. Never submit an answer patch whose old and new text are identical. Update the manifest to describe the patched answer without changing unrelated declarations. If every remaining defect is only a stale manifest declaration and the answer is already correct, return an empty `patches` array and change only `updated_manifest`; otherwise return at least one real answer patch.
 {rejection}
 
 CURRENT_SHA256:
@@ -525,10 +539,33 @@ def evidence_scope_findings(answer: str, evidence: dict[str, Any]) -> list[dict[
     return merge_findings(findings)
 
 
+def required_reference_findings(answer: str, evidence: dict[str, Any]) -> list[dict[str, Any]]:
+    """Reject loss of stable identifiers supplied in request references."""
+
+    return [
+        {
+            "finding_id": f"PROTECTED_TOKEN_PRESENCE:REFERENCE:{token}",
+            "rule_id": "PROTECTED_TOKEN_PRESENCE",
+            "status": "FAIL",
+            "location": "DOCUMENT",
+            "old_text": token,
+            "reason": f"用户参考材料要求保留机器标识 {token}，当前答案缺失该标识",
+            "repair_scope": "token",
+            "source": "deterministic",
+        }
+        for token in evidence.get("required_reference_tokens", [])
+        if token not in answer
+    ]
+
+
 def closure_deterministic_findings(
     answer: str, manifest: dict[str, Any], evidence: dict[str, Any],
 ) -> list[dict[str, Any]]:
-    return merge_findings(deterministic_findings(answer, manifest), evidence_scope_findings(answer, evidence))
+    return merge_findings(
+        deterministic_findings(answer, manifest),
+        evidence_scope_findings(answer, evidence),
+        required_reference_findings(answer, evidence),
+    )
 
 
 def parse_json_body(result: dict[str, Any], schema_name: str) -> dict[str, Any]:
@@ -660,7 +697,7 @@ def run_case(
         raise ValueError("legacy pre-closure draft changed before the repair loop")
     answer = initial["answer"]
     manifest = {key: initial[key] for key in ("term_uses", "parallel_groups", "section_plan", "boundary_visibility")}
-    evidence = source_and_background_evidence(initial, seed)
+    evidence = source_and_background_evidence(initial, seed, request)
     initial_manifest = json.loads(json.dumps(manifest, ensure_ascii=False))
     first_hash = sha256_text(answer)
     first_preservation = preservation_snapshot(answer)

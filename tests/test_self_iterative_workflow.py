@@ -55,9 +55,11 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
             "support_map": ["SRCU-001"],
             "background_claims": [],
         }
-        evidence = matrix.source_and_background_evidence(initial, "冻结内容")
+        request = {"references": [{"content": "复核编号 B24，须保留"}]}
+        evidence = matrix.source_and_background_evidence(initial, "冻结内容", request)
         contract = evidence["legacy_seed_repair_contract"]
         self.assertEqual(evidence["frozen_legacy_draft"], "冻结内容")
+        self.assertEqual(evidence["required_reference_tokens"], ["B24"])
         self.assertEqual(contract["approval_status"], "rejected_as_delivery_not_user_accepted")
         self.assertIn("Preserve every semantic unit", contract["policy"])
         prompt = matrix.review_prompt({}, "冻结内容", {}, ["只修标点"], evidence)
@@ -76,6 +78,24 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         )
         self.assertIn("whole list line including its marker and terminating newline", prompt)
         self.assertIn("do not leave an empty list marker or an extra blank line", prompt)
+        self.assertIn("keep or add the colon on a complete sentence", prompt)
+
+    def test_natural_predicate_list_introductions_are_not_pseudo_headings(self) -> None:
+        manifest = {
+            "term_uses": [], "parallel_groups": [],
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        answer = "两次读数的测量条件不同：\n\n- 无负载\n- 有负载"
+        rules = {item["rule_id"] for item in matrix.deterministic_findings(answer, manifest)}
+        self.assertNotIn("COLON_PSEUDO_HEADING", rules)
+
+    def test_reference_identifier_is_a_first_round_deterministic_finding(self) -> None:
+        evidence = {"required_reference_tokens": ["B24"]}
+        findings = matrix.required_reference_findings("读数为 12.6 V", evidence)
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0]["rule_id"], "PROTECTED_TOKEN_PRESENCE")
+        self.assertEqual(matrix.required_reference_findings("复核 B24", evidence), [])
 
     def test_clean_agent_commands_disable_unrelated_capabilities(self) -> None:
         args = argparse.Namespace(codex="codex", reasoning_effort="medium", timeout_seconds=10)
