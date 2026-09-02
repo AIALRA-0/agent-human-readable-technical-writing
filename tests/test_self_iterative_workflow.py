@@ -45,6 +45,7 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("pairing window", prompt)
         self.assertIn("SOURCE_AND_BACKGROUND_EVIDENCE", prompt)
         self.assertIn("压降机制", prompt)
+        self.assertIn("Do not inspect the case root", prompt)
         self.assertIn("Never invent a style rule", prompt)
         self.assertIn("ordered-list markers", prompt)
 
@@ -92,6 +93,8 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertFalse(matrix.can_retry_run_error("RUN_ERROR", 2, True))
         self.assertFalse(matrix.can_retry_run_error("RUN_ERROR", 1, False))
         self.assertFalse(matrix.can_retry_run_error("REVIEW_REQUIRED", 0, True))
+        self.assertTrue(matrix.should_schedule_host_retry("RUN_ERROR", 1, True, False))
+        self.assertFalse(matrix.should_schedule_host_retry("RUN_ERROR", 1, True, True))
 
     def test_runtime_tree_digest_is_stable_and_sha256_shaped(self) -> None:
         first = matrix.runtime_tree_digest()

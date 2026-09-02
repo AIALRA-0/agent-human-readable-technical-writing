@@ -79,6 +79,14 @@ def can_retry_run_error(status: str, completed_attempts: int, enabled: bool) -> 
     return status == "RUN_ERROR" and enabled and completed_attempts < 2
 
 
+def should_schedule_host_retry(
+    status: str, completed_attempts: int, enabled: bool, stop_scheduling: bool,
+) -> bool:
+    """Never claim a retry after fail-fast has stopped new scheduling."""
+
+    return not stop_scheduling and can_retry_run_error(status, completed_attempts, enabled)
+
+
 def digest_json(value: Any) -> str:
     payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
@@ -327,7 +335,7 @@ def review_prompt(
 ) -> str:
     return f"""Use the installed $human-readable-technical-writing Skill as an independent semantic verifier.
 
-Re-read the Skill, active Lucas profile, term registry, structure rules, component rules, and verification rules. Inspect only this request, current answer, and manifest. Do not rewrite the answer. Return only findings required by the output schema.
+Re-read the Skill, active Lucas profile, term registry, structure rules, component rules, and verification rules. Inspect only this request, current answer, manifest, and SOURCE_AND_BACKGROUND_EVIDENCE supplied in this prompt. Do not inspect the case root, parent run root, sibling worker, sibling reviewer, prior attempt directory, or any file outside this reviewer's own task and installed Skill directories; all case evidence needed for review is already embedded below. Do not rewrite the answer. Return only findings required by the output schema.
 
 Report every currently discoverable blocking violation in this review; do not stage an already visible rule into a later round. Every blocking finding must be grounded in an explicit installed Skill rule, registry entry, source-preservation rule, or prior user feedback. Never invent a style rule or turn an advisory preference into FAIL. Standard Markdown ordered-list markers such as `1.` and `2.` are valid for ordered steps, do not require wording such as “第一步”, and do not require blank lines between sibling items.
 
@@ -964,6 +972,9 @@ def main() -> int:
             if not futures:
                 break
             completed, _ = wait(futures, return_when=FIRST_COMPLETED)
+            outcomes: list[
+                tuple[tuple[str, str], int, dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]]
+            ] = []
             for future in completed:
                 key = futures.pop(future)
                 attempt_number = len(host_attempts.get(key, [])) + 1
@@ -994,6 +1005,10 @@ def main() -> int:
                     }
                     public_attempt = {"attempt": attempt_number, "status": "RUN_ERROR", "error_type": error_type}
                     private_attempt = {"attempt": attempt_number, "status": "RUN_ERROR", "error": repr(error)}
+                outcomes.append((key, attempt_number, public, private, public_attempt, private_attempt))
+            if args.fail_fast and any(public["status"] == "REVIEW_REQUIRED" for _, _, public, _, _, _ in outcomes):
+                stop_scheduling = True
+            for key, attempt_number, public, private, public_attempt, private_attempt in outcomes:
                 host_attempts.setdefault(key, []).append(public_attempt)
                 private_host_attempts.setdefault(key, []).append(private_attempt)
                 public["host_attempts"] = host_attempts[key]
@@ -1001,7 +1016,9 @@ def main() -> int:
                 public_by_key[key] = public
                 private_by_key[key] = private
                 persist(round_dir, private_report, requests, models, public_by_key, private_by_key)
-                retry = can_retry_run_error(public["status"], attempt_number, args.retry_run_errors)
+                retry = should_schedule_host_retry(
+                    public["status"], attempt_number, args.retry_run_errors, stop_scheduling,
+                )
                 if retry:
                     del public_by_key[key]
                     del private_by_key[key]
