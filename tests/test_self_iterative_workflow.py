@@ -56,6 +56,21 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("Every declared `parallel_groups.item_texts` value", prompt)
         self.assertIn("earliest answer occurrence", prompt)
         self.assertIn("incorrect attachment", prompt)
+        self.assertIn("valid background support", prompt)
+        self.assertIn("jointly define one method or state", prompt)
+
+    def test_patch_prompt_front_loads_exact_count_and_separator_rules(self) -> None:
+        manifest = {
+            "term_uses": [], "parallel_groups": [],
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        findings = matrix.deterministic_findings("甲。乙。", manifest)
+        prompt = matrix.patch_prompt("甲。乙。", manifest, findings)
+        self.assertIn("Fix every supplied deterministic answer finding", prompt)
+        self.assertIn("inside the selected line node", prompt)
+        self.assertIn("never concatenate", prompt)
+        self.assertIn("last character of a paragraph", prompt)
 
     def test_frozen_seed_evidence_preserves_unrejected_content_without_acceptance(self) -> None:
         initial = {
