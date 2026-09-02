@@ -38,11 +38,27 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("FWD-R2-021", prompt)
 
     def test_semantic_prompt_requires_evidence_before_term_escalation(self) -> None:
-        prompt = matrix.review_prompt({}, "税前差 3 元", {}, [])
+        evidence = {"background_claims": [{"claim": "压降机制", "source_reference": "基础电路原理"}]}
+        prompt = matrix.review_prompt({}, "税前差 3 元", {}, [], evidence)
         self.assertIn("strict professional-term threshold", prompt)
         self.assertIn("pre-tax", prompt)
+        self.assertIn("pairing window", prompt)
+        self.assertIn("SOURCE_AND_BACKGROUND_EVIDENCE", prompt)
+        self.assertIn("压降机制", prompt)
         self.assertIn("Never invent a style rule", prompt)
         self.assertIn("ordered-list markers", prompt)
+
+    def test_clean_agent_commands_disable_unrelated_capabilities(self) -> None:
+        args = argparse.Namespace(codex="codex", reasoning_effort="medium", timeout_seconds=10)
+        with patch.object(matrix, "run_codex", return_value={"ok": True}) as mocked:
+            result = matrix.start_agent(
+                args, "gpt-5.6-sol", Path("clean-home"), Path("clean-task"),
+                "prompt", "closure-review-output.schema.json",
+            )
+        self.assertEqual(result, {"ok": True})
+        command = mocked.call_args.args[0]
+        disabled = [command[index + 1] for index, value in enumerate(command[:-1]) if value == "--disable"]
+        self.assertEqual(set(disabled), set(matrix.CLEAN_AGENT_DISABLED_FEATURES))
 
     def test_case_filter_is_exposed_for_isolated_diagnostics(self) -> None:
         source = (ROOT / "scripts" / "run_iterative_forward_matrix.py").read_text(encoding="utf-8")
@@ -153,6 +169,12 @@ limit = 3
         self.assertEqual(snapshot["image_links"], ["![状态图](assets/status.svg)"])
         self.assertEqual(len(snapshot["fenced_blocks"]), 1)
 
+    def test_preservation_snapshot_allows_duplicate_explanation_removal(self) -> None:
+        concise = matrix.preservation_snapshot("按住 4 秒进入 45 秒窗口")
+        duplicated = matrix.preservation_snapshot("按住 4 秒进入 45 秒窗口，重复说明 4 秒与 45 秒")
+        self.assertEqual(concise["numbers"], duplicated["numbers"])
+        self.assertNotEqual(concise, matrix.preservation_snapshot("按住 4 秒进入窗口"))
+
     def test_manifest_invariants_cover_schema_unsupported_sets(self) -> None:
         payload = {
             "source_units": ["SRCU-001", "SRCU-001"], "support_map": ["SRCU-002"],
@@ -190,6 +212,44 @@ limit = 3
         self.assertNotIn("COLON_PSEUDO_HEADING", {item["rule_id"] for item in findings})
         pseudo = matrix.deterministic_findings("操作：关闭阀门", manifest)
         self.assertIn("COLON_PSEUDO_HEADING", {item["rule_id"] for item in pseudo})
+
+    def test_natural_list_introduction_is_not_a_colon_pseudo_heading(self) -> None:
+        manifest = {
+            "term_uses": [], "parallel_groups": [],
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        findings = matrix.deterministic_findings("需要核对以下内容：\n\n- 电源\n- 线路", manifest)
+        self.assertNotIn("COLON_PSEUDO_HEADING", {item["rule_id"] for item in findings})
+
+    def test_manifest_only_repair_must_reduce_deterministic_findings(self) -> None:
+        answer = "- 电源内部\n- 连接线路"
+        stale = {
+            "term_uses": [],
+            "parallel_groups": [{
+                "group_id": "PGRP-001", "item_texts": ["电源内部压降", "连接线路压降"],
+                "required_layout": "indented_list", "rendered_as_indented_list": True,
+            }],
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        repaired = json.loads(json.dumps(stale))
+        repaired["parallel_groups"][0]["item_texts"] = ["电源内部", "连接线路"]
+        payload = {"patches": [], "updated_manifest": repaired}
+        self.assertEqual(matrix.apply_closure_transaction(answer, stale, payload), answer)
+        with self.assertRaisesRegex(matrix.PatchError, "did not change"):
+            matrix.apply_closure_transaction(answer, repaired, payload)
+
+    def test_patch_schema_allows_manifest_only_repair(self) -> None:
+        manifest = {
+            "term_uses": [], "parallel_groups": [],
+            "section_plan": {
+                "headings_required": False, "heading_levels": [],
+                "basis": "短内容无需标题", "colon_pseudo_headings_allowed": False,
+            },
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        matrix.validate_schema("closure-patch-output.schema.json", {"patches": [], "updated_manifest": manifest})
 
     def test_compact_inline_parallel_group_does_not_require_list_layout(self) -> None:
         manifest = {

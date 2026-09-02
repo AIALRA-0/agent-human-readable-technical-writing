@@ -26,6 +26,11 @@ CONTRACTS = ROOT / "contracts"
 MODELS = ("gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna")
 MODEL_CODES = {"gpt-5.6-sol": "SOL", "gpt-5.6-terra": "TERRA", "gpt-5.6-luna": "LUNA"}
 RUNTIME_ITEMS = ["SKILL.md", "constitution", "runtime", "contracts", "profiles", "registries", "validators", "patcher", "references"]
+CLEAN_AGENT_DISABLED_FEATURES = (
+    "apps", "plugins", "remote_plugin", "recommended_plugins",
+    "skill_mcp_dependency_install", "tool_suggest", "browser_use",
+    "computer_use", "image_generation", "in_app_browser",
+)
 WRITE_LOCK = Lock()
 
 sys.path.insert(0, str(ROOT))
@@ -195,10 +200,10 @@ def access_violations(events: list[dict[str, Any]], allowed_roots: list[Path]) -
 
 
 def preservation_snapshot(text: str) -> dict[str, Any]:
-    """Freeze components and numeric tokens that a local repair must not disturb."""
+    """Freeze components and distinct numeric facts that a local repair must not disturb."""
 
     return {
-        "numbers": re.findall(r"(?<![A-Za-z0-9])[-+]?\d+(?:[.:]\d+)*(?:%|°C|\s*(?:V|万|项|分钟|个月))?", text),
+        "numbers": sorted(set(re.findall(r"(?<![A-Za-z0-9])[-+]?\d+(?:[.:]\d+)*(?:%|°C|\s*(?:V|万|项|分钟|个月))?", text))),
         "fenced_blocks": re.findall(r"```[^\n]*\n.*?```", text, flags=re.DOTALL),
         "table_rows": [line for line in text.splitlines() if line.lstrip().startswith("|")],
         "image_links": re.findall(r"!\[[^\]]*\]\([^\n)]+\)", text),
@@ -312,20 +317,28 @@ HOST_FROZEN_LEGACY_DRAFT:
 """
 
 
-def review_prompt(request: dict[str, Any], answer: str, manifest: dict[str, Any], feedback: list[str]) -> str:
+def review_prompt(
+    request: dict[str, Any], answer: str, manifest: dict[str, Any], feedback: list[str],
+    evidence: dict[str, Any] | None = None,
+) -> str:
     return f"""Use the installed $human-readable-technical-writing Skill as an independent semantic verifier.
 
 Re-read the Skill, active Lucas profile, term registry, structure rules, component rules, and verification rules. Inspect only this request, current answer, and manifest. Do not rewrite the answer. Return only findings required by the output schema.
 
 Report every currently discoverable blocking violation in this review; do not stage an already visible rule into a later round. Every blocking finding must be grounded in an explicit installed Skill rule, registry entry, source-preservation rule, or prior user feedback. Never invent a style rule or turn an advisory preference into FAIL. Standard Markdown ordered-list markers such as `1.` and `2.` are valid for ordered steps, do not require wording such as “第一步”, and do not require blank lines between sibling items.
 
-Discover undeclared professional terms and parallel groups independently. Apply a strict professional-term threshold: appearing in a technical, financial, operational, or other domain context is not enough. A phrase triggers the professional first-use contract only when the installed registry defines it, the request explicitly asks to explain it as a term, or supplied source evidence gives it a stable formal identity. Ordinary modifiers, status labels, numeric categories, and explanatory phrases remain common language; examples include sync window, read-only check, current result, pending item, pre-tax, pressure energy, and pressure release. `core_terms` is topic-diversity metadata and never proves that a phrase is professional. Do not demand invented official English for common language or for words used only inside the explanation of an already declared term. A missing or stale manifest declaration is fixable when a safe token, phrase, or sentence answer patch can correct the corresponding occurrence: return FAIL and let that patch update the manifest, rather than returning REVIEW_REQUIRED merely because the current manifest is incomplete. Check source completeness, facts, conditions, scope, numbers, exceptions, all parts of professional first use, title necessity and level, colon pseudo-headings, semicolon scope, internal evidence-label leakage, and whether each proposed repair can stay within one token, phrase, or sentence. Use REVIEW_REQUIRED only when no safe token, phrase, or sentence repair exists.
+Discover undeclared professional terms and parallel groups independently. Apply a strict professional-term threshold: appearing in a technical, financial, operational, or other domain context is not enough. `core_terms`, topic keywords, and a generic request to explain wording nearby never prove a stable professional identity or official English form. A phrase triggers the complete professional first-use contract only when the installed registry defines it, supplied source evidence gives it a stable formal identity, or the request explicitly identifies that exact phrase as a formal professional term. Ordinary modifiers, status labels, task-specific labels, numeric categories, and explanatory phrases remain common language; examples include sync window, pairing window, calibration offset, read-only check, current result, pending item, pre-tax, pressure energy, and pressure release. Explain an ordinary task-specific label naturally in Chinese and remove invented parenthetical English with a local FAIL repair; never return REVIEW_REQUIRED merely because that ordinary label lacks official English. Do not demand invented official English for common language or for words used only inside the explanation of an already declared term. A missing or stale manifest declaration is fixable when a safe token, phrase, sentence, or manifest-only repair can correct it: return FAIL rather than REVIEW_REQUIRED merely because the current manifest is incomplete.
+
+Use SOURCE_AND_BACKGROUND_EVIDENCE when judging added explanation. A declared background claim with an explicit source reference or clearly marked general-knowledge nature is not an unsupported source claim merely because it is absent from CURRENT_MANIFEST. Do not require a blockquote for a user-supplied identifier or preservation token unless the answer is actually presenting it as quoted evidence. A natural complete sentence that introduces a following list, quotation, or example may end with a colon and is not a colon pseudo-heading. Check source completeness, facts, conditions, scope, numbers, exceptions, all parts of professional first use, title necessity and level, colon pseudo-headings, semicolon scope, internal evidence-label leakage, and whether each proposed repair can stay within one token, phrase, or sentence. Use REVIEW_REQUIRED only when no safe token, phrase, sentence, or manifest-only repair exists.
 
 PRIOR_USER_FEEDBACK:
 {json.dumps(feedback, ensure_ascii=False)}
 
 REQUEST:
 {json.dumps(request, ensure_ascii=False, indent=2)}
+
+SOURCE_AND_BACKGROUND_EVIDENCE:
+{json.dumps(evidence or {}, ensure_ascii=False, indent=2)}
 
 CURRENT_MANIFEST:
 {json.dumps(manifest, ensure_ascii=False, indent=2)}
@@ -350,7 +363,7 @@ def patch_prompt(
     )
     return f"""Re-read the installed Skill rules named by these findings. Return only the exact patch object required by the output schema.
 
-Patch only the smallest complete erroneous unit. Allowed repair_scope values are token, phrase, and sentence. Do not replace a paragraph, section, adjacent sections, blueprint, or whole answer. Every patch in this transaction must bind the same CURRENT_SHA256 shown below, one supplied line node, exact old text, exact occurrence count, preservation requirements, and validators. Do not use a hash predicted from an earlier patch in the same batch. Do not submit an empty or no-op patch. Update the manifest to describe the patched answer without changing unrelated declarations.
+Patch only the smallest complete erroneous unit. Allowed repair_scope values are token, phrase, and sentence. Do not replace a paragraph, section, adjacent sections, blueprint, or whole answer. Every answer patch in this transaction must bind the same CURRENT_SHA256 shown below, one supplied line node, exact old text, exact occurrence count, preservation requirements, and validators. Do not use a hash predicted from an earlier patch in the same batch. Never submit an answer patch whose old and new text are identical. Update the manifest to describe the patched answer without changing unrelated declarations. If every remaining defect is only a stale manifest declaration and the answer is already correct, return an empty `patches` array and change only `updated_manifest`; otherwise return at least one real answer patch.
 {rejection}
 
 CURRENT_SHA256:
@@ -437,6 +450,24 @@ def normalize_patch_ids(payload: dict[str, Any], start: int) -> tuple[dict[str, 
     return normalized, mappings
 
 
+def apply_closure_transaction(
+    answer: str, manifest: dict[str, Any], patch_payload: dict[str, Any],
+) -> str:
+    """Apply real answer patches or a strictly improving manifest-only repair."""
+
+    patches = patch_payload["patches"]
+    if patches:
+        return apply_minimal_transaction(answer, patches, line_nodes(answer))
+    updated_manifest = patch_payload["updated_manifest"]
+    if updated_manifest == manifest:
+        raise PatchError("empty closure transaction did not change the manifest")
+    before_findings = deterministic_findings(answer, manifest)
+    after_findings = deterministic_findings(answer, updated_manifest)
+    if len(after_findings) >= len(before_findings):
+        raise PatchError("manifest-only repair did not reduce deterministic findings")
+    return answer
+
+
 def parse_json_body(result: dict[str, Any], schema_name: str) -> dict[str, Any]:
     if result["exit_code"] != 0:
         raise RuntimeError(f"Codex exit code {result['exit_code']}: {result['stderr'][-500:]}")
@@ -459,6 +490,8 @@ def start_agent(
         "--approve-for-me", "--output-schema", str(schema_path),
         "-C", str(task_root), prompt,
     ]
+    for feature in CLEAN_AGENT_DISABLED_FEATURES:
+        command[2:2] = ["--disable", feature]
     return run_codex(command, environment, args.timeout_seconds)
 
 
@@ -475,12 +508,15 @@ def resume_agent(
         "--model", model, "-c", f'model_reasoning_effort="{args.reasoning_effort}"',
         "--output-schema", str(schema_path), session_id, prompt,
     ]
+    for feature in CLEAN_AGENT_DISABLED_FEATURES:
+        command[3:3] = ["--disable", feature]
     return run_codex(command, environment, args.timeout_seconds)
 
 
 def semantic_review(
     args: argparse.Namespace, model: str, case_root: Path, round_number: int,
     request: dict[str, Any], answer: str, manifest: dict[str, Any], feedback: list[str], auth: Path,
+    evidence: dict[str, Any] | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any], list[str]]:
     reviewer_root = case_root / f"reviewer-{round_number}"
     home = reviewer_root / "home"
@@ -489,7 +525,11 @@ def semantic_review(
     task.mkdir(parents=True)
     shutil.copy2(auth, home / "auth.json")
     install_candidate(home)
-    result = start_agent(args, model, home, task, review_prompt(request, answer, manifest, feedback), "closure-review-output.schema.json")
+    result = start_agent(
+        args, model, home, task,
+        review_prompt(request, answer, manifest, feedback, evidence),
+        "closure-review-output.schema.json",
+    )
     payload = parse_json_body(result, "closure-review-output.schema.json")
     findings = []
     for index, raw in enumerate(payload["findings"], start=1):
@@ -557,6 +597,7 @@ def run_case(
         raise ValueError("legacy pre-closure draft changed before the repair loop")
     answer = initial["answer"]
     manifest = {key: initial[key] for key in ("term_uses", "parallel_groups", "section_plan", "boundary_visibility")}
+    evidence = {key: initial[key] for key in ("source_units", "support_map", "background_claims")}
     initial_manifest = json.loads(json.dumps(manifest, ensure_ascii=False))
     first_hash = sha256_text(answer)
     first_preservation = preservation_snapshot(answer)
@@ -570,7 +611,7 @@ def run_case(
         before_answer = answer
         deterministic = deterministic_findings(answer, manifest)
         semantic, review_result, review_violations = semantic_review(
-            args, model, case_root, repair_round, request, answer, manifest, feedback, auth,
+            args, model, case_root, repair_round, request, answer, manifest, feedback, auth, evidence,
         )
         violations.extend(review_violations)
         combined = merge_findings(deterministic, semantic)
@@ -598,7 +639,7 @@ def run_case(
         try:
             if not submitted_finding_ids <= allowed_finding_ids:
                 raise PatchError("one patch references a finding outside the merged review set")
-            patched_answer = apply_minimal_transaction(answer, patch_payload["patches"], line_nodes(answer))
+            patched_answer = apply_closure_transaction(answer, manifest, patch_payload)
         except PatchError as error:
             previous_patch_rejection = str(error)
             rounds.append({
@@ -665,7 +706,7 @@ def run_case(
     if status == "FAIL":
         deterministic = deterministic_findings(answer, manifest)
         semantic, review_result, review_violations = semantic_review(
-            args, model, case_root, 4, request, answer, manifest, feedback, auth,
+            args, model, case_root, 4, request, answer, manifest, feedback, auth, evidence,
         )
         violations.extend(review_violations)
         status = "PASS" if not merge_findings(deterministic, semantic) else "REVIEW_REQUIRED"

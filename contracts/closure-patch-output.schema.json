@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": ["patches", "updated_manifest"],
   "properties": {
-    "patches": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/exactPatch"}},
+    "patches": {"type": "array", "items": {"$ref": "#/$defs/exactPatch"}},
     "updated_manifest": {
       "type": "object", "additionalProperties": false,
       "required": ["term_uses", "parallel_groups", "section_plan", "boundary_visibility"],

@@ -88,6 +88,7 @@ def deterministic_findings(answer: str, manifest: Mapping[str, Any] | None = Non
     }
     for number, line in authored:
         location = f"LINE-{number:04d}"
+        list_item = bool(re.match(r"^\s{0,3}(?:[-*+]\s+|\d+[.)]\s+)", line))
         prose = re.sub(r"^\s{0,3}(?:[-*+]\s+|\d+[.)]\s+)", "", line)
         if "。" in line:
             findings.append(_finding(
@@ -103,7 +104,26 @@ def deterministic_findings(answer: str, manifest: Mapping[str, Any] | None = Non
         professional_term_definition = bool(
             colon_match and colon_match.group(1).strip() in professional_labels
         )
-        if colon_match and not professional_term_definition and not re.match(r"^[A-Za-z][A-Za-z0-9+.-]*://", prose):
+        natural_introduction = bool(
+            colon_match
+            and re.search(
+                r"(?:如下|包括|分别为|分为|需要核对|需要完成|可按|例如|即|以下(?:内容|项目|事项|步骤|对象|证据))$",
+                colon_match.group(1).strip(),
+            )
+        )
+        label_like_prefix = bool(
+            colon_match
+            and len(colon_match.group(1).strip()) <= 12
+            and not re.search(r"[，；。！？、‘’“”《》()（）]", colon_match.group(1))
+        )
+        if (
+            colon_match
+            and not list_item
+            and label_like_prefix
+            and not natural_introduction
+            and not professional_term_definition
+            and not re.match(r"^[A-Za-z][A-Za-z0-9+.-]*://", prose)
+        ):
             findings.append(_finding(
                 "COLON_PSEUDO_HEADING", location, line,
                 "内容使用冒号伪标题，应该取消标题或使用适当 Markdown 标题", "sentence",

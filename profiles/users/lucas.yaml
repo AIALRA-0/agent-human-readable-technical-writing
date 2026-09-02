@@ -28,7 +28,7 @@ profile:
     colon_pseudo_heading:
       policy: forbidden
       severity: PROFILE_REQUIRED
-      description: 禁止使用操作、术语、证据边界等冒号结尾的伪标题，需要分区时使用适当 Markdown 标题，不需要分区时直接成文
+      description: 禁止使用操作、术语、证据边界等冒号结尾的伪标题，需要分区时使用适当 Markdown 标题，不需要分区时直接成文；自然完整句引出后续列表、引文或示例时使用冒号，不属于伪标题
     captions:
       policy: below_object
       severity: PROFILE_REQUIRED
@@ -73,7 +73,7 @@ profile:
     professional_first_use:
       policy: complete_first_use_contract
       severity: PROFILE_REQUIRED
-      description: 独立阅读单元中的专业名词首次出现时登记正式中文、官方英文、正式缩写、中文定义、名称含义、当前作用和实际影响；无法核对官方写法时停止并要求复核
+      description: 独立阅读单元中确属专业名词的内容首次出现时登记正式中文、官方英文、正式缩写、中文定义、名称含义、当前作用和实际影响；主题关键词和普通操作短语不自动成为专业名词，没有来源支持的普通任务标签只用自然中文解释且不创造英文；确属专业名词但无法核对官方写法时停止并要求复核
     translation_english_name:
       policy: retain_official_english
       severity: PROFILE_REQUIRED
