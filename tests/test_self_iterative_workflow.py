@@ -70,6 +70,7 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertEqual(evidence["required_reference_tokens"], ["B24"])
         self.assertEqual(contract["approval_status"], "rejected_as_delivery_not_user_accepted")
         self.assertIn("Preserve every semantic unit", contract["policy"])
+        self.assertIn("current hard-rule defect", contract["policy"])
         prompt = matrix.review_prompt({}, "冻结内容", {}, ["只修标点"], evidence)
         self.assertIn("immutable user-supplied repair context", prompt)
         self.assertIn("does not make the answer user-accepted", prompt)
@@ -337,6 +338,8 @@ limit = 3
         }
         findings = matrix.deterministic_findings("需要核对以下内容：\n\n- 电源\n- 线路", manifest)
         self.assertNotIn("COLON_PSEUDO_HEADING", {item["rule_id"] for item in findings})
+        procedural = matrix.deterministic_findings("首次配对请按以下步骤进行：\n\n- 按住圆键", manifest)
+        self.assertNotIn("COLON_PSEUDO_HEADING", {item["rule_id"] for item in procedural})
 
     def test_inline_review_metadata_is_not_a_colon_pseudo_heading(self) -> None:
         manifest = {
@@ -412,6 +415,10 @@ limit = 3
         }
         deferred = "- 注意残余压力（Residual Pressure）\n- 残余压力（Residual Pressure）：能源隔离后仍残留的压力能量"
         complete_first = "- 残余压力（Residual Pressure）：能源隔离后仍残留的压力能量"
+        complete_then_glossary = (
+            "1. 注意残余压力（Residual Pressure）：能源隔离后仍残留的压力能量\n\n"
+            "- 残余压力（Residual Pressure）：术语摘要"
+        )
         self.assertIn(
             "TERM_FIRST_USE_DEFERRED",
             {item["rule_id"] for item in matrix.deterministic_findings(deferred, manifest)},
@@ -419,6 +426,10 @@ limit = 3
         self.assertNotIn(
             "TERM_FIRST_USE_DEFERRED",
             {item["rule_id"] for item in matrix.deterministic_findings(complete_first, manifest)},
+        )
+        self.assertNotIn(
+            "TERM_FIRST_USE_DEFERRED",
+            {item["rule_id"] for item in matrix.deterministic_findings(complete_then_glossary, manifest)},
         )
 
     def test_declared_background_scope_marker_is_preserved(self) -> None:

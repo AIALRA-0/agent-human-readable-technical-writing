@@ -116,7 +116,7 @@ def deterministic_findings(answer: str, manifest: Mapping[str, Any] | None = Non
         natural_introduction = bool(
             colon_match
             and re.search(
-                r"(?:如下|包括|分别为|分别说明|分为|需要核对|需要完成|可按|例如|即|原因是|测量条件不同|会发生以下变化|以下(?:内容|项目|事项|步骤|对象|证据|变化)|(?:以下|下面).*(?:是|为).+)$",
+                r"(?:如下|包括|分别为|分别说明|分为|需要核对|需要完成|可按|例如|即|原因是|测量条件不同|会发生以下变化|(?:请)?按以下(?:内容|项目|事项|步骤|对象|证据|变化)(?:进行|操作|处理|完成)?|以下(?:内容|项目|事项|步骤|对象|证据|变化)|(?:以下|下面).*(?:是|为).+)$",
                 colon_match.group(1).strip(),
             )
         )
@@ -277,6 +277,10 @@ def deterministic_findings(answer: str, manifest: Mapping[str, Any] | None = Non
         )
         if first_occurrence:
             first_number, first_line = first_occurrence
+            first_prose = re.sub(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)", "", first_line)
+            first_defines_term = bool(re.search(
+                rf"{re.escape(first_use)}\s*[：:]", first_prose,
+            ))
             deferred_definition = next((
                 (number, line)
                 for number, line in authored
@@ -285,9 +289,7 @@ def deterministic_findings(answer: str, manifest: Mapping[str, Any] | None = Non
                     (f"{first_use}：", f"{first_use}:")
                 )
             ), None)
-            if deferred_definition and not re.sub(
-                r"^\s*(?:[-*+]\s+|\d+[.)]\s+)", "", first_line,
-            ).startswith((f"{first_use}：", f"{first_use}:")):
+            if deferred_definition and not first_defines_term:
                 findings.append(_finding(
                     "TERM_FIRST_USE_DEFERRED", f"LINE-{first_number:04d}", first_line,
                     "专业词首次出现只保留名称，完整解释被推迟到后置定义；必须在首次语义位置完成解释", "sentence",
