@@ -9,7 +9,7 @@
   },
   "scope": {
     "first_attempt": "R1",
-    "last_attempt": "Q50",
+    "last_attempt": "R49",
     "formal_qualification_completed": false,
     "note": "这些记录只证明编排器开发过程，不能替代正式 60 项三模型资格结果"
   },
@@ -283,6 +283,16 @@
       "terminal": "FAIL_FAST",
       "observed_failure": "027 Luna 在三轮最小修复和终审后仍缺少图片元素功能说明，028 Terra 未保留原表结构并缺少可证明的呈现证据，028 Luna 宿主超时并在同批终态失败触发 fail-fast 后不再调度重试",
       "resulting_change": "永久保留 Q50 私有原始报告和运行目录，不物化为正式资格结果；确认 fail-fast 对并发宿主错误的收尾语义，并补强图片、表格组件的通用生成前检查后，使用新资格编号重新开始"
+    },
+    {
+      "attempt_id": "R49",
+      "kind": "diagnostic",
+      "planned": 9,
+      "completed": 9,
+      "passed": 8,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "024 Luna 在三轮最小修复后，终审才发现定义组和读数组被压成同一层平面列表，组间语义边界未被前置复核一次发现",
+      "resulting_change": "永久保留 R49 私有原始报告和公开摘要；增加不同语义排比组的独立块和层级规则，使用新摘要重新诊断"
     }
   ]
 }

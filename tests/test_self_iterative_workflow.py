@@ -40,6 +40,7 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("component preflight", prompt)
         self.assertIn("never add an explanation column", prompt)
         self.assertIn("each effective element's function", prompt)
+        self.assertIn("different semantic parallel groups", prompt)
 
     def test_semantic_prompt_requires_evidence_before_term_escalation(self) -> None:
         evidence = {"background_claims": [{"claim": "压降机制", "source_reference": "基础电路原理"}]}
@@ -67,6 +68,7 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("added decision or explanation column", prompt)
         self.assertIn("location-only statement is incomplete", prompt)
         self.assertIn("Require GitHub render evidence only when", prompt)
+        self.assertIn("different semantic parallel groups", prompt)
 
     def test_first_review_completion_prompt_requires_all_dimensions(self) -> None:
         prompt = matrix.review_completion_prompt([{
@@ -80,6 +82,7 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("unsupported procedures", prompt)
         self.assertIn("per-element function", prompt)
         self.assertIn("table source structure", prompt)
+        self.assertIn("boundary between different semantic groups", prompt)
         self.assertIn("minimum patch scope", prompt)
 
     def test_registered_official_english_contains_safety_terms(self) -> None:
