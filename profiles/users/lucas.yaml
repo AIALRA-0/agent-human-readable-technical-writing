@@ -44,7 +44,7 @@ profile:
     parallel_items:
       policy: indented_list
       severity: PROFILE_REQUIRED
-      description: 两个以上承担相同作用的定义、步骤、比较对象、事实、原因或动作都换行并缩进，不以是否出现冒号作为判断条件，项目内部还有并列内容时继续缩进一级
+      description: 两个以上独立的定义、步骤、比较对象、事实、原因或动作换行并缩进，不以是否出现冒号作为判断条件，项目内部还有并列内容时继续缩进一级；篇幅极短且紧密关联的审计事实可以按紧凑并列合同留在同一行并使用分号
     topic_boundary:
       policy: separate_paragraph
       severity: PROFILE_REQUIRED
@@ -95,7 +95,7 @@ profile:
     boundary:
       policy: evidence_gap_importance_next_check
       severity: PROFILE_REQUIRED
-      description: 否定边界说明缺少的证据、缺失原因造成的影响和下一项核对方法
+      description: 解释或决策任务中的重要否定边界说明缺少的证据、实际影响和下一项核对方法；COMPRESS + NONE 等不允许解释增量的任务只保留原文已经表达的未知或未检查范围，不创造影响判断、建议或核对动作
     boundary_visibility:
       policy: internal_then_natural_when_material
       severity: PROFILE_REQUIRED
@@ -150,4 +150,4 @@ profile:
     inline_identifiers:
       policy: backticks
       severity: MACHINE_FINAL
-      description: 命令、字段、标识符、路径和代码类型使用反引号
+      description: 命令、字段、代码标识符、路径和代码类型使用反引号；普通审计编号、复核编号和人类可读票据号在叙述中不自动视为代码标识符

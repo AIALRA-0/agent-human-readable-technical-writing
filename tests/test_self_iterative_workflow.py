@@ -278,6 +278,18 @@ limit = 3
         findings = matrix.deterministic_findings("需要核对以下内容：\n\n- 电源\n- 线路", manifest)
         self.assertNotIn("COLON_PSEUDO_HEADING", {item["rule_id"] for item in findings})
 
+    def test_inline_review_metadata_is_not_a_colon_pseudo_heading(self) -> None:
+        manifest = {
+            "term_uses": [], "parallel_groups": [],
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        answer = "复核编号 B23：抽查 18 张；其余 62 张未检查"
+        rules = {item["rule_id"] for item in matrix.deterministic_findings(answer, manifest)}
+        self.assertNotIn("COLON_PSEUDO_HEADING", rules)
+        pseudo_rules = {item["rule_id"] for item in matrix.deterministic_findings("操作：关闭阀门", manifest)}
+        self.assertIn("COLON_PSEUDO_HEADING", pseudo_rules)
+
     def test_prose_and_following_list_require_one_block_separator(self) -> None:
         manifest = {
             "term_uses": [], "parallel_groups": [],

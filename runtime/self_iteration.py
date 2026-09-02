@@ -104,6 +104,14 @@ def deterministic_findings(answer: str, manifest: Mapping[str, Any] | None = Non
         professional_term_definition = bool(
             colon_match and colon_match.group(1).strip() in professional_labels
         )
+        inline_review_metadata = bool(
+            colon_match
+            and re.fullmatch(
+                r"复核编号\s+`?[A-Z](?=[A-Z0-9_-]*\d)[A-Z0-9_-]{1,79}`?",
+                colon_match.group(1).strip(),
+            )
+            and prose[colon_match.end(1) + 1:].strip()
+        )
         natural_introduction = bool(
             colon_match
             and re.search(
@@ -121,6 +129,7 @@ def deterministic_findings(answer: str, manifest: Mapping[str, Any] | None = Non
             and not list_item
             and label_like_prefix
             and not natural_introduction
+            and not inline_review_metadata
             and not professional_term_definition
             and not re.match(r"^[A-Za-z][A-Za-z0-9+.-]*://", prose)
         ):
