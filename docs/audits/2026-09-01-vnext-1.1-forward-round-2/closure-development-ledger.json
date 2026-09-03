@@ -423,6 +423,36 @@
       "terminal": "REVIEW_REQUIRED",
       "observed_failure": "029 的三个模型在一次宿主重试后全部通过；028 Luna 通过，028 Sol 在最终复核仍缺少逐列表格覆盖，028 Terra 在最终复核仍以中文分号连接证据影响与下一项核对，最终 2 项未通过",
       "resulting_change": "永久保留 R62 私有原始报告、运行目录和公开摘要；把表格外逐列覆盖清单与证据影响、下一项核对不得跨语义使用分号写入组件配置、Skill、复核提示和补丁提示，使用新摘要重新诊断"
+    },
+    {
+      "attempt_id": "R63",
+      "kind": "diagnostic",
+      "planned": 6,
+      "completed": 6,
+      "passed": 4,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "028 的 Sol、Terra、Luna 全部通过，029 Terra 通过；029 Sol 在三轮和最终复核后仍缺少 B29、含中文句号并暴露变量边界、行内代码、来源事实和证据限制问题，029 Luna 在一次补丁事务拒绝后仍保留中文句号、分号和行内代码问题",
+      "resulting_change": "永久保留 R63 私有原始报告、运行目录、公开摘要及摘要校验值；将受保护参考标识、可迭代输入的调用与重试边界、代码语言与标识符行内代码要求前置到 Skill、代码组件、运行文档和闭环提示，使用新摘要重新诊断"
+    },
+    {
+      "attempt_id": "R64",
+      "kind": "diagnostic",
+      "planned": 3,
+      "completed": 3,
+      "passed": 1,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "029 Luna 通过；029 Sol 在三轮后仍有代码字面量未使用行内代码以及相关边界和章节复核问题，029 Terra 在最终复核仍有 n 与 n-1 未标记和调用边界使用中文分号，Sol 与 Terra 进入 REVIEW_REQUIRED；没有宿主级错误",
+      "resulting_change": "永久保留 R64 私有原始报告、运行目录、公开摘要及摘要校验值；把源代码字面量的行内代码要求以及调用次数、重试次数和空输入不得压在同一中文分号列表项中的规则写入 Skill、代码组件、运行文档和闭环提示，使用新摘要重新诊断"
+    },
+    {
+      "attempt_id": "R65",
+      "kind": "diagnostic",
+      "planned": 3,
+      "completed": 3,
+      "passed": 3,
+      "terminal": "PASS",
+      "observed_failure": "无；029 的 Sol、Terra、Luna 全部在三轮以内闭环通过，Sol 首次宿主运行出现 RUN_ERROR 后按最多一次重试合同在第二次宿主尝试通过，最终内容结果和保真检查均通过",
+      "resulting_change": "永久保留 R65 私有原始报告、运行目录、公开摘要及摘要校验值；确认当前候选 Skill、运行器和代码边界规则在 029 的三个模型上完成独立干净闭环，允许启动全新的正式第二轮资格编号；本诊断不产生用户接受字段"
     }
   ]
 }
