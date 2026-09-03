@@ -606,6 +606,18 @@ limit = 3
             {item["rule_id"] for item in matrix.deterministic_findings(contiguous, manifest)},
         )
 
+    def test_different_list_types_can_separate_semantic_groups(self) -> None:
+        manifest = {
+            "term_uses": [], "parallel_groups": [],
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        answer = "1. 操作\n2. 风险\n\n- 定义\n- 影响"
+        self.assertNotIn(
+            "LIST_INTERNAL_BLANK_LINE",
+            {item["rule_id"] for item in matrix.deterministic_findings(answer, manifest)},
+        )
+
     def test_nested_child_indent_cannot_capture_shared_explanation(self) -> None:
         manifest = {
             "term_uses": [], "parallel_groups": [],

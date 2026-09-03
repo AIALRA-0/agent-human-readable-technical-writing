@@ -195,12 +195,19 @@ def deterministic_findings(
             continue
         previous = lines[index - 1]
         following = lines[index + 1]
-        previous_item = re.match(r"^(\s*)(?:[-*+]\s+|\d+[.)]\s+)", previous)
-        following_item = re.match(r"^(\s*)(?:[-*+]\s+|\d+[.)]\s+)", following)
+        previous_item = re.match(r"^(\s*)([-*+]\s+|\d+[.)]\s+)", previous)
+        following_item = re.match(r"^(\s*)([-*+]\s+|\d+[.)]\s+)", following)
         following_indent = len(following) - len(following.lstrip(" \t"))
         previous_indent = len(previous_item.group(1)) if previous_item else 0
+        separate_list_blocks = bool(
+            previous_item
+            and following_item
+            and previous_indent == len(following_item.group(1))
+            and bool(re.match(r"\d", previous_item.group(2)))
+            != bool(re.match(r"\d", following_item.group(2)))
+        )
         if previous_item and (
-            following_item
+            (following_item and not separate_list_blocks)
             or (
                 following.strip()
                 and previous_indent > 0
