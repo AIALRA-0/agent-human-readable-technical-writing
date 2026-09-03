@@ -41,6 +41,7 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("never add an explanation column", prompt)
         self.assertIn("each effective element's function", prompt)
         self.assertIn("different semantic parallel groups", prompt)
+        self.assertIn("embedded inside another list item", prompt)
 
     def test_semantic_prompt_requires_evidence_before_term_escalation(self) -> None:
         evidence = {"background_claims": [{"claim": "压降机制", "source_reference": "基础电路原理"}]}
@@ -240,6 +241,7 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("one no-op invalidates the whole transaction", prompt)
         self.assertIn("Copy the 64-character value shown after CURRENT_SHA256 character-for-character", prompt)
         self.assertIn("do not insert a blank line inside one list", prompt)
+        self.assertIn("remove that stale group", prompt)
 
     def test_initial_prompt_front_loads_preservation_and_background_support(self) -> None:
         prompt = matrix.initial_prompt(

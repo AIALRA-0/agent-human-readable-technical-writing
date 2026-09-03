@@ -9,7 +9,7 @@
   },
   "scope": {
     "first_attempt": "R1",
-    "last_attempt": "R54",
+    "last_attempt": "Q55",
     "formal_qualification_completed": false,
     "note": "这些记录只证明编排器开发过程，不能替代正式 60 项三模型资格结果"
   },
@@ -343,6 +343,16 @@
       "terminal": "PASS",
       "observed_failure": "无；R53 的唯一缺失项 024/Terra 在新隔离单项运行中补足",
       "resulting_change": "永久保留 R54 私有原始报告和公开摘要；确认当前代码摘要下 024/Terra 闭环可通过，不修改规则"
+    },
+    {
+      "attempt_id": "Q55",
+      "kind": "qualification_attempt",
+      "planned": 60,
+      "completed": 14,
+      "passed": 13,
+      "terminal": "FAIL_FAST",
+      "observed_failure": "正式资格在 FWD-R2-024/Sol 终审发现清单把定义句内部的读数短语误登记为独立排比组后触发 fail-fast；已在途的 025/Sol 与 025/Terra 收尾通过，剩余任务未调度",
+      "resulting_change": "永久保留 Q55 私有原始报告和部分运行目录，不物化为正式资格结果；在清单生成、语义审查和最小补丁提示中明确嵌入其他列表项的短语不是独立排比组，使用新资格编号重新开始"
     }
   ]
 }
