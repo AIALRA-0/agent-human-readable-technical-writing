@@ -9,7 +9,7 @@
   },
   "scope": {
     "first_attempt": "R1",
-    "last_attempt": "Q60",
+    "last_attempt": "R62",
     "formal_qualification_completed": false,
     "note": "这些记录只证明编排器开发过程，不能替代正式 60 项三模型资格结果"
   },
@@ -413,6 +413,16 @@
       "terminal": "REVIEW_REQUIRED",
       "observed_failure": "时间表达的冒号误报已消失；028 Terra 仍将表格行登记为散文排比组，029 的 Sol、Terra、Luna 分别暴露可变等待边界、生成注释快照保真和局部代码说明问题，最终 4 项未在三轮内清零",
       "resulting_change": "永久保留 R61 私有原始报告、运行目录和公开摘要；明确表格结构不进入散文 parallel_groups，允许局部修复生成的同行注释但冻结可执行代码，并把可变输入的次数与失败边界写入 Skill、代码配置、运行文档和闭环提示，使用新摘要重新诊断"
+    },
+    {
+      "attempt_id": "R62",
+      "kind": "diagnostic",
+      "planned": 6,
+      "completed": 6,
+      "passed": 4,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "029 的三个模型在一次宿主重试后全部通过；028 Luna 通过，028 Sol 在最终复核仍缺少逐列表格覆盖，028 Terra 在最终复核仍以中文分号连接证据影响与下一项核对，最终 2 项未通过",
+      "resulting_change": "永久保留 R62 私有原始报告、运行目录和公开摘要；把表格外逐列覆盖清单与证据影响、下一项核对不得跨语义使用分号写入组件配置、Skill、复核提示和补丁提示，使用新摘要重新诊断"
     }
   ]
 }

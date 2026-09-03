@@ -44,6 +44,8 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("embedded inside another list item", prompt)
         self.assertIn("TABLE headers, rows, cells", prompt)
         self.assertIn("bind every count", prompt)
+        self.assertIn("every column by name", prompt)
+        self.assertIn("audit every Chinese semicolon", prompt)
 
     def test_semantic_prompt_requires_evidence_before_term_escalation(self) -> None:
         evidence = {"background_claims": [{"claim": "压降机制", "source_reference": "基础电路原理"}]}
@@ -206,6 +208,8 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("bare newline", prompt)
         self.assertIn("TABLE headers, rows, cells", prompt)
         self.assertIn("bind every count", prompt)
+        self.assertIn("every column's name", prompt)
+        self.assertIn("semicolon scope", prompt)
 
     def test_frozen_seed_evidence_preserves_unrejected_content_without_acceptance(self) -> None:
         initial = {
