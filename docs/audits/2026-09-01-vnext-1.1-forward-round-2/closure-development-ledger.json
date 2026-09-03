@@ -9,7 +9,7 @@
   },
   "scope": {
     "first_attempt": "R1",
-    "last_attempt": "Q55",
+    "last_attempt": "Q56",
     "formal_qualification_completed": false,
     "note": "这些记录只证明编排器开发过程，不能替代正式 60 项三模型资格结果"
   },
@@ -353,6 +353,16 @@
       "terminal": "FAIL_FAST",
       "observed_failure": "正式资格在 FWD-R2-024/Sol 终审发现清单把定义句内部的读数短语误登记为独立排比组后触发 fail-fast；已在途的 025/Sol 与 025/Terra 收尾通过，剩余任务未调度",
       "resulting_change": "永久保留 Q55 私有原始报告和部分运行目录，不物化为正式资格结果；在清单生成、语义审查和最小补丁提示中明确嵌入其他列表项的短语不是独立排比组，使用新资格编号重新开始"
+    },
+    {
+      "attempt_id": "Q56",
+      "kind": "qualification_attempt",
+      "planned": 60,
+      "completed": 7,
+      "passed": 6,
+      "terminal": "FAIL_FAST",
+      "observed_failure": "正式资格在 FWD-R2-022/Sol 终审发现首次出现的“残余压力（Residual Pressure）是……”之后仍被确定性检查误判为延后定义，触发 fail-fast；其余已在途项目收尾通过，剩余任务未调度",
+      "resulting_change": "永久保留 Q56 私有原始报告和部分运行目录，不物化为正式资格结果；扩展首次术语定义检查以识别“是、指、表示、用于”等自然定义句，并增加回归，使用新资格编号重新开始"
     }
   ]
 }

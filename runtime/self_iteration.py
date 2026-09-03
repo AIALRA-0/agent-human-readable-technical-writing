@@ -298,7 +298,7 @@ def deterministic_findings(
             first_number, first_line = first_occurrence
             first_prose = re.sub(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)", "", first_line)
             first_defines_term = bool(re.search(
-                rf"{re.escape(first_use)}\s*[：:]", first_prose,
+                rf"{re.escape(first_use)}\s*(?:[：:]|是|指(?:的是)?|表示|用于)", first_prose,
             ))
             deferred_definition = next((
                 (number, line)

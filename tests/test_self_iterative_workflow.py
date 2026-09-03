@@ -583,6 +583,11 @@ limit = 3
             "TERM_FIRST_USE_DEFERRED",
             {item["rule_id"] for item in matrix.deterministic_findings(complete_then_glossary, manifest)},
         )
+        copular_first = "- 残余压力（Residual Pressure）是能源隔离后仍残留的压力能量\n\n- 残余压力（Residual Pressure）：术语摘要"
+        self.assertNotIn(
+            "TERM_FIRST_USE_DEFERRED",
+            {item["rule_id"] for item in matrix.deterministic_findings(copular_first, manifest)},
+        )
 
     def test_declared_background_scope_marker_is_preserved(self) -> None:
         evidence = {"background_claims": [{
