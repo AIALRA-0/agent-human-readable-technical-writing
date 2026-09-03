@@ -9,7 +9,7 @@
   },
   "scope": {
     "first_attempt": "R1",
-    "last_attempt": "R58",
+    "last_attempt": "R59",
     "formal_qualification_completed": false,
     "note": "这些记录只证明编排器开发过程，不能替代正式 60 项三模型资格结果"
   },
@@ -383,6 +383,16 @@
       "terminal": "REVIEW_REQUIRED",
       "observed_failure": "022、024、025 的 Sol 在三轮闭环中多次把当前发现的真实 finding_id 写成规则名加真实 ID、规则名加位置或规则名本身，提交器按严格合同拒绝整批补丁，最终 3 项进入 REVIEW_REQUIRED；Terra 与 Luna 的 6 项通过",
       "resulting_change": "永久保留 R58 私有原始报告、运行目录和公开摘要；增加只对当前合并发现集合进行精确或唯一反解的 finding 引用规范化，保留错误前缀、未知引用和歧义引用拒绝，并登记原始到规范化映射，使用新摘要重新诊断"
+    },
+    {
+      "attempt_id": "R59",
+      "kind": "diagnostic",
+      "planned": 9,
+      "completed": 9,
+      "passed": 9,
+      "terminal": "PASS",
+      "observed_failure": "无；022、024、025 的 Sol、Terra、Luna 全部完成三轮以内闭环，宿主错误重试规则未改变最终通过结果",
+      "resulting_change": "永久保留 R59 私有原始报告、运行目录和公开摘要；确认当前 Skill、运行器与安全 finding 引用规范化在三个模型和三个历史种子案例上均可闭环通过，允许启动全新正式资格编号"
     }
   ]
 }
