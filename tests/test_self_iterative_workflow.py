@@ -236,6 +236,9 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("must-preserve finding must restore", prompt)
         self.assertIn("nested list inside an existing list item", prompt)
         self.assertIn("Preserve non-exhaustive scope markers", prompt)
+        self.assertIn("required_meanings", prompt)
+        self.assertIn("name_rationale", prompt)
+        self.assertIn("name_origin", prompt)
         self.assertIn("join their exact finding IDs with `+`", prompt)
         self.assertIn("put the marker before the title", prompt)
         self.assertIn("one no-op invalidates the whole transaction", prompt)
@@ -252,6 +255,9 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("hard content requirement", prompt)
         self.assertIn("named mechanism or relationship", prompt)
         self.assertIn("declare every background claim actually needed", prompt)
+        self.assertIn("required_meanings", prompt)
+        self.assertIn("name_rationale", prompt)
+        self.assertIn("name_origin", prompt)
 
     def test_review_feedback_is_semantic_unless_user_requires_exact_text(self) -> None:
         feedback = matrix.normalized_review_feedback({

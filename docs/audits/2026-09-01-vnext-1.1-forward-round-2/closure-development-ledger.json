@@ -9,7 +9,7 @@
   },
   "scope": {
     "first_attempt": "R1",
-    "last_attempt": "Q56",
+    "last_attempt": "R57",
     "formal_qualification_completed": false,
     "note": "这些记录只证明编排器开发过程，不能替代正式 60 项三模型资格结果"
   },
@@ -363,6 +363,16 @@
       "terminal": "FAIL_FAST",
       "observed_failure": "正式资格在 FWD-R2-022/Sol 终审发现首次出现的“残余压力（Residual Pressure）是……”之后仍被确定性检查误判为延后定义，触发 fail-fast；其余已在途项目收尾通过，剩余任务未调度",
       "resulting_change": "永久保留 Q56 私有原始报告和部分运行目录，不物化为正式资格结果；扩展首次术语定义检查以识别“是、指、表示、用于”等自然定义句，并增加回归，使用新资格编号重新开始"
+    },
+    {
+      "attempt_id": "R57",
+      "kind": "diagnostic",
+      "planned": 9,
+      "completed": 9,
+      "passed": 8,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "022 Sol 在三轮最小补丁后仍未在 LOCKOUT 和 RESIDUAL_PRESSURE 的首次语义位置落实注册表要求的 name_origin；其余 8 项闭环通过，唯一宿主 RUN_ERROR 已按规则重试并通过",
+      "resulting_change": "永久保留 R57 私有原始报告、运行目录和公开摘要；在 Skill、编译与复核文档、初稿提示、语义复核提示和补丁提示中明确 required_meanings、name_origin 与 name_rationale 的首次位置要求，并增加提示回归，使用新摘要重新诊断"
     }
   ]
 }
