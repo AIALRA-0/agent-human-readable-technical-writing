@@ -238,6 +238,7 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("join their exact finding IDs with `+`", prompt)
         self.assertIn("put the marker before the title", prompt)
         self.assertIn("one no-op invalidates the whole transaction", prompt)
+        self.assertIn("Copy the 64-character value shown after CURRENT_SHA256 character-for-character", prompt)
         self.assertIn("do not insert a blank line inside one list", prompt)
 
     def test_initial_prompt_front_loads_preservation_and_background_support(self) -> None:

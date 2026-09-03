@@ -581,6 +581,8 @@ Patch only the smallest complete erroneous unit. Allowed repair_scope values are
 When separating different semantic parallel groups, do not insert a blank line inside one list. Close the preceding list with its natural introduction or block boundary, then use exactly one block separator before the next list, and rerun the list validator in the same transaction.
 {rejection}
 
+Copy the 64-character value shown after CURRENT_SHA256 character-for-character into every patch target; do not retype, recompute, or alter even one hexadecimal character.
+
 CURRENT_SHA256:
 {sha256_text(answer)}
 
@@ -998,7 +1000,10 @@ def run_case(
                 raise PatchError("one patch references a finding outside the merged review set")
             patched_answer = apply_closure_transaction(answer, manifest, patch_payload, evidence, combined)
         except PatchError as error:
-            previous_patch_rejection = str(error)
+            previous_patch_rejection = (
+                f"{error}; the exact CURRENT_SHA256 for every patch in the next attempt is {before}. "
+                "Copy that value character-for-character into every target.document_sha256."
+            )
             rounds.append({
                 "round": repair_round, "reread_rules": True,
                 "deterministic_finding_ids": [str(item["finding_id"]) for item in deterministic],

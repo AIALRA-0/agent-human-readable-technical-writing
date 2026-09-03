@@ -9,7 +9,7 @@
   },
   "scope": {
     "first_attempt": "R1",
-    "last_attempt": "R51",
+    "last_attempt": "R52",
     "formal_qualification_completed": false,
     "note": "这些记录只证明编排器开发过程，不能替代正式 60 项三模型资格结果"
   },
@@ -313,6 +313,16 @@
       "terminal": "REVIEW_REQUIRED",
       "observed_failure": "024 Terra 的终审审查 Agent 将已指向技能目录的 AIALRA_EVAL_SKILL_ROOT 再次拼接 human-readable-technical-writing 前缀，技能重读失败并按协议返回 REVIEW_REQUIRED；其余 8 项通过",
       "resulting_change": "永久保留 R51 私有原始报告和公开摘要；强化干净 Agent 的技能根目录路径说明并增加禁止重复前缀的回归，以新摘要重新诊断"
+    },
+    {
+      "attempt_id": "R52",
+      "kind": "diagnostic",
+      "planned": 9,
+      "completed": 9,
+      "passed": 8,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "024 Luna 三轮补丁均因 target.document_sha256 被模型复制错一个十六进制字符而整批拒绝，正文未被修改；其余 8 项通过，R51 的技能路径错误未再出现",
+      "resulting_change": "永久保留 R52 私有原始报告和公开摘要；在补丁提示中要求逐字复制当前摘要，并在提交拒绝后向同会话明确反馈下一轮必须使用的精确摘要，以新摘要重新诊断"
     }
   ]
 }
