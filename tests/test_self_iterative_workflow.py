@@ -313,6 +313,7 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
             str(Path("clean-home") / "skills" / "human-readable-technical-writing"),
         )
         self.assertIn("never type, infer, split, or reconstruct an absolute run-root path", command[-1])
+        self.assertIn("never prepend `human-readable-technical-writing/` again", command[-1])
 
     def test_case_filter_is_exposed_for_isolated_diagnostics(self) -> None:
         source = (ROOT / "scripts" / "run_iterative_forward_matrix.py").read_text(encoding="utf-8")

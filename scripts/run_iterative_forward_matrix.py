@@ -37,7 +37,9 @@ CLEAN_SKILL_PATH_INSTRUCTION = (
     "Read installed Skill files only from the task-specific "
     "`AIALRA_EVAL_SKILL_ROOT` environment variable. In PowerShell, join relative paths "
     "to `$env:AIALRA_EVAL_SKILL_ROOT`; never type, infer, split, or reconstruct an absolute "
-    "run-root path. Do not probe an alternative path if a read fails."
+    "run-root path. This variable already points to the installed `human-readable-technical-writing` "
+    "directory, so use `SKILL.md` or `profiles/users/lucas.yaml` relative to it and never prepend "
+    "`human-readable-technical-writing/` again. Do not probe an alternative path if a read fails."
 )
 WRITE_LOCK = Lock()
 
