@@ -5,12 +5,14 @@ from __future__ import annotations
 import argparse
 import copy
 import hashlib
+import io
 import json
 import os
 import re
 import shutil
 import subprocess
 import sys
+import tokenize
 from collections import deque
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from functools import lru_cache
@@ -230,8 +232,43 @@ def access_violations(events: list[dict[str, Any]], allowed_roots: list[Path]) -
     return sorted(violations)
 
 
+def _normalize_python_code_comments(code: str) -> str:
+    """Ignore generated Python comment text while freezing executable code and layout."""
+
+    lines = code.splitlines(keepends=True)
+    try:
+        tokens = tokenize.generate_tokens(io.StringIO(code).readline)
+        comment_tokens = [token for token in tokens if token.type == tokenize.COMMENT]
+    except (IndentationError, SyntaxError, tokenize.TokenError):
+        return code
+    for token in reversed(comment_tokens):
+        (start_line, start_column), (end_line, end_column) = token.start, token.end
+        if start_line != end_line or not 1 <= start_line <= len(lines):
+            return code
+        line = lines[start_line - 1]
+        left = start_column
+        while left > 0 and line[left - 1] in " \t":
+            left -= 1
+        lines[start_line - 1] = line[:left] + line[end_column:]
+    return "".join(lines)
+
+
+def _normalized_fenced_blocks(text: str) -> list[str]:
+    """Keep fenced components stable while allowing local repair of generated Python comments."""
+
+    blocks = re.findall(r"```[^\n]*\n.*?```", text, flags=re.DOTALL)
+    normalized: list[str] = []
+    for block in blocks:
+        match = re.match(r"(```([^\n]*)\n)(.*)(```)$", block, flags=re.DOTALL)
+        if not match or match.group(2).strip().casefold() not in {"python", "py"}:
+            normalized.append(block)
+            continue
+        normalized.append(match.group(1) + _normalize_python_code_comments(match.group(3)) + match.group(4))
+    return normalized
+
+
 def preservation_snapshot(text: str) -> dict[str, Any]:
-    """Freeze components and distinct numeric facts that a local repair must not disturb."""
+    """Freeze source components and facts while treating generated Python comments as annotations."""
 
     numeric_text = "\n".join(
         re.sub(r"^\s*(?:#{1,6}\s+)?\d+(?:\.\d+)*[.)]?\s+", "", line)
@@ -239,7 +276,7 @@ def preservation_snapshot(text: str) -> dict[str, Any]:
     )
     return {
         "numbers": sorted(set(re.findall(r"(?<![A-Za-z0-9])[-+]?\d+(?:[.:]\d+)*(?:%|°C|\s*(?:V|万|项|分钟|个月))?", numeric_text))),
-        "fenced_blocks": re.findall(r"```[^\n]*\n.*?```", text, flags=re.DOTALL),
+        "fenced_blocks": _normalized_fenced_blocks(text),
         "table_rows": [line for line in text.splitlines() if line.lstrip().startswith("|")],
         "image_links": re.findall(r"!\[[^\]]*\]\([^\n)]+\)", text),
     }
@@ -313,7 +350,7 @@ LEGACY_DRAFT:
 """
     return f"""Use the installed $human-readable-technical-writing Skill for one isolated Chinese writing case.
 
-For every independently presented `indented_list` group, each item must be a separate standard Markdown list item beginning with `- `, `* `, `+ `, or an ordered marker at the required depth; a bare newline or spaces without a marker is invalid.
+For every independently presented `indented_list` group, each item must be a separate standard Markdown list item beginning with `- `, `* `, `+ `, or an ordered marker at the required depth; a bare newline or spaces without a marker is invalid. TABLE headers, rows, cells, and their order are component structure and must not be declared as prose `parallel_groups`; declare only independently authored prose outside the table. For code with configurable or iterable inputs, bind every count, upper bound, and failure boundary to the exact default value or input length; never turn a default bound into an unconditional function behavior.
 
 Before drafting, read each used registry entry's `required_meanings` and satisfy every listed meaning at the earliest semantic occurrence; when `name_origin` is listed, explicitly realize the entry's `name_rationale` meaning rather than giving only a general definition or postponing it to a glossary.
 
@@ -339,7 +376,7 @@ def seed_manifest_prompt(request: dict[str, Any], seed: str, feedback: list[str]
 
     return f"""Use the installed $human-readable-technical-writing Skill to compile the manifest for one immutable legacy draft
 
-For every independently presented `indented_list` group, record the actual list-marker layout and preserve one exact single-line `item_texts` value for each item; a bare newline or spaces without a marker is not an indented list
+For every independently presented `indented_list` group, record the actual list-marker layout and preserve one exact single-line `item_texts` value for each item; a bare newline or spaces without a marker is not an indented list. TABLE headers, rows, cells, and their order are component structure and must not be declared as prose `parallel_groups`; remove any table-row group from the manifest without changing the table. For code with configurable or iterable inputs, bind every count, upper bound, and failure boundary to the exact default value or input length; never leave a default bound as an unconditional statement when custom input can change it.
 
 Read the complete Skill entrypoint and every file it requires for this request. Do not browse or inspect unrelated files
 The host already owns and freezes the answer, so your output schema intentionally has no answer field
@@ -412,6 +449,10 @@ def review_prompt(
 ) -> str:
     return f"""Use the installed $human-readable-technical-writing Skill as an independent semantic verifier.
 
+TABLE headers, rows, cells, and their order are component structure, not prose `parallel_groups`; do not report a table-row layout as a list defect or require converting a table to prose. Inspect TABLE coverage separately.
+
+For code with configurable or iterable inputs, bind every count, upper bound, and failure boundary to the exact default value or input length; never turn a default bound into an unconditional function behavior.
+
 For each registered term, report a missing `name_origin` when `required_meanings` includes it unless the earliest occurrence expresses the corresponding registry `name_rationale` meaning; a generic definition, official English alone, or later glossary entry is insufficient.
 
 Re-read the Skill, active Lucas profile, term registry, structure rules, component rules, and verification rules. Inspect only this request, current answer, manifest, and SOURCE_AND_BACKGROUND_EVIDENCE supplied in this prompt. Do not inspect the case root, parent run root, sibling worker, sibling reviewer, prior attempt directory, or any file outside this reviewer's own task and installed Skill directories; all case evidence needed for review is already embedded below. Do not rewrite the answer. Return only findings required by the output schema.
@@ -451,6 +492,8 @@ def review_completion_prompt(first_findings: list[dict[str, Any]]) -> str:
     """Force one same-session completeness pass before the first repair transaction."""
 
     return f"""The answer and manifest have not changed since your first semantic review
+
+Recheck that TABLE rows remain component structure rather than prose `parallel_groups`, and that code counts and failure boundaries remain bound to default values or input lengths.
 
 Perform one same-session completeness pass before the repair Agent sees any finding
 Return the same review schema and include every still-valid first-pass finding plus every blocker you missed
@@ -594,6 +637,7 @@ When a supplied finding concerns professional first use, consult that term's reg
 
 Patch only the smallest complete erroneous unit. Allowed repair_scope values are token, phrase, and sentence. Do not replace a paragraph, section, adjacent sections, blueprint, or whole answer. A repair for a must-preserve finding must restore the named fact, condition, range, number, mechanism, relationship, or source unit in substance; do not replace it with an associated location, symptom, example, or conclusion. Fix every supplied deterministic answer finding in this transaction; when answer findings and manifest findings coexist, submit the required answer patches and the corrected manifest together rather than returning a manifest-only change. One sentence patch may fix several supplied findings: join their exact finding IDs with `+` in `identity.finding_id`, and never add an unknown ID. When a colon pseudo-heading must become a Markdown heading, replace the complete line and put the marker before the title, for example `## 操作`; never append `##` after the title or replace only the colon. Put a professional term's official English and complete required explanation at that term's earliest semantic occurrence; never rely on a later glossary item to complete first use, and never attach the English to a nearby verb such as `注意`. When deleting one complete list item, bind `old_text` to the whole list line including its marker and terminating newline, then replace that line with an empty string; do not leave an empty list marker or an extra blank line for a later repair round. When converting ordinary prose into a new top-level block list, keep or add the colon on its complete introductory sentence and include exactly one required blank line around that top-level block in the same sentence patch. When adding a nested list inside an existing list item, keep the parent and child list contiguous with no blank line; an indented continuation belonging to that item also stays contiguous. If one sentence explains every child in a nested list, put that common explanation on the parent line before the children; never leave it after the last child at the child's indentation. Do not create a missing-colon, missing-block-separator, list-internal-blank, or ambiguous nested-continuation defect for a later round. When removing a Chinese full stop between adjacent sentences, preserve a valid separator and never concatenate the final word of one sentence with the subject of the next. Never use a Chinese semicolon as the last character of a paragraph or list item. Preserve non-exhaustive scope markers such as 等位置, 等情况, 其他, 不限于, or 不止 when rearranging content unless the finding explicitly authorizes changing that scope. Every `updated_manifest.parallel_groups.item_texts` value must be one exact single-line substring in the patched answer and must never contain a newline. These are sentence-scope patches, not paragraph rewrites. Every answer patch in this transaction must bind the same CURRENT_SHA256 shown below, one supplied line node, exact old text, exact occurrence count, preservation requirements, and validators. Count `expected_occurrences` for the literal `old_text` inside the selected line node, not across the whole answer, and verify that count immediately before submitting. Do not use a hash predicted from an earlier patch in the same batch. Before submitting, remove every patch whose `old_text` and `new_text` are identical; one no-op invalidates the whole transaction. Update the manifest to describe the patched answer without changing unrelated declarations. If every remaining defect is only a stale manifest declaration and the answer is already correct, return an empty `patches` array and change only `updated_manifest`; otherwise return at least one real answer patch.
 When a finding reports `parallel_items` or `parallel_groups`, render every independent item as a separate Markdown list item with `- `, `* `, `+ `, or an ordered marker at the required depth; a bare newline or indentation without a marker is invalid. If the finding identifies a group missing from `CURRENT_MANIFEST.parallel_groups`, add one exact single-line `item_texts` entry for every actual independent item and set `rendered_as_indented_list` to the answer's repaired state in `updated_manifest`. When separating different semantic parallel groups, do not insert a blank line inside one list. Close the preceding list with its natural introduction or block boundary, then use exactly one block separator before the next list, and rerun the list validator in the same transaction.
+TABLE headers, rows, cells, and their order are component structure, not prose `parallel_groups`; if a finding concerns a group made only of table rows, remove that stale group from `updated_manifest` without changing the table. For code with configurable or iterable inputs, bind every count, upper bound, and failure boundary to the exact default value or input length; never leave a default bound as an unconditional statement when custom input can change it.
 If a declared group item is only a phrase or clause embedded inside another list item, remove that stale group or bind the containing independent list item in `updated_manifest`; do not restructure the answer solely to satisfy stale group metadata.
 {rejection}
 

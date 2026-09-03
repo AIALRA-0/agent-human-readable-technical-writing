@@ -42,6 +42,8 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("each effective element's function", prompt)
         self.assertIn("different semantic parallel groups", prompt)
         self.assertIn("embedded inside another list item", prompt)
+        self.assertIn("TABLE headers, rows, cells", prompt)
+        self.assertIn("bind every count", prompt)
 
     def test_semantic_prompt_requires_evidence_before_term_escalation(self) -> None:
         evidence = {"background_claims": [{"claim": "压降机制", "source_reference": "基础电路原理"}]}
@@ -202,6 +204,8 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("last character of a paragraph", prompt)
         self.assertIn("separate Markdown list item", prompt)
         self.assertIn("bare newline", prompt)
+        self.assertIn("TABLE headers, rows, cells", prompt)
+        self.assertIn("bind every count", prompt)
 
     def test_frozen_seed_evidence_preserves_unrejected_content_without_acceptance(self) -> None:
         initial = {
@@ -446,6 +450,19 @@ limit = 3
         self.assertEqual(len(snapshot["table_rows"]), 3)
         self.assertEqual(snapshot["image_links"], ["![状态图](assets/status.svg)"])
         self.assertEqual(len(snapshot["fenced_blocks"]), 1)
+
+    def test_preservation_snapshot_allows_generated_python_comment_repair_only(self) -> None:
+        before = "```python\nvalue = 1  # original explanation\n```"
+        comment_repaired = "```python\nvalue = 1 # corrected explanation\n```"
+        code_changed = "```python\nvalue = 2 # corrected explanation\n```"
+        self.assertEqual(
+            matrix.preservation_snapshot(before),
+            matrix.preservation_snapshot(comment_repaired),
+        )
+        self.assertNotEqual(
+            matrix.preservation_snapshot(before),
+            matrix.preservation_snapshot(code_changed),
+        )
 
     def test_preservation_snapshot_allows_duplicate_explanation_removal(self) -> None:
         concise = matrix.preservation_snapshot("按住 4 秒进入 45 秒窗口")

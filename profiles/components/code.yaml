@@ -2,12 +2,12 @@ profile:
   identity:
     profile_id: code-explanation
     revision: round-6-self-iterative-cross-model
-    description: 代码按照零先验读者处理，并保留原始代码后解释功能、原因、输入、结果和边界
+    description: 代码按照零先验读者处理，并保留原始可执行代码后解释功能、原因、输入、结果和边界；同行注释属于可修复的解释层
   source_order:
     original_code:
       policy: before_or_with_explanation
       severity: PROFILE_REQUIRED
-      description: 原始代码必须出现在候选答案中，解释不得用摘要替代代码证据
+      description: 原始可执行代码必须出现在候选答案中，解释不得用摘要替代代码证据；局部修复可以调整生成的同行注释文本和对齐空格，但不得改变代码语句、字面值、调用关系或控制条件
   inline_format:
     identifiers:
       policy: backticks
@@ -73,3 +73,5 @@ profile:
       description: 说明运行环境、版本或格式边界
     evidence_boundary:
       description: 说明代码结果不能证明什么、缺少什么证据和怎样继续核对
+    variable_scope:
+      description: 可配置或可迭代输入的次数、上限和失败边界必须绑定实际默认值或输入长度；自定义输入可能改变范围时必须明确说明

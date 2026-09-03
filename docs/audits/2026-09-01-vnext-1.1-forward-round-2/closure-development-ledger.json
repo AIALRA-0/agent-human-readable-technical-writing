@@ -403,6 +403,16 @@
       "terminal": "FAIL_FAST",
       "observed_failure": "正式资格在 FWD-R2-028/Terra 和 FWD-R2-029/Sol 终审进入 REVIEW_REQUIRED；已完成项 23 通过、2 失败，fail-fast 后剩余 35 项未调度",
       "resulting_change": "永久保留 Q60 私有报告、运行目录和公开摘要，不物化为正式资格结果；根据两项精确发现增加最小回归和必要规则修复，使用新资格编号重新开始"
+    },
+    {
+      "attempt_id": "R61",
+      "kind": "diagnostic",
+      "planned": 6,
+      "completed": 6,
+      "passed": 2,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "时间表达的冒号误报已消失；028 Terra 仍将表格行登记为散文排比组，029 的 Sol、Terra、Luna 分别暴露可变等待边界、生成注释快照保真和局部代码说明问题，最终 4 项未在三轮内清零",
+      "resulting_change": "永久保留 R61 私有原始报告、运行目录和公开摘要；明确表格结构不进入散文 parallel_groups，允许局部修复生成的同行注释但冻结可执行代码，并把可变输入的次数与失败边界写入 Skill、代码配置、运行文档和闭环提示，使用新摘要重新诊断"
     }
   ]
 }
