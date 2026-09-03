@@ -33,7 +33,10 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertEqual(session, "session-1")
 
     def test_unseeded_initial_prompt_is_nonempty(self) -> None:
-        prompt = matrix.initial_prompt({"case_id": "FWD-R2-021"}, None, [])
+        prompt = matrix.initial_prompt({
+            "case_id": "FWD-R2-021",
+            "references": [{"content": "复核编号 B29，须保留"}],
+        }, None, [])
         self.assertIsInstance(prompt, str)
         self.assertIn("FWD-R2-021", prompt)
         self.assertIn("never invent a measurement", prompt)
@@ -46,6 +49,11 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("bind every count", prompt)
         self.assertIn("every column by name", prompt)
         self.assertIn("audit every Chinese semicolon", prompt)
+        self.assertIn("must appear character-for-character", prompt)
+        self.assertIn("at most n calls", prompt)
+        self.assertIn("at most n-1 retries", prompt)
+        self.assertIn("empty-input zero-call boundary", prompt)
+        self.assertIn("a code language name is not automatically a professional term", prompt)
 
     def test_semantic_prompt_requires_evidence_before_term_escalation(self) -> None:
         evidence = {"background_claims": [{"claim": "压降机制", "source_reference": "基础电路原理"}]}
@@ -75,6 +83,20 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("location-only statement is incomplete", prompt)
         self.assertIn("Require GitHub render evidence only when", prompt)
         self.assertIn("different semantic parallel groups", prompt)
+
+    def test_code_review_prompt_checks_reference_and_iterable_boundaries(self) -> None:
+        prompt = matrix.review_prompt(
+            {"case_id": "FWD-R2-029"},
+            "复核编号 B29",
+            {},
+            [],
+            {"required_reference_tokens": ["B29"]},
+        )
+        self.assertIn("B29", prompt)
+        self.assertIn("at most n calls", prompt)
+        self.assertIn("at most n-1 retries", prompt)
+        self.assertIn("empty-input zero-call boundary", prompt)
+        self.assertIn("not automatically a professional term", prompt)
 
     def test_first_review_completion_prompt_requires_all_dimensions(self) -> None:
         prompt = matrix.review_completion_prompt([{
@@ -210,6 +232,8 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("bind every count", prompt)
         self.assertIn("every column's name", prompt)
         self.assertIn("semicolon scope", prompt)
+        self.assertIn("Do not submit two patches that touch the same line", prompt)
+        self.assertIn("copy that identifier character-for-character", prompt)
 
     def test_frozen_seed_evidence_preserves_unrejected_content_without_acceptance(self) -> None:
         initial = {
