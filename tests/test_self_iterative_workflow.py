@@ -200,6 +200,8 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("inside the selected line node", prompt)
         self.assertIn("never concatenate", prompt)
         self.assertIn("last character of a paragraph", prompt)
+        self.assertIn("separate Markdown list item", prompt)
+        self.assertIn("bare newline", prompt)
 
     def test_frozen_seed_evidence_preserves_unrejected_content_without_acceptance(self) -> None:
         initial = {
@@ -283,6 +285,16 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
             item["rule_id"] for item in matrix.deterministic_findings(explanation, manifest)
         }
         self.assertNotIn("COLON_PSEUDO_HEADING", explanation_rules)
+
+    def test_clock_time_colons_in_prose_are_not_pseudo_headings(self) -> None:
+        manifest = {
+            "term_uses": [], "parallel_groups": [],
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        answer = "在出发时间处于 8:00–9:00 时，东门的拥堵限制会影响路线判断"
+        rules = {item["rule_id"] for item in matrix.deterministic_findings(answer, manifest)}
+        self.assertNotIn("COLON_PSEUDO_HEADING", rules)
 
     def test_natural_copular_quote_introduction_is_not_a_pseudo_heading(self) -> None:
         manifest = {

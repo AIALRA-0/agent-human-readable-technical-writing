@@ -9,7 +9,7 @@
   },
   "scope": {
     "first_attempt": "R1",
-    "last_attempt": "R59",
+    "last_attempt": "Q60",
     "formal_qualification_completed": false,
     "note": "这些记录只证明编排器开发过程，不能替代正式 60 项三模型资格结果"
   },
@@ -393,6 +393,16 @@
       "terminal": "PASS",
       "observed_failure": "无；022、024、025 的 Sol、Terra、Luna 全部完成三轮以内闭环，宿主错误重试规则未改变最终通过结果",
       "resulting_change": "永久保留 R59 私有原始报告、运行目录和公开摘要；确认当前 Skill、运行器与安全 finding 引用规范化在三个模型和三个历史种子案例上均可闭环通过，允许启动全新正式资格编号"
+    },
+    {
+      "attempt_id": "Q60",
+      "kind": "qualification_attempt",
+      "planned": 60,
+      "completed": 25,
+      "passed": 23,
+      "terminal": "FAIL_FAST",
+      "observed_failure": "正式资格在 FWD-R2-028/Terra 和 FWD-R2-029/Sol 终审进入 REVIEW_REQUIRED；已完成项 23 通过、2 失败，fail-fast 后剩余 35 项未调度",
+      "resulting_change": "永久保留 Q60 私有报告、运行目录和公开摘要，不物化为正式资格结果；根据两项精确发现增加最小回归和必要规则修复，使用新资格编号重新开始"
     }
   ]
 }

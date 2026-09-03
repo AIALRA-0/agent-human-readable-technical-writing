@@ -105,7 +105,7 @@ def deterministic_findings(
                 "LUCAS_NO_TRAILING_SEMICOLON", location, line,
                 "段落或列表项末尾保留了中文分号", "token",
             ))
-        colon_match = re.match(r"^(?!https?://|[A-Za-z]:\\|#{1,6}\s|\|)([^：:\n]{1,40})[：:]\s*(?:\S.*)?$", prose)
+        colon_match = re.match(r"^(?!https?://|[A-Za-z]:\\|#{1,6}\s|\|)([^：:\n]{1,40})(?<!\d)[：:](?!\d)\s*(?:\S.*)?$", prose)
         professional_term_definition = bool(
             colon_match and colon_match.group(1).strip() in professional_labels
         )
