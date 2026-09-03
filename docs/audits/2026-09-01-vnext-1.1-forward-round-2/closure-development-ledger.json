@@ -9,7 +9,7 @@
   },
   "scope": {
     "first_attempt": "R1",
-    "last_attempt": "R52",
+    "last_attempt": "R53",
     "formal_qualification_completed": false,
     "note": "这些记录只证明编排器开发过程，不能替代正式 60 项三模型资格结果"
   },
@@ -323,6 +323,16 @@
       "terminal": "REVIEW_REQUIRED",
       "observed_failure": "024 Luna 三轮补丁均因 target.document_sha256 被模型复制错一个十六进制字符而整批拒绝，正文未被修改；其余 8 项通过，R51 的技能路径错误未再出现",
       "resulting_change": "永久保留 R52 私有原始报告和公开摘要；在补丁提示中要求逐字复制当前摘要，并在提交拒绝后向同会话明确反馈下一轮必须使用的精确摘要，以新摘要重新诊断"
+    },
+    {
+      "attempt_id": "R53",
+      "kind": "diagnostic",
+      "planned": 9,
+      "completed": 9,
+      "passed": 8,
+      "terminal": "RUN_ERROR",
+      "observed_failure": "024 Terra 两次 Codex 宿主调用均退出 1，日志含 thread not found 和 PowerShell shell snapshot 警告，未产生可审查答案；其余 8 项闭环通过",
+      "resulting_change": "永久保留 R53 私有原始报告和公开摘要；不修改内容或规则，只对缺失的 024/Terra 诊断项执行一次新的隔离单项运行"
     }
   ]
 }
