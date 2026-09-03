@@ -685,15 +685,87 @@ def referenced_finding_ids(value: str) -> set[str]:
     return {item for item in value.split("+") if item}
 
 
+def normalize_finding_references(
+    payload: dict[str, Any], findings: list[dict[str, Any]],
+) -> tuple[dict[str, Any], list[dict[str, str]]]:
+    """Resolve safe model shorthand to exact findings from the current review set."""
+
+    normalized = copy.deepcopy(payload)
+    by_id = {str(item["finding_id"]): item for item in findings}
+    mappings: list[dict[str, str]] = []
+
+    def resolve(reference: str) -> list[str]:
+        reference = reference.strip()
+        if reference in by_id:
+            return [reference]
+        prefix, separator, suffix = reference.partition(":")
+        if separator:
+            exact_suffix = by_id.get(suffix.strip())
+            if exact_suffix is not None:
+                expected_rule = str(exact_suffix.get("rule_id", "")).casefold()
+                if prefix.casefold() == expected_rule:
+                    return [str(exact_suffix["finding_id"])]
+                raise PatchError(f"finding reference {reference!r} has the wrong rule prefix")
+            same_rule = [
+                str(item["finding_id"])
+                for item in findings
+                if str(item.get("rule_id", "")).casefold() == prefix.casefold()
+            ]
+            exact_location = [
+                finding_id for finding_id in same_rule
+                if str(by_id[finding_id].get("location", "")).casefold() == suffix.strip().casefold()
+            ]
+            if len(exact_location) == 1:
+                return exact_location
+            if not exact_location and re.fullmatch(r"LINE-\d{4}", suffix.strip(), re.IGNORECASE):
+                if len(same_rule) == 1:
+                    return same_rule
+            raise PatchError(f"finding reference {reference!r} is unknown or ambiguous")
+        same_rule = [
+            str(item["finding_id"])
+            for item in findings
+            if str(item.get("rule_id", "")).casefold() == reference.casefold()
+        ]
+        if same_rule:
+            return same_rule
+        raise PatchError(f"finding reference {reference!r} is outside the merged review set")
+
+    for patch in normalized["patches"]:
+        submitted = str(patch["identity"]["finding_id"])
+        canonical: list[str] = []
+        for reference in submitted.split("+"):
+            if not reference.strip():
+                continue
+            for finding_id in resolve(reference):
+                if finding_id not in canonical:
+                    canonical.append(finding_id)
+        if not canonical:
+            raise PatchError("patch finding reference is empty")
+        canonical_value = "+".join(canonical)
+        if canonical_value != submitted:
+            mappings.append({"submitted": submitted, "canonical": canonical_value})
+        patch["identity"]["finding_id"] = canonical_value
+    return normalized, mappings
+
+
 def validate_heading_patch_direction(
     answer: str, patches: list[dict[str, Any]], nodes: dict[str, tuple[int, int]],
+    findings: list[dict[str, Any]] | None = None,
 ) -> None:
     """Reject Markdown markers appended after a label instead of placed before it."""
 
+    finding_rules = {
+        str(item.get("finding_id", "")): str(item.get("rule_id", ""))
+        for item in (findings or [])
+    }
     for patch in patches:
         finding_ids = referenced_finding_ids(str(patch["identity"]["finding_id"]))
         new_text = str(patch["replacement"]["new_text"])
-        if not any(value.startswith("COLON_PSEUDO_HEADING:") for value in finding_ids):
+        if not any(
+            value.startswith("COLON_PSEUDO_HEADING:")
+            or finding_rules.get(value, "").casefold() == "colon_pseudo_heading"
+            for value in finding_ids
+        ):
             continue
         if "#" not in new_text:
             continue
@@ -716,7 +788,7 @@ def apply_closure_transaction(
     patches = patch_payload["patches"]
     if patches:
         nodes = line_nodes(answer)
-        validate_heading_patch_direction(answer, patches, nodes)
+        validate_heading_patch_direction(answer, patches, nodes, findings)
         return apply_minimal_transaction(answer, patches, nodes)
     updated_manifest = patch_payload["updated_manifest"]
     if updated_manifest == manifest:
@@ -998,16 +1070,20 @@ def run_case(
             patch_prompt(answer, manifest, combined, previous_patch_rejection), "closure-patch-output.schema.json",
         )
         submitted_patch_payload = parse_json_body(patch_result, "closure-patch-output.schema.json")
-        allowed_finding_ids = {str(item["finding_id"]) for item in combined}
-        submitted_finding_ids = {
-            finding_id
-            for item in submitted_patch_payload["patches"]
-            for finding_id in referenced_finding_ids(str(item["identity"]["finding_id"]))
-        }
-        patch_payload, patch_id_mapping = normalize_patch_ids(submitted_patch_payload, next_patch_number)
-        next_patch_number += len(patch_payload["patches"])
+        patch_payload = submitted_patch_payload
+        patch_id_mapping: list[dict[str, str]] = []
+        finding_id_mapping: list[dict[str, str]] = []
         violations.extend(access_violations(patch_result["events"], [worker_home.parent]))
         try:
+            patch_payload, finding_id_mapping = normalize_finding_references(submitted_patch_payload, combined)
+            patch_payload, patch_id_mapping = normalize_patch_ids(patch_payload, next_patch_number)
+            next_patch_number += len(patch_payload["patches"])
+            allowed_finding_ids = {str(item["finding_id"]) for item in combined}
+            submitted_finding_ids = {
+                finding_id
+                for item in patch_payload["patches"]
+                for finding_id in referenced_finding_ids(str(item["identity"]["finding_id"]))
+            }
             if not submitted_finding_ids <= allowed_finding_ids:
                 raise PatchError("one patch references a finding outside the merged review set")
             patched_answer = apply_closure_transaction(answer, manifest, patch_payload, evidence, combined)
@@ -1041,6 +1117,7 @@ def run_case(
                 "patches": patch_payload["patches"],
                 "submitted_patches": submitted_patch_payload["patches"],
                 "patch_id_mapping": patch_id_mapping,
+                "finding_id_mapping": finding_id_mapping,
                 "patch_rejection": previous_patch_rejection,
                 "review_events": review_result["events"], "patch_events": patch_result["events"],
                 "review_host_filters": review_result.get("host_filtered_findings", []),
@@ -1075,6 +1152,7 @@ def run_case(
             "after_answer": answer, "deterministic": deterministic, "semantic": semantic,
             "patches": patch_payload["patches"], "submitted_patches": submitted_patch_payload["patches"],
             "patch_id_mapping": patch_id_mapping,
+            "finding_id_mapping": finding_id_mapping,
             "review_events": review_result["events"], "patch_events": patch_result["events"],
             "review_host_filters": review_result.get("host_filtered_findings", []),
         })

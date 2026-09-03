@@ -733,6 +733,42 @@ limit = 3
             {"LUCAS_NO_CHINESE_FULL_STOP:LINE-0001", "SEM-01-001"},
         )
 
+    def test_finding_reference_shorthand_requires_current_unambiguous_evidence(self) -> None:
+        findings = [
+            {
+                "finding_id": "SEM-01-001", "rule_id": "PARENTHETICAL_ENGLISH_CASE",
+                "location": "CURRENT_ANSWER line 2",
+            },
+            {
+                "finding_id": "SECTION_PLAN_MISSING:DOCUMENT", "rule_id": "SECTION_PLAN_MISSING",
+                "location": "DOCUMENT",
+            },
+            {
+                "finding_id": "SEM-01-002", "rule_id": "SECTION_PLAN_MISSING",
+                "location": "CURRENT_ANSWER line 1",
+            },
+            {
+                "finding_id": "SEM-01-003", "rule_id": "COMMA_SEMICOLON_CHOICE",
+                "location": "第6行",
+            },
+        ]
+        payload = {"patches": [{
+            "identity": {
+                "patch_id": "PATCH-001",
+                "finding_id": "PARENTHETICAL_ENGLISH_CASE:SEM-01-001+SECTION_PLAN_MISSING",
+            },
+        }], "updated_manifest": {}}
+        normalized, mappings = matrix.normalize_finding_references(payload, findings)
+        self.assertEqual(
+            normalized["patches"][0]["identity"]["finding_id"],
+            "SEM-01-001+SECTION_PLAN_MISSING:DOCUMENT+SEM-01-002",
+        )
+        self.assertEqual(len(mappings), 1)
+        with self.assertRaisesRegex(matrix.PatchError, "wrong rule prefix|unknown or ambiguous"):
+            matrix.normalize_finding_references(
+                {"patches": [{"identity": {"finding_id": "UNKNOWN:SEM-01-001"}}]}, findings,
+            )
+
     def test_markdown_heading_repair_rejects_marker_after_title(self) -> None:
         answer = "操作：\n"
         manifest = {

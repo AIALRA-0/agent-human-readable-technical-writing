@@ -9,7 +9,7 @@
   },
   "scope": {
     "first_attempt": "R1",
-    "last_attempt": "R57",
+    "last_attempt": "R58",
     "formal_qualification_completed": false,
     "note": "这些记录只证明编排器开发过程，不能替代正式 60 项三模型资格结果"
   },
@@ -373,6 +373,16 @@
       "terminal": "REVIEW_REQUIRED",
       "observed_failure": "022 Sol 在三轮最小补丁后仍未在 LOCKOUT 和 RESIDUAL_PRESSURE 的首次语义位置落实注册表要求的 name_origin；其余 8 项闭环通过，唯一宿主 RUN_ERROR 已按规则重试并通过",
       "resulting_change": "永久保留 R57 私有原始报告、运行目录和公开摘要；在 Skill、编译与复核文档、初稿提示、语义复核提示和补丁提示中明确 required_meanings、name_origin 与 name_rationale 的首次位置要求，并增加提示回归，使用新摘要重新诊断"
+    },
+    {
+      "attempt_id": "R58",
+      "kind": "diagnostic",
+      "planned": 9,
+      "completed": 9,
+      "passed": 6,
+      "terminal": "REVIEW_REQUIRED",
+      "observed_failure": "022、024、025 的 Sol 在三轮闭环中多次把当前发现的真实 finding_id 写成规则名加真实 ID、规则名加位置或规则名本身，提交器按严格合同拒绝整批补丁，最终 3 项进入 REVIEW_REQUIRED；Terra 与 Luna 的 6 项通过",
+      "resulting_change": "永久保留 R58 私有原始报告、运行目录和公开摘要；增加只对当前合并发现集合进行精确或唯一反解的 finding 引用规范化，保留错误前缀、未知引用和歧义引用拒绝，并登记原始到规范化映射，使用新摘要重新诊断"
     }
   ]
 }
