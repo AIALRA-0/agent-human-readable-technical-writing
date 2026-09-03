@@ -12,7 +12,7 @@ profile:
     identifiers:
       policy: backticks
       severity: MACHINE_FINAL
-      description: 正文中的命令、字段、参数、路径、代码类型和标识符使用反引号
+      description: 正文中的命令、字段、参数、路径、代码类型、标识符和被复述的源代码字面量使用反引号；例如代码边界中的 1、2、3、0、n、n-1 应分别标记
   comment_granularity:
     single_command:
       description: 独立生效的单行命令使用同行注释
@@ -74,4 +74,4 @@ profile:
     evidence_boundary:
       description: 说明代码结果不能证明什么、缺少什么证据和怎样继续核对
     variable_scope:
-      description: 可配置或可迭代输入的次数、上限和失败边界必须绑定实际默认值或输入长度；有 n 个输入值时区分最多调用 n 次与最多重试 n-1 次，并单独说明空输入的零调用边界；自定义输入可能改变范围时必须明确说明
+      description: 可配置或可迭代输入的次数、上限和失败边界必须绑定实际默认值或输入长度；有 n 个输入值时区分最多调用 n 次与最多重试 n-1 次，并单独说明空输入的零调用边界；调用次数、重试次数和空输入边界不得用中文分号压在同一列表项中；自定义输入可能改变范围时必须明确说明

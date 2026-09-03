@@ -54,6 +54,8 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("at most n-1 retries", prompt)
         self.assertIn("empty-input zero-call boundary", prompt)
         self.assertIn("a code language name is not automatically a professional term", prompt)
+        self.assertIn("numeric literals such as `1`, `2`, `3`, `0`", prompt)
+        self.assertIn("never one Chinese-semicolon list item", prompt)
 
     def test_semantic_prompt_requires_evidence_before_term_escalation(self) -> None:
         evidence = {"background_claims": [{"claim": "压降机制", "source_reference": "基础电路原理"}]}
@@ -97,6 +99,8 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("at most n-1 retries", prompt)
         self.assertIn("empty-input zero-call boundary", prompt)
         self.assertIn("not automatically a professional term", prompt)
+        self.assertIn("missing inline-code markers on source-code literals", prompt)
+        self.assertIn("Verify protected reference identifiers character-for-character", prompt)
 
     def test_first_review_completion_prompt_requires_all_dimensions(self) -> None:
         prompt = matrix.review_completion_prompt([{
@@ -234,6 +238,7 @@ class IterativeForwardWorkflowTests(unittest.TestCase):
         self.assertIn("semicolon scope", prompt)
         self.assertIn("Do not submit two patches that touch the same line", prompt)
         self.assertIn("copy that identifier character-for-character", prompt)
+        self.assertIn("separate list items or sentences for calls, retries, and empty input", prompt)
 
     def test_frozen_seed_evidence_preserves_unrejected_content_without_acceptance(self) -> None:
         initial = {
