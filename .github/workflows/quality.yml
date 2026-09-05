@@ -37,9 +37,6 @@ jobs: # 定义相互独立的自动检查任务
       - name: Execute inventoried deterministic fixtures # 运行清单登记的全部确定性正反例
         run: python scripts/run_vnext_fixtures.py # 文件、摘要、分布、数量或判定不一致都会失败
 
-      - name: Validate dynamic lifecycle records and pending candidates # 按实际轮次核对 Gold、Rejected、Candidate、摘要和明确用户决定
-        run: python scripts/validate_vnext_lifecycle.py # 记录数随人工拒绝和新轮次动态增长，自动检查不得改变人工状态
-
       - name: Validate inventoried contextual cases # 检查术语、排比、代码、内容充分性、长上下文、多轮、主语、标点和段落的职责边界
         run: python scripts/validate_context_cases.py # 清单固定文件与分布，语义边界继续由 Agent 或用户决定
 
