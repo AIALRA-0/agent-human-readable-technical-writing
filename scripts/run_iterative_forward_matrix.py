@@ -209,8 +209,17 @@ def normalize_windows_path(value: str) -> str:
     return normalized.lower()
 
 
+def normalize_allowed_root(path: Path) -> str:
+    """Normalize Windows roots without resolving them through a POSIX runner."""
+
+    raw = str(path)
+    if re.match(r"^[A-Za-z]:[\\/]", raw):
+        return normalize_windows_path(raw)
+    return normalize_windows_path(str(path.resolve()))
+
+
 def access_violations(events: list[dict[str, Any]], allowed_roots: list[Path]) -> list[str]:
-    allowed = [normalize_windows_path(str(path.resolve())) for path in allowed_roots]
+    allowed = [normalize_allowed_root(path) for path in allowed_roots]
     violations: set[str] = set()
     for event in events:
         item = event.get("item") if isinstance(event, dict) else None
