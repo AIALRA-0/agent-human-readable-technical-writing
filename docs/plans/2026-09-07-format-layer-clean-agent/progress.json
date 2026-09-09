@@ -1,0 +1,35 @@
+{
+  "phase": "format_layer_qualification",
+  "status": "formal_qualification_failed_first_batch",
+  "scope": "format_only",
+  "publication_authorized": false,
+  "installation_authorized": false,
+  "branch_cleanup_authorized": false,
+  "rule_file": "references/format-rules.md",
+  "rule_count": 110,
+  "static_case_result": "20/20",
+  "unit_test_result": "33/33",
+  "latest_diagnostic": {
+    "id": "FWD-R8-008-TRI-d6",
+    "status": "PASS",
+    "completed": 3,
+    "passed": 3,
+    "failed": 0,
+    "access_violation_count": 0
+  },
+  "latest_formal_qualification": {
+    "qualification_id": "FORMAT-R8-Q6",
+    "status": "FAIL",
+    "completed": 3,
+    "planned": 60,
+    "passed": 1,
+    "failed": 2,
+    "remaining_not_scheduled": 57,
+    "blocking_rules": ["FMT-036", "FMT-043"]
+  },
+  "skill_tree_sha256": "09e1666e8b84367d2e14a21309cbe93628408082a1d641513a1fb074acc78776",
+  "runner_sha256": "a6eb81181717f5b3030d1b7135fcf6d641d7648363715a15648ced797fa2c161",
+  "request_set_sha256": "2d9af38474752cc6fea1e8d95193303b3941aa10b9e6630c168365667cadbd10",
+  "automated_result_is_user_acceptance": false,
+  "next_step": "repair FMT-036 parallel-item planning and FMT-043 source-group binding, add regressions, then start a new qualification id"
+}

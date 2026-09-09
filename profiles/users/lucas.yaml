@@ -1,7 +1,7 @@
 profile:
   identity:
     profile_id: lucas
-    revision: round-6-self-iterative-cross-model
+    revision: two-layer-format-novice-2026-09-08
     description: Lucas 已明确确认的个人写作要求
   punctuation:
     chinese_full_stop:
@@ -44,7 +44,7 @@ profile:
     parallel_items:
       policy: indented_list
       severity: PROFILE_REQUIRED
-      description: 两个以上独立的定义、步骤、比较对象、事实、原因或动作换行并缩进，不以是否出现冒号作为判断条件，项目内部还有并列内容时继续缩进一级；篇幅极短且紧密关联的审计事实可以按紧凑并列合同留在同一行并使用分号
+      description: 两个以上独立的定义、步骤、比较对象、事实、原因或动作换行并缩进，不以是否出现冒号作为判断条件；单个术语的五段解释属于同一连续定义块，不拆子列表
     topic_boundary:
       policy: separate_paragraph
       severity: PROFILE_REQUIRED
@@ -71,9 +71,9 @@ profile:
       severity: PROFILE_REQUIRED
       description: 括号只放正式英文全称、通用英文类别或缩写；普通英文名称和类别使用标题式大小写，官方品牌和正式名称保持官方大小写；定义、用途、表现和影响写在括号外的自然正文中
     professional_first_use:
-      policy: complete_first_use_contract
+      policy: five_part_first_use_definition
       severity: PROFILE_REQUIRED
-      description: 独立阅读单元中确属专业名词的内容首次出现时登记正式中文、官方英文、正式缩写、中文定义、名称含义、当前作用和实际影响；主题关键词和普通操作短语不自动成为专业名词，没有来源支持的普通任务标签只用自然中文解释且不创造英文；确属专业名词但无法核对官方写法时停止并要求复核
+      description: 专业术语首次使用带列表标记的中文全称（English Full Name）：定义，有缩写时置于中文全称之前；定义保持一个连续块，以三至五句覆盖是什么、干什么、怎么干、何时干、如何区分；词源和历史不再普遍必填，普通词不造英文，未知官方形式不编造也不卡住整篇交付
     translation_english_name:
       policy: retain_official_english
       severity: PROFILE_REQUIRED
@@ -84,14 +84,18 @@ profile:
       severity: PROFILE_REQUIRED
       description: 追加要求替换旧要求后，最终答案只保留当前有效内容；只有用户要求历史、审计、证据核对或撤销说明时才保留旧要求
   explanation:
+    reader_baseline:
+      policy: novice_with_no_domain_background
+      severity: PROFILE_REQUIRED
+      description: 默认读者第一次接触当前技术与知识，每个实际用到的对象和结论补齐必要前提、机制、具体示范和判断条件，按 references/explanation-framework.md 执行
     actor_clarity:
       policy: explicit_on_start_change_or_ambiguity
       severity: MACHINE_CANDIDATE
       description: 独立动作、主体切换和可能产生歧义的位置明确主体，同一明确主体的连续内容允许自然省略
     default_order:
-      policy: event_reason_result_supplement
+      policy: goal_prerequisite_mechanism_example_boundary
       severity: PROFILE_REQUIRED
-      description: 相邻句子共同说明事件、原因、结果和必要补充，不机械重复字段
+      description: 从用户目标出发，按理解依赖补齐前提，说明机制、实例、可观察结果与适用边界；不强制每篇出现同一套章节标题
     boundary:
       policy: evidence_gap_importance_next_check
       severity: PROFILE_REQUIRED
@@ -120,24 +124,24 @@ profile:
     alignment_preflight:
       policy: deterministic_helper_required
       severity: MACHINE_FINAL
-      description: 两个以上可注释语句使用 runtime/align_inline_comments.py 对齐并以 --check 复验；检查未返回 PASS 时不得输出
+      description: 两个以上可注释语句使用 runtime/align_inline_comments.py 对齐并复验，最多两轮局部修复；普通交付保留仍未修好的文本，测试如实记录问题
     non_commentable_fallback:
       policy: line_by_line_explanation
       severity: PROFILE_REQUIRED
       description: JSON 等不能合法添加注释的格式保留原文并逐行解释，同行对齐不适用
   delivery:
     self_iteration:
-      policy: reread_check_patch_up_to_three
+      policy: reread_check_patch_up_to_two
       severity: PROFILE_REQUIRED
-      description: 初稿不得直接交付，生成后重新读取适用规则，合并脚本和语义复核发现，只修改最小完整错误单元并最多复验三轮
+      description: 生成后重新读取格式规则和解释框架，由当前助手复核，最多两轮中间件局部修复；外部助手只用于开发测试
     repair_scope:
       policy: smallest_complete_unit
       severity: MACHINE_FINAL
-      description: 能用字符、词组或单句补丁修复时禁止重写整段、整节或全文，无法安全局部修复时返回 REVIEW_REQUIRED
+      description: 能用字符、词组、单句或列表项补丁修复时不得重写无关段落或全文，无法安全提交时保持原稿，普通交付不因格式残留中断
     user_visible_artifact:
-      policy: closed_result_only
+      policy: final_text_with_nonblocking_format_review
       severity: PROFILE_REQUIRED
-      description: 普通用户只看到阻断问题清零后的最终答案，内部初稿和自动修复轮次不冒充人工修订或用户接受
+      description: 普通用户看到复核后的最终正文，未解决问题仅在影响理解或操作时自然说明；初稿、检查与补丁保留为测试证据，不能冒充用户接受
   source_presentation:
     short_verbatim_text:
       policy: blockquote

@@ -1,0 +1,818 @@
+{
+  "suite": "two-layer",
+  "status": "candidate",
+  "case_count": 20,
+  "provenance": "New synthetic, realistic materials; no external publications or model answers used.",
+  "visibility": {
+    "writer_input": "requests.jsonl only",
+    "evaluator_only": [
+      "coverage.json",
+      "scripts/build_two_layer_cases.py",
+      "tests/test_two_layer_cases.py"
+    ],
+    "delivery": "Provide only request, source.content and references content; keep routing labels and review notes out of the writing prompt."
+  },
+  "review_objective": {
+    "format_layer": "遵守当前有效格式要求，含纯格式不触发边界",
+    "explanation_layer": "完全零基础读者能理解任务目的、必要前提、对象与作用、因果、操作时机和区分依据，并用具体示范判断可观察的成功或失败；不要求统一句式或百科堆积",
+    "framework": "references/explanation-framework.md",
+    "framework_ids": [
+      "EXPL-001",
+      "EXPL-002",
+      "EXPL-003",
+      "EXPL-004",
+      "EXPL-005",
+      "EXPL-006",
+      "EXPL-007",
+      "EXPL-008",
+      "EXPL-009",
+      "EXPL-010",
+      "EXPL-011",
+      "EXPL-012",
+      "EXPL-013",
+      "EXPL-014"
+    ],
+    "mapping_status": "Per-case hidden review targets mapped to the completed framework; no model or visual validation claimed.",
+    "mapping_scope": "Focused case-specific mappings, not an exhaustive waiver of unmapped rules; pure-format controls do not activate the explanation layer."
+  },
+  "length_measurement": "len(request) + len(source text or json.dumps(content, ensure_ascii=False, sort_keys=True)) + sum(len(reference.content)); Python Unicode characters",
+  "length_distribution": {
+    "extended": 2,
+    "very_short": 3,
+    "long": 2,
+    "medium": 9,
+    "short": 4
+  },
+  "length_requirements": {
+    "balanced_five_bins_required": false,
+    "note": "本轮记录真实长度分布，不沿用旧计划五档各四项的配额；多章节长文章按原始素材字符数单独记录，不与 schema 的 length_class 标签混用",
+    "multi_section_articles": [
+      {
+        "case_id": "FWD-R20-001",
+        "source_char_count": 1833
+      },
+      {
+        "case_id": "FWD-R20-002",
+        "source_char_count": 1894
+      }
+    ]
+  },
+  "trigger_distribution": {
+    "explicit": 13,
+    "implicit": 4,
+    "non_triggering_control": 3
+  },
+  "cases": [
+    {
+      "case_id": "FWD-R20-001",
+      "topic": "口述史录音数字归档",
+      "features": [
+        "multi_section_article",
+        "long_source",
+        "prerequisite_chain",
+        "unknown_cause"
+      ],
+      "source_char_count": 1833,
+      "fact_checkpoints": [
+        "十二次访谈中两次未获对外收听授权，内部整理可继续",
+        "时间标记允许前后两秒偏差",
+        "摘要、复听、播放检查、授权是四项不同状态",
+        "背景声影响听辨不证明录音机故障",
+        "恢复演练只验证一个访谈"
+      ],
+      "prerequisite_checkpoints": [
+        "原始音频与收听副本各自用途",
+        "文件格式、编号、摘要与授权的区别",
+        "转写时间位置为何依赖未经剪辑的音频",
+        "独立保存与恢复演练的关系"
+      ],
+      "retelling_questions": [
+        "收到一项访谈后，各项证据分别支持哪一步交付？"
+      ],
+      "transfer_questions": [
+        "副本能播放但交接摘要不同，能否发给研究者？依据是什么？",
+        "两份文件放在同一块盘，能否满足两处保存？"
+      ],
+      "explanation_mapping": {
+        "EXPL-001": "围绕当前请求解决读者的问题：把这份交接材料改写成给第一次参加档案工作的志愿者看的完整入门文章，保留各章节的信息，让他能接手一段录音并判断是否做对。",
+        "EXPL-002": "按完全零基础处理，不凭读者身份或操作记录跳过必要解释；核对本案 prerequisite_checkpoints",
+        "EXPL-003": "先补本案必要前提：原始音频与收听副本各自用途；文件格式、编号、摘要与授权的区别；转写时间位置为何依赖未经剪辑的音频；独立保存与恢复演练的关系",
+        "EXPL-004": "解释原始音频、收听副本、摘要的用途、使用时机和区别",
+        "EXPL-005": "说明剪辑怎样破坏时间对应，背景噪声不能证明录音机故障",
+        "EXPL-006": "用 OH-042 贯穿接收、核对、制作、交付和恢复演练",
+        "EXPL-007": "就近说明未授权访谈、摘要不符和听辨待核分别阻挡什么",
+        "EXPL-008": "交代各盘和目录的用途、操作输入、正常结果与失败核查",
+        "EXPL-009": "区分四项登记状态及每项状态允许的交付动作",
+        "EXPL-010": "说明 03:20、前后两秒、十二次中的两次各自归属",
+        "EXPL-012": "完整覆盖五章并保留授权、摘要与时间位置的跨章依赖",
+        "EXPL-013": "区分抽查、单项演练与全量验证，不补恢复时限",
+        "EXPL-014": "用本案 retelling_questions 和 transfer_questions 定位正文中支持理解与迁移的内容；不以模型自评代替证据"
+      },
+      "explanation_mapping_status": "review_targets_not_verified_results"
+    },
+    {
+      "case_id": "FWD-R20-002",
+      "topic": "旧衣修补合作社工单流转",
+      "features": [
+        "multi_section_article",
+        "long_source",
+        "exceptions",
+        "unknown_cause"
+      ],
+      "source_char_count": 1894,
+      "fact_checkpoints": [
+        "仅三类服务，缺失面料的破洞不等于开缝",
+        "报价单价为每颗三元、每处八元、每件二十元",
+        "试点五张工单分为二、一、一、一",
+        "通知发送、回复、付款、取件状态独立",
+        "没有统一返修天数或迟延原因"
+      ],
+      "prerequisite_checkpoints": [
+        "工单与服务项目的计数差异",
+        "评估、报价、同意如何依次约束开工",
+        "待材料与排队的区别",
+        "可观察记录如何支持状态判断"
+      ],
+      "retelling_questions": [
+        "一件衣物从送达到取件需要哪些确认，谁完成这些确认？"
+      ],
+      "transfer_questions": [
+        "四颗纽扣加一处开缝该如何计价？",
+        "通知发出但居民未回复，应如何区分联络状态？"
+      ],
+      "explanation_mapping": {
+        "EXPL-001": "围绕当前请求解决读者的问题：请把这份试营业手册整理成新接待员能独立使用的中文长文。读者从未接触修补业务，既要明白流程，也要知道遇到例外时如何判断；各章事实都要保留。",
+        "EXPL-002": "按完全零基础处理，不凭读者身份或操作记录跳过必要解释；核对本案 prerequisite_checkpoints",
+        "EXPL-003": "先补本案必要前提：工单与服务项目的计数差异；评估、报价、同意如何依次约束开工；待材料与排队的区别；可观察记录如何支持状态判断",
+        "EXPL-004": "说明工单、评估和报价如何使用，区分开缝与破洞",
+        "EXPL-005": "解释居民同意、材料齐备、制作和复核的前后约束；迟延原因未知",
+        "EXPL-006": "沿一件外套的四颗纽扣和一处开缝演示计价与工单流转",
+        "EXPL-007": "解释不承接项目、待量取、追加费用和无加急的实际影响",
+        "EXPL-008": "交代接待、量取、排队、复核、取件及查无凭条时的动作",
+        "EXPL-009": "说明师傅、接待员和居民各自确认什么，以记录判断状态",
+        "EXPL-010": "区分颗、处、件的单价与工时，并保持五张工单的状态总数",
+        "EXPL-012": "完整覆盖六章，包括交班、未领衣物和返修未约定事项",
+        "EXPL-013": "未记录的迟延原因和返修期限不能补造",
+        "EXPL-014": "用本案 retelling_questions 和 transfer_questions 定位正文中支持理解与迁移的内容；不以模型自评代替证据"
+      },
+      "explanation_mapping_status": "review_targets_not_verified_results"
+    },
+    {
+      "case_id": "FWD-R20-003",
+      "topic": "电子书阅读进度同步",
+      "features": [
+        "short_answer",
+        "implicit"
+      ],
+      "source_char_count": 47,
+      "fact_checkpoints": [
+        "分页随字号变化，同步保存正文位置"
+      ],
+      "prerequisite_checkpoints": [
+        "正文位置与屏幕页码并非同一对象"
+      ],
+      "retelling_questions": [
+        "为什么页码不同仍可能同步成功？"
+      ],
+      "transfer_questions": [
+        "把字号调大后怎样判断是否还在同一段？"
+      ],
+      "explanation_mapping": {
+        "EXPL-001": "围绕当前请求解决读者的问题：给我妈回一句她看得懂的话：为什么换设备后页码不同？",
+        "EXPL-002": "按完全零基础处理，不凭读者身份或操作记录跳过必要解释；核对本案 prerequisite_checkpoints",
+        "EXPL-003": "先补本案必要前提：正文位置与屏幕页码并非同一对象",
+        "EXPL-005": "连接字号改变、重新分页、页码变化与同步正文位置的因果关系",
+        "EXPL-006": "用同一段正文在不同字号设备上的情境示范，保持短回答规模",
+        "EXPL-007": "区分页码不同与正文位置不同，不把前者直接判断为同步失败",
+        "EXPL-014": "用本案 retelling_questions 和 transfer_questions 定位正文中支持理解与迁移的内容；不以模型自评代替证据"
+      },
+      "explanation_mapping_status": "review_targets_not_verified_results"
+    },
+    {
+      "case_id": "FWD-R20-004",
+      "topic": "包裹代收点扫码状态",
+      "features": [
+        "implicit",
+        "status_distinction"
+      ],
+      "source_char_count": 59,
+      "fact_checkpoints": [
+        "本票只有预报，无入库记录"
+      ],
+      "prerequisite_checkpoints": [
+        "数字通知、实物接收、上架是不同步骤"
+      ],
+      "retelling_questions": [
+        "已预报能证明什么？"
+      ],
+      "transfer_questions": [
+        "如果变为已入库却未分配货架，能否直接按可领取处理？"
+      ],
+      "explanation_mapping": {
+        "EXPL-001": "围绕当前请求解决读者的问题：这张小票写的是到了还是没到？",
+        "EXPL-002": "按完全零基础处理，不凭读者身份或操作记录跳过必要解释；核对本案 prerequisite_checkpoints",
+        "EXPL-003": "先补本案必要前提：数字通知、实物接收、上架是不同步骤",
+        "EXPL-004": "解释已预报、已入库和可领取的业务含义与判别依据，不强造英文",
+        "EXPL-005": "连接编号通知、实物扫码、分配货架位与各阶段状态",
+        "EXPL-007": "缺入库记录限制本票可支持的结论，不能据预报断言实物已到或未到",
+        "EXPL-009": "以本票的实际记录判断当前状态对领取安排的影响",
+        "EXPL-013": "明确缺的是实物扫码证据，不臆测包裹位置",
+        "EXPL-014": "用本案 retelling_questions 和 transfer_questions 定位正文中支持理解与迁移的内容；不以模型自评代替证据"
+      },
+      "explanation_mapping_status": "review_targets_not_verified_results"
+    },
+    {
+      "case_id": "FWD-R20-005",
+      "topic": "捐赠收据接口重试",
+      "features": [
+        "explanatory_translation",
+        "causal_chain",
+        "exceptions"
+      ],
+      "source_char_count": 537,
+      "fact_checkpoints": [
+        "超时不决定是否创建成功",
+        "相同键和数据在二十四小时窗口返回已存结果",
+        "同键不同数据拒绝",
+        "过期先查登记簿，仅收据创建适用，未指定重试节奏"
+      ],
+      "prerequisite_checkpoints": [
+        "请求、服务端保存和客户端收到回复的时间关系",
+        "同一业务与同一数据如何识别"
+      ],
+      "retelling_questions": [
+        "为什么超时后不能直接换键再创建？"
+      ],
+      "transfer_questions": [
+        "相同键却改了金额会怎样？窗口过期后第一步做什么？"
+      ],
+      "explanation_mapping": {
+        "EXPL-001": "围绕当前请求解决读者的问题：把英文说明完整翻译成我这个第一次接触接口的人能看懂的中文，原文的例外也要讲清楚。",
+        "EXPL-002": "按完全零基础处理，不凭读者身份或操作记录跳过必要解释；核对本案 prerequisite_checkpoints",
+        "EXPL-003": "先补本案必要前提：请求、服务端保存和客户端收到回复的时间关系；同一业务与同一数据如何识别",
+        "EXPL-004": "解释 client、server、payload、timeout 和 idempotency key 的作用及区别",
+        "EXPL-005": "说明服务端保存与客户端收到回复不同步，为何超时不决定创建结果",
+        "EXPL-006": "用同一笔捐赠演示保存、超时、同键同数据重试的完整过程",
+        "EXPL-007": "说明同键改数据、保留窗口过期和收款不适用的例外",
+        "EXPL-008": "说明何时复用键、何时先查登记簿，不补界面和重试节奏",
+        "EXPL-010": "保留二十四小时窗口的单位、起作用范围与过期影响",
+        "EXPL-013": "区分英文原文、用户提供的术语补充及帮助理解的示范",
+        "EXPL-014": "用本案 retelling_questions 和 transfer_questions 定位正文中支持理解与迁移的内容；不以模型自评代替证据"
+      },
+      "explanation_mapping_status": "review_targets_not_verified_results"
+    },
+    {
+      "case_id": "FWD-R20-006",
+      "topic": "剧场实时字幕试点",
+      "features": [
+        "project_status",
+        "unknown_cause",
+        "numeric_consistency"
+      ],
+      "source_char_count": 226,
+      "fact_checkpoints": [
+        "六十句中五十四句达标，目标百分之九十五",
+        "文字校对已完成，现场排练未做",
+        "周四先提供录音再测量，舞台监督决定试演",
+        "六句慢的原因未知"
+      ],
+      "prerequisite_checkpoints": [
+        "达标比例的分子分母",
+        "离线回放与现场排练的证据差异"
+      ],
+      "retelling_questions": [
+        "哪些完成项不能证明可以试演？"
+      ],
+      "transfer_questions": [
+        "保持六十句样本，要达到目标至少需几句达标？"
+      ],
+      "explanation_mapping": {
+        "EXPL-001": "围绕当前请求解决读者的问题：把记录整理成给不懂技术的剧场经理看的项目状态说明，让他知道现在能安排什么、还要等什么。",
+        "EXPL-002": "按完全零基础处理，不凭读者身份或操作记录跳过必要解释；核对本案 prerequisite_checkpoints",
+        "EXPL-003": "先补本案必要前提：达标比例的分子分母；离线回放与现场排练的证据差异",
+        "EXPL-004": "解释延迟、离线回放与现场排练的用途和判别方式",
+        "EXPL-005": "解释离线结果为何不能替代现场证据，六句偏慢的原因仍未知",
+        "EXPL-006": "用本轮六十句数据走完达标比例与门槛的比较",
+        "EXPL-007": "区分校对、安装、性能达标和试演获准的适用范围",
+        "EXPL-009": "说明音频负责人、字幕员、舞台监督的依赖和下一项完成证据",
+        "EXPL-010": "解释两秒、五十四除六十与百分之九十五门槛各自含义",
+        "EXPL-013": "保留未做现场排练和未知迟延原因，不包装成确定诊断",
+        "EXPL-014": "用本案 retelling_questions 和 transfer_questions 定位正文中支持理解与迁移的内容；不以模型自评代替证据"
+      },
+      "explanation_mapping_status": "review_targets_not_verified_results"
+    },
+    {
+      "case_id": "FWD-R20-007",
+      "topic": "种子交换会说明卡印制",
+      "features": [
+        "decision",
+        "numeric_consistency"
+      ],
+      "source_char_count": 242,
+      "fact_checkpoints": [
+        "二百四十张，甲固定四十元每张零点八元，乙固定一百八十元每张零点二五元",
+        "可用两天，甲一天乙三天，均无加急",
+        "乙改稿另收制版费",
+        "下一场八百张可提前五天定稿是另一情境"
+      ],
+      "prerequisite_checkpoints": [
+        "固定成本与按张计费如何相加",
+        "费用和可交付时间必须共同判断"
+      ],
+      "retelling_questions": [
+        "本次选择受哪项约束决定？"
+      ],
+      "transfer_questions": [
+        "八百张且五天准备期时两种方案总费如何变化？"
+      ],
+      "explanation_mapping": {
+        "EXPL-001": "围绕当前请求解决读者的问题：我们要选说明卡的印法。请给完全没做过印刷采购的组织者写一份选择建议，比较费用、时间和适用条件。",
+        "EXPL-002": "按完全零基础处理，不凭读者身份或操作记录跳过必要解释；核对本案 prerequisite_checkpoints",
+        "EXPL-003": "先补本案必要前提：固定成本与按张计费如何相加；费用和可交付时间必须共同判断",
+        "EXPL-004": "说明两种印法、一次性费用和制版改稿的区别",
+        "EXPL-005": "连接定稿时间、交付所需时间与能否赶上活动的判断",
+        "EXPL-006": "用本场二百四十张演示费用和交期比较，再区别下一场情境",
+        "EXPL-007": "保留含税、不计运输、无加急、不能延期和改稿重收费条件",
+        "EXPL-009": "按采购目标解释各方案何时合适及选择依据",
+        "EXPL-010": "说明固定费用加单价乘数量的步骤、元和天的不同作用",
+        "EXPL-013": "报价是所给合成材料，不冒充外部市场调查",
+        "EXPL-014": "用本案 retelling_questions 和 transfer_questions 定位正文中支持理解与迁移的内容；不以模型自评代替证据"
+      },
+      "explanation_mapping_status": "review_targets_not_verified_results"
+    },
+    {
+      "case_id": "FWD-R20-008",
+      "topic": "昆虫观察网站技术栈",
+      "features": [
+        "technology_stack",
+        "prerequisite_chain",
+        "long_source"
+      ],
+      "source_char_count": 1072,
+      "fact_checkpoints": [
+        "服务端也校验字段和权限",
+        "照片限五百万字节",
+        "照片先上传，观察行后保存",
+        "保存回复后显示编号，审核之后才公开",
+        "只有测试环境证据，无并发上限或清理时限"
+      ],
+      "prerequisite_checkpoints": [
+        "页面结构、样式和行为的分工",
+        "请求方法与路径",
+        "运行环境、数据库、对象存储之间的关系",
+        "保存成功与收到回复不同"
+      ],
+      "retelling_questions": [
+        "点击提交后各层分别处理什么数据？"
+      ],
+      "transfer_questions": [
+        "数据库有记录但照片打不开，应沿哪条关系检查？"
+      ],
+      "explanation_mapping": {
+        "EXPL-001": "围绕当前请求解决读者的问题：我只会用浏览器。请依据团队笔记讲明白这个网站每一层为什么存在，以及我点一次提交之后会发生什么。",
+        "EXPL-002": "按完全零基础处理，不凭读者身份或操作记录跳过必要解释；核对本案 prerequisite_checkpoints",
+        "EXPL-003": "先补本案必要前提：页面结构、样式和行为的分工；请求方法与路径；运行环境、数据库、对象存储之间的关系；保存成功与收到回复不同",
+        "EXPL-004": "逐一说明 HTML、CSS、JavaScript、HTTP、Node.js、PostgreSQL 的当前用途",
+        "EXPL-005": "连接页面提交、校验、照片上传、数据库保存、回复与审核公开",
+        "EXPL-006": "用一次包含日期、地点、物种和照片的提交走完各层数据流",
+        "EXPL-007": "解释草稿与公开、客户端与服务端校验、测试与正式环境的差异",
+        "EXPL-008": "说明成功显示编号、失败保留表单和断网后核对草稿的操作依据",
+        "EXPL-009": "交代每个技术栈对象为何存在、与前后对象怎样传递数据",
+        "EXPL-010": "解释五 MB 与五百万字节的本项目换算范围",
+        "EXPL-012": "按依赖组织长素材，保留后段测试环境与清理时限等限制",
+        "EXPL-013": "不由技术名称推断正式部署、并发容量或清理时长",
+        "EXPL-014": "用本案 retelling_questions 和 transfer_questions 定位正文中支持理解与迁移的内容；不以模型自评代替证据"
+      },
+      "explanation_mapping_status": "review_targets_not_verified_results"
+    },
+    {
+      "case_id": "FWD-R20-009",
+      "topic": "露天电影银幕尺寸计算",
+      "features": [
+        "formula_with_units",
+        "numeric_consistency"
+      ],
+      "source_char_count": 162,
+      "fact_checkpoints": [
+        "宽三点二米，十六比九",
+        "总高两米，上下各零点一米",
+        "只比较几何尺寸"
+      ],
+      "prerequisite_checkpoints": [
+        "比例不带固定长度",
+        "同单位计算及两侧边料扣除"
+      ],
+      "retelling_questions": [
+        "为什么乘九再除十六？"
+      ],
+      "transfer_questions": [
+        "如果可用宽度变为四米而布料不变，还能保持完整比例吗？"
+      ],
+      "explanation_mapping": {
+        "EXPL-001": "围绕当前请求解决读者的问题：我没学过这些公式。请解释给活动志愿者听，算出这块银幕需要多高，并展示代入和单位。",
+        "EXPL-002": "按完全零基础处理，不凭读者身份或操作记录跳过必要解释；核对本案 prerequisite_checkpoints",
+        "EXPL-003": "先补本案必要前提：比例不带固定长度；同单位计算及两侧边料扣除",
+        "EXPL-004": "解释宽高比和固定边的作用，区分比例与实际长度",
+        "EXPL-005": "说明宽乘九除十六的原因，以及上下两边为何都要扣除",
+        "EXPL-006": "用三点二米宽和两米布料逐步代入、计算、比较",
+        "EXPL-007": "说明几何适配与亮度、镜头铺满是不同判断",
+        "EXPL-010": "逐项说明 W、H、米、十六比九和零点一米边料的数据来源及结果含义",
+        "EXPL-013": "明确缺投影距离、亮度和镜头参数所限制的结论",
+        "EXPL-014": "用本案 retelling_questions 和 transfer_questions 定位正文中支持理解与迁移的内容；不以模型自评代替证据"
+      },
+      "explanation_mapping_status": "review_targets_not_verified_results"
+    },
+    {
+      "case_id": "FWD-R20-010",
+      "topic": "手工皂订单去重代码",
+      "features": [
+        "code_explanation",
+        "unknown_cause"
+      ],
+      "source_char_count": 467,
+      "fact_checkpoints": [
+        "输入三条，S-7 两次且数量不同",
+        "按首次出现保留，不合并数量",
+        "不写磁盘，不改原记录，缺 id 报错",
+        "不能确认重复原因"
+      ],
+      "prerequisite_checkpoints": [
+        "函数、参数、循环、集合、列表、字段和返回值",
+        "记录标识与业务版本的区别"
+      ],
+      "retelling_questions": [
+        "seen 和 kept 分别解决什么问题？"
+      ],
+      "transfer_questions": [
+        "若第二条代表修改，为什么这段代码不够用？"
+      ],
+      "explanation_mapping": {
+        "EXPL-001": "围绕当前请求解决读者的问题：请保留这段 Python 代码，再教一个第一次看代码的店员读懂每一步；用给定订单演示，说明这段代码能发现什么、不能发现什么。",
+        "EXPL-002": "按完全零基础处理，不凭读者身份或操作记录跳过必要解释；核对本案 prerequisite_checkpoints",
+        "EXPL-003": "先补本案必要前提：函数、参数、循环、集合、列表、字段和返回值；记录标识与业务版本的区别",
+        "EXPL-004": "说明函数、参数、set、列表、字段和返回值，不循环用陌生词定义",
+        "EXPL-005": "解释按编号首次保留的机制，不猜重复是重发还是修改",
+        "EXPL-006": "逐条走完三条订单，展示 seen 和 kept 的变化",
+        "EXPL-007": "说明同编号不同数量、缺 id、无磁盘写入和原内容不变的影响",
+        "EXPL-008": "交代输入记录需要 id，正常返回与 KeyError 的区别，不编执行结果",
+        "EXPL-011": "保留原代码，为每个有效语句和示例记录提供可定位说明",
+        "EXPL-013": "区分根据代码推演的结果与真实执行，业务修改关系仍未知",
+        "EXPL-014": "用本案 retelling_questions 和 transfer_questions 定位正文中支持理解与迁移的内容；不以模型自评代替证据"
+      },
+      "explanation_mapping_status": "review_targets_not_verified_results"
+    },
+    {
+      "case_id": "FWD-R20-011",
+      "topic": "天文展台轮播配置",
+      "features": [
+        "strict_json_no_comments",
+        "code_explanation"
+      ],
+      "source_char_count": 79,
+      "fact_checkpoints": [
+        "十五秒，moon 在 mars 前，shuffle 为 false",
+        "null 沿用题注，空字符串隐藏",
+        "失败继续旧轮播"
+      ],
+      "prerequisite_checkpoints": [
+        "键值、数组、布尔值、null 与文本的区别",
+        "保存与重新载入不是同一动作"
+      ],
+      "retelling_questions": [
+        "如何从实际轮播判断顺序设置是否生效？"
+      ],
+      "transfer_questions": [
+        "要隐藏题注，为什么不能只把 null 留在那里？"
+      ],
+      "output_contract": {
+        "embedded_json": "verbatim",
+        "comments_allowed": false,
+        "explanation_location": "outside_code_block"
+      },
+      "explanation_mapping": {
+        "EXPL-001": "围绕当前请求解决读者的问题：原样保留 JSON 代码块，块内不能加注释；在块外向第一次接触配置文件的展台管理员解释每个字段，说明如何核对生效。",
+        "EXPL-002": "按完全零基础处理，不凭读者身份或操作记录跳过必要解释；核对本案 prerequisite_checkpoints",
+        "EXPL-003": "先补本案必要前提：键值、数组、布尔值、null 与文本的区别；保存与重新载入不是同一动作",
+        "EXPL-004": "解释 JSON、键值、数组、布尔值与 null 的含义和当前作用",
+        "EXPL-005": "连接字段设置、重新载入、解析结果与实际轮播表现",
+        "EXPL-006": "用当前 moon、mars、十五秒配置走完一轮观察",
+        "EXPL-007": "就近区分 null、空字符串和 false，解释失败沿用旧配置的影响",
+        "EXPL-008": "说明保存后重新载入及观察整轮的核对步骤，不造版本显示功能",
+        "EXPL-010": "说明 interval_seconds 的秒单位和每页停留含义",
+        "EXPL-011": "原样保留合法 JSON，每个字段在块外解释，块内不加注释",
+        "EXPL-013": "沿用旧轮播不能证明新配置生效，版本号证据不可编造",
+        "EXPL-014": "用本案 retelling_questions 和 transfer_questions 定位正文中支持理解与迁移的内容；不以模型自评代替证据"
+      },
+      "explanation_mapping_status": "review_targets_not_verified_results"
+    },
+    {
+      "case_id": "FWD-R20-012",
+      "topic": "渡口候船区分流示意",
+      "features": [
+        "implicit",
+        "provided_diagram_text",
+        "visual_evidence_boundary"
+      ],
+      "source_char_count": 244,
+      "fact_checkpoints": [
+        "有车辆标记去 A，否则去 B，自行车属车辆票",
+        "虚线是咨询关系，围栏不可穿越",
+        "未显示时刻和坡道"
+      ],
+      "prerequisite_checkpoints": [
+        "判断菱形如何分支",
+        "通道方向与咨询关系区别"
+      ],
+      "retelling_questions": [
+        "从入口到候船区的判断顺序是什么？"
+      ],
+      "transfer_questions": [
+        "推自行车且不清楚票种时，能否直接走 B？"
+      ],
+      "explanation_mapping": {
+        "EXPL-001": "围绕当前请求解决读者的问题：第一次来这儿，这个牌子怎么走？",
+        "EXPL-002": "按完全零基础处理，不凭读者身份或操作记录跳过必要解释；核对本案 prerequisite_checkpoints",
+        "EXPL-003": "先补本案必要前提：判断菱形如何分支；通道方向与咨询关系区别",
+        "EXPL-004": "用自然语言区分分支判断、实线通道与虚线咨询关系",
+        "EXPL-005": "解释票面标记如何决定候船分流，不能把咨询连线当通道",
+        "EXPL-006": "从入口经查票走完一个具体票种的分流过程",
+        "EXPL-007": "说明自行车车辆票、未知票种和围栏例外如何影响走法",
+        "EXPL-008": "说明入口、查票点、服务台与候船区的下一动作和核对依据",
+        "EXPL-011": "保留文本示意，逐项对应入口、箭头、菱形、A/B、服务台与注记；不计真实视觉识别",
+        "EXPL-013": "仅依赖文字转录，不能补出开船时间、排队长度或无障碍坡道",
+        "EXPL-014": "用本案 retelling_questions 和 transfer_questions 定位正文中支持理解与迁移的内容；不以模型自评代替证据"
+      },
+      "explanation_mapping_status": "review_targets_not_verified_results",
+      "image_evidence_kind": "diagram_text_not_visual_input",
+      "image_evidence_note": "素材只有提供的文本示意或图中文字转录；仅覆盖文本示意解释，不证明真正视觉读图能力或视觉验证结果"
+    },
+    {
+      "case_id": "FWD-R20-013",
+      "topic": "桌游积分屏断更日志",
+      "features": [
+        "logs",
+        "unknown_cause",
+        "observable_recovery"
+      ],
+      "source_char_count": 393,
+      "fact_checkpoints": [
+        "服务端存四十一，屏幕显示四十",
+        "客户端超时，自动重试禁用",
+        "无轮询和回复日志，未授权重置"
+      ],
+      "prerequisite_checkpoints": [
+        "发送、保存、回执、屏幕读取各阶段",
+        "版本号用于比对状态"
+      ],
+      "retelling_questions": [
+        "为什么客户端超时和服务端保存并不矛盾？"
+      ],
+      "transfer_questions": [
+        "屏幕跳到四十一但下一次加分不动，是否达到恢复标准？"
+      ],
+      "explanation_mapping": {
+        "EXPL-001": "围绕当前请求解决读者的问题：积分屏卡住了，主持人很着急。请按这些日志写一段他能看懂的现场说明，包括已知情况、下一步怎么查和怎样确认恢复。",
+        "EXPL-002": "按完全零基础处理，不凭读者身份或操作记录跳过必要解释；核对本案 prerequisite_checkpoints",
+        "EXPL-003": "先补本案必要前提：发送、保存、回执、屏幕读取各阶段；版本号用于比对状态",
+        "EXPL-004": "解释 seq、timeout 和轮询的含义与用途",
+        "EXPL-005": "连接发送、保存、等待回复和屏幕轮询，说明现象不等于唯一根因",
+        "EXPL-006": "按给定时间顺序走完四十一已保存而屏幕仍显示四十的过程",
+        "EXPL-007": "保留共用时钟、禁用重试、未授权重置的条件和限制",
+        "EXPL-008": "说明查看服务端版本、记录下次轮询，以及连续同步的恢复判据",
+        "EXPL-009": "说明 client、server、display 的职责与状态证据区别",
+        "EXPL-011": "保留五条日志，逐行说明时间、组件、动作和版本所能证明的内容",
+        "EXPL-013": "指出缺回复、轮询与网络证据，不能断言网络或屏幕程序故障",
+        "EXPL-014": "用本案 retelling_questions 和 transfer_questions 定位正文中支持理解与迁移的内容；不以模型自评代替证据"
+      },
+      "explanation_mapping_status": "review_targets_not_verified_results"
+    },
+    {
+      "case_id": "FWD-R20-014",
+      "topic": "陶艺体验课改期通知",
+      "features": [
+        "multi_turn_superseded"
+      ],
+      "source_char_count": null,
+      "fact_checkpoints": [
+        "周日下午两点，二号教室，提前十分钟，九十分钟",
+        "不用带围裙",
+        "取消三段和变更历史要求",
+        "报姓名、领桌号、入座，查无名单找接待"
+      ],
+      "prerequisite_checkpoints": [
+        "桌号连接报名核对与座位分配"
+      ],
+      "retelling_questions": [
+        "新学员到门口以后依次做什么？"
+      ],
+      "transfer_questions": [
+        "名单里查不到名字时，能否先坐空位？"
+      ],
+      "explanation_mapping": {
+        "EXPL-001": "围绕当前请求解决读者的问题：根据下面的沟通记录，写一份直接发给首次报名者的最终通知，让他们知道现在该怎么做。",
+        "EXPL-002": "按完全零基础处理，不凭读者身份或操作记录跳过必要解释；核对本案 prerequisite_checkpoints",
+        "EXPL-003": "先补本案必要前提：桌号连接报名核对与座位分配",
+        "EXPL-005": "说明报姓名、领桌号、按号入座的衔接关系",
+        "EXPL-006": "从首次到门口的情境示范入场过程，不重放失效通知",
+        "EXPL-007": "解释查无名单先找接待员而不自行占座的分支",
+        "EXPL-008": "交代现行时间地点、到场准备和可观察的入座依据",
+        "EXPL-012": "只采用最终有效安排，旧三段结构、变更历史和自带围裙要求失效",
+        "EXPL-013": "当前事实来自多轮用户更正，不编教室路线或报名界面",
+        "EXPL-014": "用本案 retelling_questions 和 transfer_questions 定位正文中支持理解与迁移的内容；不以模型自评代替证据"
+      },
+      "explanation_mapping_status": "review_targets_not_verified_results"
+    },
+    {
+      "case_id": "FWD-R20-015",
+      "topic": "岩石标本称量记录冲突",
+      "features": [
+        "conflicting_sources",
+        "numeric_consistency"
+      ],
+      "source_char_count": 214,
+      "fact_checkpoints": [
+        "甲四百八十二减三十二等于四百五十克",
+        "乙记四百八十克且称已去盒",
+        "缺时间和权威排序，原容器未确认"
+      ],
+      "prerequisite_checkpoints": [
+        "净质量计算与来源可信度是两种判断",
+        "复称需要容器和可追查记录"
+      ],
+      "retelling_questions": [
+        "甲的算术自洽能不能排除乙？"
+      ],
+      "transfer_questions": [
+        "原容器丢失后，能否拿另一只盒子的皮重修正旧数据？"
+      ],
+      "explanation_mapping": {
+        "EXPL-001": "围绕当前请求解决读者的问题：帮第一次做标本登记的同学整理两份记录，说明哪些能录入、哪些需要复核。保留来源差异，不替我们选一个重量。",
+        "EXPL-002": "按完全零基础处理，不凭读者身份或操作记录跳过必要解释；核对本案 prerequisite_checkpoints",
+        "EXPL-003": "先补本案必要前提：净质量计算与来源可信度是两种判断；复称需要容器和可追查记录",
+        "EXPL-004": "说明总质量、皮重与净质量各是什么、怎样取得与区分",
+        "EXPL-005": "解释净质量减法的原因，算术自洽不等于来源权威",
+        "EXPL-006": "用甲的四百八十二克和三十二克走完核算，再对照乙的记录",
+        "EXPL-007": "缺称量时刻与权威排序时不自行取最新、平均或选一个重量",
+        "EXPL-008": "说明现在可登记的出处，以及复称所需原容器和新记录",
+        "EXPL-010": "保留克单位和两份不同净质量，说明相减过程及适用条件",
+        "EXPL-013": "保留来源冲突、原容器未确认及这些缺项对复核的影响",
+        "EXPL-014": "用本案 retelling_questions 和 transfer_questions 定位正文中支持理解与迁移的内容；不以模型自评代替证据"
+      },
+      "explanation_mapping_status": "review_targets_not_verified_results"
+    },
+    {
+      "case_id": "FWD-R20-016",
+      "topic": "公园等高线草图",
+      "features": [
+        "implicit",
+        "provided_diagram_text",
+        "visual_evidence_boundary",
+        "formula_reasoning"
+      ],
+      "source_char_count": 172,
+      "fact_checkpoints": [
+        "由内向外八十、七十、六十米",
+        "东间距十二毫米，西四毫米",
+        "无比例尺和道路信息"
+      ],
+      "prerequisite_checkpoints": [
+        "高差与水平距离共同决定坡度",
+        "平面图的圈线不是路径"
+      ],
+      "retelling_questions": [
+        "为什么线较疏的一侧更缓？"
+      ],
+      "transfer_questions": [
+        "若两幅图比例尺不同，还能只凭纸上间距比较坡度吗？"
+      ],
+      "explanation_mapping": {
+        "EXPL-001": "围绕当前请求解决读者的问题：这张草图怎么看，东坡和西坡哪边更缓？",
+        "EXPL-002": "按完全零基础处理，不凭读者身份或操作记录跳过必要解释；核对本案 prerequisite_checkpoints",
+        "EXPL-003": "先补本案必要前提：高差与水平距离共同决定坡度；平面图的圈线不是路径",
+        "EXPL-004": "解释等高线、海拔、比例尺在本图中的作用和区别",
+        "EXPL-005": "连接相等高差、不同水平距离与缓陡判断的原因",
+        "EXPL-006": "用东侧十二毫米和西侧四毫米对照同一段十米高差",
+        "EXPL-007": "仅在同图等比例和同高差下比较，圈线不是可行走路线",
+        "EXPL-010": "区分海拔米与纸面毫米，缺比例尺不能计算真实水平距离",
+        "EXPL-011": "逐项对应文本中的三圈、高度与两侧间距；不计真实视觉识别",
+        "EXPL-013": "只解释提供的文字示意，不推断道路、围栏和地面情况",
+        "EXPL-014": "用本案 retelling_questions 和 transfer_questions 定位正文中支持理解与迁移的内容；不以模型自评代替证据"
+      },
+      "explanation_mapping_status": "review_targets_not_verified_results",
+      "image_evidence_kind": "diagram_text_not_visual_input",
+      "image_evidence_note": "素材只有提供的文本示意或图中文字转录；仅覆盖文本示意解释，不证明真正视觉读图能力或视觉验证结果"
+    },
+    {
+      "case_id": "FWD-R20-017",
+      "topic": "读书会反馈满意比例",
+      "features": [
+        "table",
+        "numeric_consistency",
+        "sampling_boundary"
+      ],
+      "source_char_count": 224,
+      "fact_checkpoints": [
+        "参加人数四十与六十，回收十与三十，满意八与十八",
+        "分母是有效回收问卷，未回收意见未知",
+        "两组无重叠"
+      ],
+      "prerequisite_checkpoints": [
+        "人数、回收问卷和满意问卷的包含关系",
+        "不同分母的比例不能直接平均"
+      ],
+      "retelling_questions": [
+        "总满意比例的分子分母各来自哪些格子？"
+      ],
+      "transfer_questions": [
+        "如果下午只回收十份，能否仍沿用原来的总比例？"
+      ],
+      "explanation_mapping": {
+        "EXPL-001": "围绕当前请求解决读者的问题：给没学过统计的组织者解读这张表，保留表格，说明总满意比例怎么算，以及这份结果能代表谁。",
+        "EXPL-002": "按完全零基础处理，不凭读者身份或操作记录跳过必要解释；核对本案 prerequisite_checkpoints",
+        "EXPL-003": "先补本案必要前提：人数、回收问卷和满意问卷的包含关系；不同分母的比例不能直接平均",
+        "EXPL-004": "解释分母、回收率和满意比例各自统计什么",
+        "EXPL-005": "说明不同回收数为何不能直接平均两组满意比例",
+        "EXPL-006": "逐格取数，分别合计满意与有效回收，再计算总比例",
+        "EXPL-007": "保持两组不重叠、每人一份、回收均有效和未回收意见未知的条件",
+        "EXPL-010": "说明分子分母、总量与局部量、百分比的计算和代表范围",
+        "EXPL-011": "保留原表，解释每列、每行和全部数据格的对应关系",
+        "EXPL-013": "区分有效回收者与全体参加者，不把非随机反馈外推为全员意见",
+        "EXPL-014": "用本案 retelling_questions 和 transfer_questions 定位正文中支持理解与迁移的内容；不以模型自评代替证据"
+      },
+      "explanation_mapping_status": "review_targets_not_verified_results"
+    },
+    {
+      "case_id": "FWD-R20-018",
+      "topic": "烘焙计时秒数函数",
+      "features": [
+        "non_triggering_control",
+        "pure_code"
+      ],
+      "source_char_count": 68,
+      "fact_checkpoints": [
+        "源代码逐字保留"
+      ],
+      "prerequisite_checkpoints": [],
+      "retelling_questions": [],
+      "transfer_questions": [],
+      "output_contract": {
+        "kind": "python",
+        "verbatim": true,
+        "explanation_allowed": false,
+        "fences_allowed": false
+      },
+      "explanation_mapping": {},
+      "explanation_mapping_status": "not_applicable_non_triggering_control",
+      "explanation_mapping_note": "纯格式请求禁止追加解释，EXPL-001..014 不作为正文要求或正向解释覆盖"
+    },
+    {
+      "case_id": "FWD-R20-019",
+      "topic": "唱片清单机器交换",
+      "features": [
+        "non_triggering_control",
+        "pure_json",
+        "strict_json_no_comments"
+      ],
+      "source_char_count": 57,
+      "fact_checkpoints": [
+        "保留 false 和三十三的数值类型"
+      ],
+      "prerequisite_checkpoints": [],
+      "retelling_questions": [],
+      "transfer_questions": [],
+      "output_contract": {
+        "kind": "json",
+        "verbatim": true,
+        "explanation_allowed": false,
+        "fences_allowed": false
+      },
+      "explanation_mapping": {},
+      "explanation_mapping_status": "not_applicable_non_triggering_control",
+      "explanation_mapping_note": "纯格式请求禁止追加解释，EXPL-001..014 不作为正文要求或正向解释覆盖"
+    },
+    {
+      "case_id": "FWD-R20-020",
+      "topic": "打字机色带库存数",
+      "features": [
+        "non_triggering_control",
+        "pure_number"
+      ],
+      "source_char_count": 2,
+      "fact_checkpoints": [
+        "整数二十七"
+      ],
+      "prerequisite_checkpoints": [],
+      "retelling_questions": [],
+      "transfer_questions": [],
+      "output_contract": {
+        "kind": "integer",
+        "verbatim": true,
+        "explanation_allowed": false,
+        "fences_allowed": false
+      },
+      "explanation_mapping": {},
+      "explanation_mapping_status": "not_applicable_non_triggering_control",
+      "explanation_mapping_note": "纯格式请求禁止追加解释，EXPL-001..014 不作为正文要求或正向解释覆盖"
+    }
+  ]
+}

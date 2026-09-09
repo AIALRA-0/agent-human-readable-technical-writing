@@ -1,0 +1,169 @@
+{
+  "bundle_version": 1,
+  "plan_id": "PLAN_WRITING_STYLE_LIGHT",
+  "plan_sha256": "a1f9aa27ccf78d6ff304844c8ac1d4bfd768e2dd4c7e1e4163f1d25bc7bdf963",
+  "status": "review_ready",
+  "runtime_status": "review_ready",
+  "current_task": null,
+  "completed_tasks": [],
+  "blocked_tasks": [],
+  "next_independent_tasks": [
+    "TASK_SCOPE"
+  ],
+  "task_states": {
+    "TASK_SCOPE": {
+      "status": "pending",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-09-06T06:33:05.011728Z",
+          "actor_type": "system",
+          "summary": "bundle initialized"
+        }
+      ],
+      "last_event_id": null
+    },
+    "TASK_SPINE": {
+      "status": "pending",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-09-06T06:33:05.011728Z",
+          "actor_type": "system",
+          "summary": "bundle initialized"
+        }
+      ],
+      "last_event_id": null
+    },
+    "TASK_LIGHT": {
+      "status": "pending",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-09-06T06:33:05.011728Z",
+          "actor_type": "system",
+          "summary": "bundle initialized"
+        }
+      ],
+      "last_event_id": null
+    },
+    "TASK_TERMS": {
+      "status": "pending",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-09-06T06:33:05.011728Z",
+          "actor_type": "system",
+          "summary": "bundle initialized"
+        }
+      ],
+      "last_event_id": null
+    },
+    "TASK_RENDER": {
+      "status": "pending",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-09-06T06:33:05.011728Z",
+          "actor_type": "system",
+          "summary": "bundle initialized"
+        }
+      ],
+      "last_event_id": null
+    },
+    "TASK_DIALOG": {
+      "status": "pending",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-09-06T06:33:05.011728Z",
+          "actor_type": "system",
+          "summary": "bundle initialized"
+        }
+      ],
+      "last_event_id": null
+    },
+    "TASK_EVAL": {
+      "status": "pending",
+      "history": [
+        {
+          "status": "pending",
+          "at": "2026-09-06T06:33:05.011728Z",
+          "actor_type": "system",
+          "summary": "bundle initialized"
+        }
+      ],
+      "last_event_id": null
+    }
+  },
+  "problem_unit_states": {
+    "UNIT_SCOPE": {
+      "status": "pending",
+      "task_ids": [
+        "TASK_SCOPE"
+      ],
+      "completed_tasks": [],
+      "blocked_tasks": []
+    },
+    "UNIT_SPINE": {
+      "status": "pending",
+      "task_ids": [
+        "TASK_SPINE"
+      ],
+      "completed_tasks": [],
+      "blocked_tasks": []
+    },
+    "UNIT_LIGHT": {
+      "status": "pending",
+      "task_ids": [
+        "TASK_LIGHT"
+      ],
+      "completed_tasks": [],
+      "blocked_tasks": []
+    },
+    "UNIT_TERMS": {
+      "status": "pending",
+      "task_ids": [
+        "TASK_TERMS"
+      ],
+      "completed_tasks": [],
+      "blocked_tasks": []
+    },
+    "UNIT_RENDER": {
+      "status": "pending",
+      "task_ids": [
+        "TASK_RENDER"
+      ],
+      "completed_tasks": [],
+      "blocked_tasks": []
+    },
+    "UNIT_DIALOG": {
+      "status": "pending",
+      "task_ids": [
+        "TASK_DIALOG"
+      ],
+      "completed_tasks": [],
+      "blocked_tasks": []
+    },
+    "UNIT_EVAL": {
+      "status": "pending",
+      "task_ids": [
+        "TASK_EVAL"
+      ],
+      "completed_tasks": [],
+      "blocked_tasks": []
+    }
+  },
+  "updated_at": "2026-09-06T06:33:05.011728Z",
+  "last_run": null,
+  "last_event_id": null,
+  "evidence": [],
+  "blockers": [],
+  "deviations": [],
+  "timing": {
+    "work_ms": 0,
+    "review_ms": 0,
+    "wait_ms": 0,
+    "review_budget": "unmeasured"
+  }
+}

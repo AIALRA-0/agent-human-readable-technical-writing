@@ -28,8 +28,11 @@ from referencing import Registry, Resource
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACTS = ROOT / "contracts"
 MODELS = ("gpt-5.6-sol", "gpt-5.6-terra", "gpt-5.6-luna")
-MODEL_CODES = {"gpt-5.6-sol": "SOL", "gpt-5.6-terra": "TERRA", "gpt-5.6-luna": "LUNA"}
-RUNTIME_ITEMS = ["SKILL.md", "constitution", "runtime", "contracts", "profiles", "registries", "validators", "patcher", "references"]
+SUPPORTED_MODELS = ("gpt-6-astra", *MODELS)
+MODEL_CODES = {
+    "gpt-6-astra": "ASTRA", "gpt-5.6-sol": "SOL", "gpt-5.6-terra": "TERRA", "gpt-5.6-luna": "LUNA",
+}
+RUNTIME_ITEMS = ["SKILL.md", "agents", "constitution", "runtime", "contracts", "profiles", "registries", "validators", "patcher", "references", "scripts/review_writing.py", "scripts/compose_writing.py", "scripts/run_vnext.py"]
 CLEAN_AGENT_DISABLED_FEATURES = (
     "apps", "plugins", "remote_plugin", "recommended_plugins",
     "skill_mcp_dependency_install", "tool_suggest", "browser_use",
@@ -58,7 +61,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--run-root", type=Path, required=True)
     parser.add_argument("--seed-drafts", type=Path)
     parser.add_argument("--feedback", type=Path)
-    parser.add_argument("--model", action="append", choices=MODELS)
+    parser.add_argument("--model", action="append", choices=SUPPORTED_MODELS)
     parser.add_argument("--case-id", action="append", help="run only the named case for an isolated diagnostic")
     parser.add_argument("--reasoning-effort", default="medium")
     parser.add_argument("--codex", default="codex")
@@ -68,6 +71,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--qualification-id")
     parser.add_argument("--retry-run-errors", action="store_true")
     parser.add_argument("--fail-fast", action=argparse.BooleanOptionalAction, default=None)
+    parser.add_argument("--requests", type=Path, help="read requests from an isolated JSONL file")
+    parser.add_argument("--evidence-dir", type=Path, help="write public closure summaries outside the repository")
+    parser.add_argument("--expected-count", type=int, default=20)
     return parser.parse_args()
 
 
@@ -168,6 +174,7 @@ def install_candidate(codex_home: Path) -> None:
         if source.is_dir():
             shutil.copytree(source, target)
         elif source.exists():
+            target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, target)
 
 
@@ -331,11 +338,15 @@ def decode_process_output(value: bytes | str | None) -> str:
     return value.decode("utf-8", errors="replace")
 
 
-def run_codex(command: list[str], environment: dict[str, str], timeout: int) -> dict[str, Any]:
+def run_codex(
+    command: list[str], environment: dict[str, str], timeout: int, stdin_text: str | None = None,
+) -> dict[str, Any]:
     try:
         process = subprocess.run(
             command, text=False, capture_output=True,
             timeout=timeout, env=environment, check=False,
+            input=stdin_text.encode("utf-8") if stdin_text is not None else None,
+            stdin=subprocess.DEVNULL if stdin_text is None else None,
         )
         stdout = decode_process_output(process.stdout)
         stderr = decode_process_output(process.stderr)
@@ -1361,15 +1372,18 @@ def main() -> int:
         raise SystemExit(str(error)) from error
     args.skill_tree_sha256 = runtime_tree_digest()
     args.closure_runner_sha256 = closure_runner_digest()
-    if args.round_number < 2 or not 1 <= args.workers <= 8:
-        raise SystemExit("round must be at least 2 and workers must be between 1 and 8")
+    if args.round_number < 2 or not 1 <= args.workers <= 8 or args.expected_count < 1:
+        raise SystemExit("round must be at least 2, expected count must be positive, and workers must be between 1 and 8")
     models = args.model or list(MODELS)
     if len(models) != len(set(models)):
         raise SystemExit("models must be unique")
-    round_dir = ROOT / "evals" / "forward" / f"round-{args.round_number}"
-    requests = read_jsonl(round_dir / "requests.jsonl")
-    if len(requests) != 20:
-        raise SystemExit("expected exactly 20 forward requests")
+    request_path = args.requests.resolve() if args.requests else ROOT / "evals" / "forward" / f"round-{args.round_number}" / "requests.jsonl"
+    if not request_path.is_file():
+        raise SystemExit(f"request file is missing: {request_path}")
+    round_dir = args.evidence_dir.resolve() if args.evidence_dir else request_path.parent
+    requests = read_jsonl(request_path)
+    if len(requests) != args.expected_count:
+        raise SystemExit(f"expected exactly {args.expected_count} forward requests")
     if args.case_id:
         selected = set(args.case_id)
         known = {item["case_id"] for item in requests}

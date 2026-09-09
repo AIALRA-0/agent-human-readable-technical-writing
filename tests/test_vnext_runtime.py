@@ -20,13 +20,14 @@ from patcher.deterministic_committer import sha256_text  # noqa: E402
 class VNextRuntimeTests(unittest.TestCase):
     """Prove the runtime enforces deterministic contracts without semantic guessing."""
 
-    def build_bundle(self) -> dict:
+    def build_bundle(self, *, evaluation_mode: str | None = None) -> dict:
         """Create one minimal fully traceable transform bundle."""
 
         text = "任务已接收"
         contract = compile_contract({
             "task_id": "TASK-TEST-001", "base_operation": "TRANSFORM", "augmentation": "NONE",
             "audience": "general_reader", "genre": "status", "media": ["chat"], "components": ["TEXT"],
+            **({"evaluation_mode": evaluation_mode} if evaluation_mode is not None else {}),
         })
         return {
             "task_contract": contract,
@@ -96,6 +97,7 @@ class VNextRuntimeTests(unittest.TestCase):
 
         contract = compile_contract({
             "task_id": "TASK-TEST-003", "base_operation": "EXPLAIN", "augmentation": "GLOSS",
+            "evaluation_mode": "strict",
             "audience": "general_reader", "genre": "readme", "media": ["github_markdown"],
             "components": ["TEXT", "IMAGE"],
         })
@@ -123,7 +125,15 @@ class VNextRuntimeTests(unittest.TestCase):
     def test_unregistered_horizontal_mermaid_fails(self) -> None:
         """Horizontal layout is rejected until the task contract records a real exception."""
 
-        bundle = self.build_bundle()
+        bundle = self.build_bundle(evaluation_mode="strict")
+        self.add_horizontal_mermaid(bundle)
+        report = verify_bundle(bundle)
+        self.assertEqual("FAIL", report["status"])
+        self.assertIn("MERMAID_VERTICAL_DEFAULT", {item["rule_id"] for item in report["findings"]})
+
+    def add_horizontal_mermaid(self, bundle: dict) -> None:
+        """Attach the same unregistered layout to either delivery mode."""
+
         source = "```mermaid\nflowchart LR\nA --> B\n```"
         bundle["task_contract"]["context"]["components"].append("FLOWCHART")
         bundle["task_contract"]["components"]["component_order"].append({"component_id": "FLOW-1", "source_before_explanation": True})
@@ -143,9 +153,6 @@ class VNextRuntimeTests(unittest.TestCase):
         bundle["rendered_document"]["text"] = source + "\n" + bundle["rendered_document"]["text"]
         bundle["rendered_document"]["sha256"] = hashlib.sha256(bundle["rendered_document"]["text"].encode("utf-8")).hexdigest()
         bundle["iterations"]["final_sha256"] = bundle["rendered_document"]["sha256"]
-        report = verify_bundle(bundle)
-        self.assertEqual("FAIL", report["status"])
-        self.assertIn("MERMAID_VERTICAL_DEFAULT", {item["rule_id"] for item in report["findings"]})
 
     def test_carried_actor_requires_matching_previous_actor(self) -> None:
         """Natural subject omission is valid only when the prior actor is unchanged."""
@@ -160,12 +167,13 @@ class VNextRuntimeTests(unittest.TestCase):
     def test_excessive_blank_lines_fail(self) -> None:
         """Two consecutive blank lines are a deterministic layout error."""
 
-        bundle = self.build_bundle()
+        bundle = self.build_bundle(evaluation_mode="strict")
         text = "任务已接收\n\n\n"
         bundle["rendered_document"]["text"] = text
         bundle["rendered_document"]["sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
         bundle["iterations"]["final_sha256"] = bundle["rendered_document"]["sha256"]
         report = verify_bundle(bundle)
+        self.assertEqual("FAIL", report["status"])
         self.assertIn("EXCESSIVE_BLANK_LINES", {item["rule_id"] for item in report["findings"]})
 
     def test_required_source_uses_registered_blockquote(self) -> None:
@@ -197,12 +205,14 @@ class VNextRuntimeTests(unittest.TestCase):
     def test_chinese_full_stop_fails_lucas_profile(self) -> None:
         """Generated Chinese punctuation remains a profile-required deterministic rule."""
 
-        bundle = copy.deepcopy(self.build_bundle())
+        bundle = copy.deepcopy(self.build_bundle(evaluation_mode="strict"))
         bundle["rendered_document"]["text"] = "任务已接收。"
         bundle["rendered_document"]["sentences"][0]["text"] = "任务已接收。"
         bundle["rendered_document"]["sha256"] = hashlib.sha256("任务已接收。".encode("utf-8")).hexdigest()
         bundle["iterations"]["final_sha256"] = bundle["rendered_document"]["sha256"]
-        self.assertEqual("FAIL", verify_bundle(bundle)["status"])
+        report = verify_bundle(bundle)
+        self.assertEqual("FAIL", report["status"])
+        self.assertIn("LUCAS_PUNCTUATION", {item["rule_id"] for item in report["findings"]})
 
     def add_term(self, bundle: dict, requirement: dict, use: dict, text: str) -> None:
         """Attach one term requirement and its rendered use to a valid bundle."""
@@ -597,7 +607,9 @@ class VNextRuntimeTests(unittest.TestCase):
         self.configure_long_context(bundle)
         self.assertEqual("PASS", verify_bundle(bundle)["status"])
 
-    def add_github_image(self, bundle: dict, evidence: list[dict]) -> None:
+    def add_github_image(
+        self, bundle: dict, evidence: list[dict], *, evaluation_mode: str | None = None,
+    ) -> None:
         """Attach one centered GitHub image and its renderer evidence."""
 
         source = '<div align="center"><img src="figure.svg" alt="示意图" /><p>图 1. 示意图</p></div>'
@@ -605,6 +617,7 @@ class VNextRuntimeTests(unittest.TestCase):
             "task_id": "TASK-TEST-IMG", "base_operation": "EXPLAIN", "augmentation": "GLOSS",
             "audience": "general_reader", "genre": "readme", "media": ["github_markdown"],
             "components": ["TEXT", "IMAGE"], "render_evidence": evidence,
+            **({"evaluation_mode": evaluation_mode} if evaluation_mode is not None else {}),
         })
         bundle["component_coverage"] = [{
             "component_id": "IMAGE", "component_type": "IMAGE", "source_text": source,
@@ -621,8 +634,9 @@ class VNextRuntimeTests(unittest.TestCase):
         """Source alignment markup alone cannot prove the rendered result."""
 
         bundle = self.build_bundle()
-        self.add_github_image(bundle, [])
+        self.add_github_image(bundle, [], evaluation_mode="strict")
         report = verify_bundle(bundle)
+        self.assertEqual("FAIL", report["status"])
         self.assertIn("GITHUB_RENDER_EVIDENCE", {item["rule_id"] for item in report["findings"]})
 
     def test_github_visual_passes_four_render_results(self) -> None:
@@ -634,8 +648,47 @@ class VNextRuntimeTests(unittest.TestCase):
             for width in (390, 1280) for theme in ("light", "dark")
         ]
         bundle = self.build_bundle()
-        self.add_github_image(bundle, evidence)
+        self.add_github_image(bundle, evidence, evaluation_mode="strict")
         self.assertEqual("PASS", verify_bundle(bundle)["status"])
+
+    def test_light_delivery_preserves_style_advisories_and_content_findings(self) -> None:
+        """Default light delivery retains layout evidence and still rejects lost source content."""
+
+        for rule_id in (
+            "LUCAS_PUNCTUATION", "EXCESSIVE_BLANK_LINES",
+            "GITHUB_RENDER_EVIDENCE", "MERMAID_VERTICAL_DEFAULT",
+        ):
+            with self.subTest(rule_id=rule_id):
+                bundle = self.build_bundle()
+                if rule_id == "GITHUB_RENDER_EVIDENCE":
+                    self.add_github_image(bundle, [])
+                elif rule_id == "MERMAID_VERTICAL_DEFAULT":
+                    self.add_horizontal_mermaid(bundle)
+                else:
+                    text = "任务已接收。" if rule_id == "LUCAS_PUNCTUATION" else "任务已接收\n\n\n"
+                    bundle["rendered_document"]["text"] = text
+                    bundle["rendered_document"]["sentences"][0]["text"] = text.rstrip()
+                    bundle["rendered_document"]["sha256"] = sha256_text(text)
+                    bundle["iterations"]["final_sha256"] = sha256_text(text)
+                delivery = bundle["task_contract"]["delivery"]
+                self.assertEqual("light", delivery["guidance"]["mode"])
+                self.assertEqual(1, delivery["iteration_policy"]["max_repair_rounds"])
+                original = copy.deepcopy(bundle)
+                report = verify_bundle(bundle)
+                self.assertEqual("PASS", report["status"])
+                self.assertEqual([], report["findings"])
+                advisory = next(item for item in report["advisories"] if item["rule_id"] == rule_id)
+                self.assertEqual("ADVISORY", advisory["status"])
+                self.assertTrue(advisory["location"])
+                self.assertTrue(advisory["reason"])
+                self.assertEqual(len(report["advisories"]), report["summary"]["advisory_rules"])
+                self.assertEqual(original, bundle)
+
+                bundle["segment_contracts"][0]["coverage"]["source_atoms"] = []
+                report = verify_bundle(bundle)
+                self.assertEqual("FAIL", report["status"])
+                self.assertIn("SOURCE_ATOM_ALLOCATION", {item["rule_id"] for item in report["findings"]})
+                self.assertIn(advisory, report["advisories"])
 
     def test_professional_term_requires_name_rationale(self) -> None:
         """A standalone professional term must explain why its registered name is used."""

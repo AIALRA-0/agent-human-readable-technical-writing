@@ -7,6 +7,7 @@ import re
 from typing import Any, Callable, Iterable, Mapping, Sequence
 
 from patcher.deterministic_committer import apply_minimal_transaction, sha256_text
+from runtime.guidance import normalize_mode, split_findings, task_guidance
 
 
 MAX_REPAIR_ROUNDS = 3
@@ -351,6 +352,27 @@ def merge_findings(*groups: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]
     return merged
 
 
+def _runtime_task(manifest: Mapping[str, Any]) -> Mapping[str, Any]:
+    """Adapt the small closure manifest to the task shape used by guidance helpers."""
+
+    if "delivery" in manifest or "structure" in manifest or "terminology" in manifest:
+        return manifest
+    return {"delivery": {"guidance": manifest.get("guidance", {})}, "structure": manifest}
+
+
+def _split_for_mode(
+    findings: Iterable[Mapping[str, Any]],
+    manifest: Mapping[str, Any],
+    mode: str,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Keep unknown and content findings blocking, while downgrading known style advice."""
+
+    if mode == "strict":
+        return [dict(item) for item in findings], []
+    task = _runtime_task(manifest)
+    return split_findings([dict(item) for item in findings], task)
+
+
 def close_answer(
     initial_answer: str,
     model: str,
@@ -358,33 +380,61 @@ def close_answer(
     manifest: Mapping[str, Any],
     repair_rounds: Sequence[Mapping[str, Any]],
     validators: Iterable[Callable[[str], Sequence[str] | None]] = (),
+    *,
+    mode: str = "strict",
 ) -> tuple[str, dict[str, Any]]:
-    """Apply at most three supplied exact-patch rounds and return a closure ledger."""
+    """Apply a bounded closure policy and return a provenance-preserving ledger.
 
-    if len(repair_rounds) > MAX_REPAIR_ROUNDS:
-        raise ValueError("self-iterative closure cannot exceed three repair rounds")
+    ``strict`` is retained for explicit qualification and legacy callers
+    ``light`` performs one inexpensive self-check, exposes style findings as
+    advisories, and only applies a supplied exact patch when one is present
+    """
+
+    mode = normalize_mode(mode, default="strict")
+    guidance = task_guidance(_runtime_task(manifest), legacy_mode=mode)
+    if mode == "strict":
+        max_rounds = MAX_REPAIR_ROUNDS
+    else:
+        max_rounds = min(
+            MAX_REPAIR_ROUNDS,
+            int(guidance.get("self_review", {}).get("max_rounds", 1)),
+        )
+    if len(repair_rounds) > max_rounds:
+        raise ValueError(f"{mode} self-review cannot exceed {max_rounds} repair round(s)")
+
     answer = initial_answer
     first_hash = sha256_text(answer)
     records: list[dict[str, Any]] = []
-    status = FAIL
+    initial_all = deterministic_findings(answer, manifest)
+    initial_blocking, initial_advisories = _split_for_mode(initial_all, manifest, mode)
+    advisory_ids: list[str] = [str(item["finding_id"]) for item in initial_advisories]
+    status = PASS if not initial_blocking else REVIEW_REQUIRED
+
     for index, repair in enumerate(repair_rounds, start=1):
         deterministic = deterministic_findings(answer, manifest)
         semantic = list(repair.get("semantic_findings", []))
         combined = merge_findings(deterministic, semantic)
-        if not combined:
+        blocking, advisories = _split_for_mode(combined, manifest, mode)
+        advisory_ids.extend(str(item.get("finding_id", item.get("rule_id", "advisory"))) for item in advisories)
+        if not blocking and not repair.get("patches"):
             status = PASS
             break
-        if any(item.get("status") == REVIEW_REQUIRED for item in combined):
+        if any(item.get("status") == REVIEW_REQUIRED for item in blocking):
+            status = REVIEW_REQUIRED
+            break
+        if not repair.get("patches"):
             status = REVIEW_REQUIRED
             break
         before = sha256_text(answer)
         answer = apply_minimal_transaction(answer, repair.get("patches", []), line_nodes(answer), validators)
         after = sha256_text(answer)
-        remaining = merge_findings(
+        remaining_all = merge_findings(
             deterministic_findings(answer, manifest),
             repair.get("post_semantic_findings", []),
         )
-        round_status = PASS if not remaining else FAIL
+        remaining_blocking, remaining_advisories = _split_for_mode(remaining_all, manifest, mode)
+        advisory_ids.extend(str(item.get("finding_id", item.get("rule_id", "advisory"))) for item in remaining_advisories)
+        round_status = PASS if not remaining_blocking else FAIL
         records.append({
             "round": index,
             "reread_rules": True,
@@ -406,24 +456,56 @@ def close_answer(
             "after_sha256": after,
             "result_status": round_status,
         })
-        if any(item.get("status") == REVIEW_REQUIRED for item in remaining):
+        if any(item.get("status") == REVIEW_REQUIRED for item in remaining_blocking):
             status = REVIEW_REQUIRED
             break
         if round_status == PASS:
             status = PASS
             break
     else:
-        if not deterministic_findings(answer, manifest):
+        final_findings = deterministic_findings(answer, manifest)
+        final_blocking, final_advisories = _split_for_mode(final_findings, manifest, mode)
+        advisory_ids.extend(str(item.get("finding_id", item.get("rule_id", "advisory"))) for item in final_advisories)
+        if not final_blocking:
             status = PASS
+
+    # A light run can finish with style suggestions, but never with an
+    # unresolved source/content or explicit-contract problem.
     if status != PASS:
         status = REVIEW_REQUIRED
+    unique_advisory_ids = list(dict.fromkeys(advisory_ids))
     ledger = {
         "model": model,
         "worker_session_id": worker_session_id,
         "first_draft_sha256": first_hash,
         "final_sha256": sha256_text(answer),
-        "max_repair_rounds": MAX_REPAIR_ROUNDS,
+        "guidance_mode": mode,
+        "max_repair_rounds": max_rounds,
+        "initial_finding_ids": [str(item["finding_id"]) for item in initial_all],
+        "advisory_finding_ids": unique_advisory_ids,
+        "review_passes": 1 + len(records),
         "rounds": records,
         "status": status,
     }
     return answer, ledger
+
+
+def guide_answer(
+    initial_answer: str,
+    model: str,
+    worker_session_id: str,
+    manifest: Mapping[str, Any],
+    repair_rounds: Sequence[Mapping[str, Any]] = (),
+    validators: Iterable[Callable[[str], Sequence[str] | None]] = (),
+) -> tuple[str, dict[str, Any]]:
+    """Run the default lightweight writing path without external review."""
+
+    return close_answer(
+        initial_answer,
+        model,
+        worker_session_id,
+        manifest,
+        repair_rounds,
+        validators,
+        mode="light",
+    )

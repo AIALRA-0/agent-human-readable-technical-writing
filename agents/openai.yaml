@@ -1,7 +1,7 @@
 interface:
-  display_name: "AIALRA 可验证中文写作"
-  short_description: "完整保留原文并分层加入解释，适用于中文写作、改写、翻译和技术说明"
-  default_prompt: "使用 $human-readable-technical-writing；先编译基础操作与解释增量，再追踪原文和补充来源，最后生成符合读者需求的中文内容"
+  display_name: "中文格式与零基础解释"
+  short_description: "遵守中文标点、术语、列表和代码格式，把陌生技术与知识讲到新手能够理解和使用"
+  default_prompt: "使用 $human-readable-technical-writing，遵守格式规则，按零基础解释框架讲清当前内容，交付前复读规则并局部修复"
 
 policy:
   allow_implicit_invocation: true

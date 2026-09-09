@@ -19,14 +19,47 @@
       "type": "object", "additionalProperties": false,
       "required": ["iteration_policy"],
       "properties": {
+        "guidance": {
+          "type": "object", "additionalProperties": false,
+          "required": ["mode", "default_depth", "selected_depth", "expand_triggers", "style_enforcement", "content_integrity_protection", "self_review", "optional_enhancements"],
+          "properties": {
+            "mode": {"enum": ["light", "strict"]},
+            "default_depth": {"enum": ["minimal", "guided", "expanded"]},
+            "selected_depth": {"enum": ["minimal", "guided", "expanded"]},
+            "expand_triggers": {
+              "type": "array", "uniqueItems": true,
+              "items": {"enum": ["long_input", "high_risk", "material_ambiguity", "user_request", "multi_step"]}
+            },
+            "style_enforcement": {"enum": ["advisory", "task_required"]},
+            "content_integrity_protection": {"const": true},
+            "self_review": {
+              "type": "object", "additionalProperties": false,
+              "required": ["default_rounds", "max_rounds", "external_semantic_review", "local_patch_only"],
+              "properties": {
+                "default_rounds": {"type": "integer", "minimum": 0, "maximum": 3},
+                "max_rounds": {"type": "integer", "minimum": 0, "maximum": 3},
+                "external_semantic_review": {"type": "boolean"},
+                "local_patch_only": {"const": true}
+              }
+            },
+            "optional_enhancements": {
+              "type": "object", "additionalProperties": false,
+              "required": ["line_numbers", "hover_term_cards"],
+              "properties": {
+                "line_numbers": {"type": "boolean"},
+                "hover_term_cards": {"type": "boolean"}
+              }
+            }
+          }
+        },
         "iteration_policy": {
           "type": "object", "additionalProperties": false,
           "required": ["reread_rules", "deterministic_review", "semantic_review", "max_repair_rounds", "patch_scope"],
           "properties": {
             "reread_rules": {"const": true},
             "deterministic_review": {"const": true},
-            "semantic_review": {"const": true},
-            "max_repair_rounds": {"const": 3},
+            "semantic_review": {"type": "boolean"},
+            "max_repair_rounds": {"type": "integer", "minimum": 0, "maximum": 3},
             "patch_scope": {"const": "smallest_complete_unit"}
           }
         }
@@ -166,7 +199,8 @@
               "items": {"type": "integer", "minimum": 1, "maximum": 6}
             },
             "basis": {"type": "string", "minLength": 1},
-            "colon_pseudo_headings_allowed": {"const": false}
+            "colon_pseudo_headings_allowed": {"const": false},
+            "enforced": {"type": "boolean"}
           }
         }
       }

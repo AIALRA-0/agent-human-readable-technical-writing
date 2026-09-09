@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AIALRA-0/agent-human-readable-technical-writing/contracts/format-review-output.schema.json",
+  "title": "CleanFormatReviewOutput",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["reviewed_categories", "findings"],
+  "properties": {
+    "reviewed_categories": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "punctuation", "blocks_and_blank_lines", "headings", "parallel_items", "nesting",
+        "chinese_english", "terminology", "formula", "code", "image", "table",
+        "quotation_and_mixed_media", "source_preservation"
+      ],
+      "properties": {
+        "punctuation": {"type": "boolean", "const": true},
+        "blocks_and_blank_lines": {"type": "boolean", "const": true},
+        "headings": {"type": "boolean", "const": true},
+        "parallel_items": {"type": "boolean", "const": true},
+        "nesting": {"type": "boolean", "const": true},
+        "chinese_english": {"type": "boolean", "const": true},
+        "terminology": {"type": "boolean", "const": true},
+        "formula": {"type": "boolean", "const": true},
+        "code": {"type": "boolean", "const": true},
+        "image": {"type": "boolean", "const": true},
+        "table": {"type": "boolean", "const": true},
+        "quotation_and_mixed_media": {"type": "boolean", "const": true},
+        "source_preservation": {"type": "boolean", "const": true}
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rule_id", "status", "location", "old_text", "reason", "repair_scope"],
+        "properties": {
+          "rule_id": {"type": "string", "pattern": "^FMT-[0-9]{3}$"},
+          "status": {"enum": ["FAIL", "REVIEW_REQUIRED"]},
+          "location": {"type": "string", "pattern": "^LINE-[0-9]{4}$"},
+          "old_text": {"type": "string", "minLength": 1, "pattern": "^[^\\r\\n]+$"},
+          "reason": {"type": "string", "minLength": 1},
+          "repair_scope": {"enum": ["token", "phrase", "sentence"]}
+        }
+      }
+    }
+  }
+}

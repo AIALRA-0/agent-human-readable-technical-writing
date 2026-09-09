@@ -4,9 +4,10 @@
 
 <p><strong>完整保留源信息，分开追踪补充解释，再生成能够阅读、核对和局部修复的中文</strong></p>
 
-<p><strong>当前状态：vNext 1.1 第二轮 20 个首稿等待逐项人工审核；自动检查发现 14 项机械问题</strong></p>
+<p><strong>当前普通用法：轻量写作指导</strong></p>
 
 <p>
+  <a href="SKILL.md">当前技能入口</a> ·
   <a href="evals/forward/round-2/review-batches/INDEX.md">第二轮分批审核</a> ·
   <a href="docs/design/vnext-1.1-authoritative-plan.md">权威设计</a> ·
   <a href="README.en.md">English</a>
@@ -15,6 +16,10 @@
 </div>
 
 这个仓库维护 `human-readable-technical-writing` Codex Skill；vNext 1.1 把写作任务拆成基础操作和解释增量，并把原文、用户补充、外部背景与推断分别登记
+
+普通使用以 [当前技能入口](SKILL.md)、[格式规则](references/format-rules.md) 和 [零基础解释框架](references/explanation-framework.md) 为准，结构化排版按需使用，不依赖其他助手
+
+以下任务合同、严格验证流程及前向审核轮次保留为专用接口与历史开发记录，不是普通写作的必经流程；历史模型成绩不代表当前版本对任意输入全部遵守，最新范围与实测情况见 [续行记录](docs/plans/2026-09-08-two-layer/continuation-20260909.md)
 
 ## 1. 项目解决什么问题
 

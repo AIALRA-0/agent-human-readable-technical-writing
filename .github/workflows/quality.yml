@@ -67,5 +67,8 @@ jobs: # 定义相互独立的自动检查任务
       - name: Test isolated self-iterative workflow # 验证会话绑定、访问审计、局部补丁、组件保真和复验后通过
         run: python -m unittest discover -s tests -p "test_self_iterative_workflow.py" -v # 不调用外部模型，只执行编排和合同回归
 
+      - name: Test all local tools and regressions # 自动纳入轻量写作、排版、采集器及后续新增回归
+        run: python -m unittest discover -s tests # 全量本地测试不调用外部模型，不代替用户接受
+
       - name: Verify generated evidence synchronization # 确认确定性案例、审核包和前向候选摘要能够从登记源重建
         run: python scripts/build_vnext_minimal_cases.py && python scripts/build_eval_inventory.py && python scripts/build_vnext_trigger_matrix.py && python scripts/build_forward_round1_requests.py && python scripts/materialize_forward_round1.py && python scripts/apply_vnext_round3_review.py && python scripts/build_round4_review_packet.py && python scripts/apply_vnext_round4_review.py && python scripts/build_round5_review_packet.py && python scripts/apply_vnext_round5_review.py && python scripts/rebuild_forward_rounds.py && python scripts/build_long_context_stress.py && git diff --exit-code -- evals/candidate evals/gold evals/rejected evals/deterministic evals/contextual evals/trigger-matrix/vnext-1.1-72-cases.jsonl evals/forward evals/long-context/vnext-1.1-8-cases.jsonl evals/reviews/vnext-1.1-round-4-REVIEW-PACKET.md evals/reviews/vnext-1.1-round-5-REVIEW-PACKET.md # 任何用户快照、案例清单、首次答案、长上下文案例、审核账本或修订证据变化都会阻止候选提交

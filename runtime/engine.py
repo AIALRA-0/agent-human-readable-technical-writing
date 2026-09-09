@@ -11,6 +11,8 @@ from typing import Any, Iterable
 import jsonschema
 from referencing import Registry, Resource
 
+from runtime.guidance import resolve_guidance, split_findings
+
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACTS = ROOT / "contracts"
@@ -138,15 +140,24 @@ def compile_contract(specification: dict[str, Any]) -> dict[str, Any]:
         "多个独立内容区块需要标题" if headings_required else "短单主题内容不需要标题",
     )
     section_plan.setdefault("colon_pseudo_headings_allowed", False)
+    clarification = specification.get("clarification", {"status": "CLEAR", "blocking_questions": []})
+    guidance = resolve_guidance(
+        specification,
+        length_class=length_class,
+        section_count=section_count,
+        clarification_status=str(clarification.get("status", "CLEAR")),
+    )
+    section_plan.setdefault("enforced", guidance["mode"] == "strict")
 
     contract = {
         "identity": {"task_id": specification["task_id"], "contract_version": "1.1", "profile_revision": "round-6-self-iterative-cross-model"},
         "delivery": {
+            "guidance": guidance,
             "iteration_policy": {
                 "reread_rules": True,
                 "deterministic_review": True,
-                "semantic_review": True,
-                "max_repair_rounds": 3,
+                "semantic_review": guidance["self_review"]["external_semantic_review"],
+                "max_repair_rounds": guidance["self_review"]["max_rounds"],
                 "patch_scope": "smallest_complete_unit",
             }
         },
@@ -210,7 +221,7 @@ def compile_contract(specification: dict[str, Any]) -> dict[str, Any]:
             "rule_levels": list(specification.get("rule_levels", RULE_LEVELS)),
             "inline_code_tokens": list(specification.get("inline_code_tokens", [])),
         },
-        "clarification": specification.get("clarification", {"status": "CLEAR", "blocking_questions": []}),
+        "clarification": clarification,
     }
     _validate(contract, "task-contract.schema.json")
     return contract
@@ -752,23 +763,52 @@ def verify_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
             findings.append(_finding("BOUNDARY_EVIDENCE", requirement["claim_id"], "证据边界缺少证据缺口、重要性或下一项验证", "裸露的否定结论不能指导后续核对", "补齐三项边界内容"))
         checks += 1
 
-    report = _build_report(findings, checks)
+    blocking_findings, advisories = split_findings(findings, task)
+    report = _build_report(blocking_findings, checks, advisories)
     _validate(report, "verification-report.schema.json")
     return report
 
 
-def _build_report(findings: list[dict[str, str]], checked_rules: int) -> dict[str, Any]:
+def _as_advisory(finding: dict[str, Any]) -> dict[str, Any]:
+    """Copy one finding into the non-blocking advisory envelope."""
+
+    advisory = dict(finding)
+    advisory["status"] = "ADVISORY"
+    return advisory
+
+
+def _build_report(
+    findings: list[dict[str, str]],
+    checked_rules: int,
+    advisories: Iterable[dict[str, Any]] = (),
+) -> dict[str, Any]:
     """Derive one stable status while preserving every finding's causal explanation."""
 
     failed = sum(item["status"] == "FAIL" for item in findings)
     review = sum(item["status"] == "REVIEW_REQUIRED" for item in findings)
+    advisory_items = [_as_advisory(item) for item in advisories]
     if failed:
         status, reason, impact, next_step = "FAIL", f"已确认 {failed} 项结构、引用或覆盖错误", "当前正文不能交付或修复", "按照问题位置局部修复后重新验证"
     elif review:
         status, reason, impact, next_step = "REVIEW_REQUIRED", f"存在 {review} 项需要用户决定的阻塞性歧义", "程序无法安全确定正确内容", "取得用户决定后重新编译任务合同"
+    elif advisory_items:
+        status, reason, impact, next_step = "PASS", f"必要检查通过，另有 {len(advisory_items)} 项可选写作建议", "建议不会阻断当前交付，也不代表用户已经接受", "需要时只修复对应的最小表达单元"
     else:
         status, reason, impact, next_step = "PASS", "结构、引用、覆盖、顺序和精确保留检查全部通过", "验证包可以进入人工审核", "由用户判断表达是否达到最终阅读标准"
-    return {"status": status, "summary": {"checked_rules": checked_rules, "failed_rules": failed, "review_rules": review, "reason": reason, "impact": impact, "next": next_step}, "findings": findings}
+    return {
+        "status": status,
+        "summary": {
+            "checked_rules": checked_rules,
+            "failed_rules": failed,
+            "review_rules": review,
+            "advisory_rules": len(advisory_items),
+            "reason": reason,
+            "impact": impact,
+            "next": next_step,
+        },
+        "findings": findings,
+        "advisories": advisory_items,
+    }
 
 
 def report_summary(report: dict[str, Any]) -> dict[str, Any]:

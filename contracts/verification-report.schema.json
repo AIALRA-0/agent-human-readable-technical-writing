@@ -14,6 +14,7 @@
         "checked_rules": {"type": "integer", "minimum": 0},
         "failed_rules": {"type": "integer", "minimum": 0},
         "review_rules": {"type": "integer", "minimum": 0},
+        "advisory_rules": {"type": "integer", "minimum": 0},
         "reason": {"type": "string", "minLength": 1},
         "impact": {"type": "string", "minLength": 1},
         "next": {"type": "string", "minLength": 1}
@@ -27,6 +28,21 @@
         "properties": {
           "rule_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]+$"},
           "status": {"enum": ["FAIL", "REVIEW_REQUIRED"]},
+          "location": {"type": "string", "minLength": 1},
+          "reason": {"type": "string", "minLength": 1},
+          "impact": {"type": "string", "minLength": 1},
+          "next": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "advisories": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["rule_id", "status", "location", "reason", "impact", "next"],
+        "properties": {
+          "rule_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]+$"},
+          "status": {"const": "ADVISORY"},
           "location": {"type": "string", "minLength": 1},
           "reason": {"type": "string", "minLength": 1},
           "impact": {"type": "string", "minLength": 1},

@@ -7,6 +7,8 @@ import json
 import sys
 from pathlib import Path
 
+import jsonschema
+
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
@@ -27,7 +29,7 @@ def main() -> int:
 
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command", required=True)
-    for name in ("compile", "verify", "report", "close"):
+    for name in ("compile", "verify", "report", "close", "guide"):
         command = subparsers.add_parser(name)
         command.add_argument("--input", required=True)
         command.add_argument("--output")
@@ -48,6 +50,14 @@ def main() -> int:
             final_answer, iterations = close_answer(
                 payload["initial_answer"], payload["model"], payload["worker_session_id"],
                 payload["manifest"], payload.get("repair_rounds", []),
+                mode=payload.get("mode"),
+            )
+            result = {"status": iterations["status"], "final_answer": final_answer, "iterations": iterations}
+        elif arguments.command == "guide":
+            final_answer, iterations = close_answer(
+                payload["initial_answer"], payload["model"], payload["worker_session_id"],
+                payload["manifest"], payload.get("repair_rounds", []),
+                mode="light",
             )
             result = {"status": iterations["status"], "final_answer": final_answer, "iterations": iterations}
         else:

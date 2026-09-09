@@ -4,9 +4,10 @@
 
 <p><strong>Preserve source information, track explanatory additions, and generate Chinese that remains readable, auditable, and locally repairable</strong></p>
 
-<p><strong>Status: twenty vNext 1.1 round-two first drafts await item-by-item human review; automated checks found fourteen mechanical issues</strong></p>
+<p><strong>Current ordinary use: lightweight writing guidance</strong></p>
 
 <p>
+  <a href="SKILL.md">Current skill entrypoint</a> ·
   <a href="evals/forward/round-2/review-batches/INDEX.md">Round-two review batches</a> ·
   <a href="docs/design/vnext-1.1-authoritative-plan.md">Authoritative design</a> ·
   <a href="README.md">简体中文</a>
@@ -15,6 +16,10 @@
 </div>
 
 This repository maintains the `human-readable-technical-writing` Codex Skill; vNext 1.1 separates the base writing operation from the permitted explanatory augmentation, while tracking source statements, user-supplied facts, external background, and inferences independently
+
+Ordinary use follows the [current entrypoint](SKILL.md), [format rules](references/format-rules.md), and [novice explanation framework](references/explanation-framework.md). Structured composition is optional and does not require another agent
+
+The contracts, strict workflows, and forward-review rounds below remain specialized interfaces and historical development records, not prerequisites for ordinary writing. Historical model scores do not establish universal compliance for the current version; see the [continuation record](docs/plans/2026-09-08-two-layer/continuation-20260909.md) for the current scope and observed results
 
 ## 1. Purpose
 
