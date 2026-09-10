@@ -1,136 +1,191 @@
 <div align="center">
 
-<h1 align="center">AIALRA Verifiable Chinese Writing</h1>
+<h1>AIALRA Verifiable Chinese Writing</h1>
 
-<p><strong>Preserve source information, track explanatory additions, and generate Chinese that remains readable, auditable, and locally repairable</strong></p>
+<p><strong>Help coding agents follow stable Chinese formatting rules and explain unfamiliar technical material to first-time readers</strong></p>
 
-<p><strong>Current ordinary use: lightweight writing guidance</strong></p>
+<p>Current path: lightweight writing guidance · optional local review · user-controlled acceptance</p>
 
 <p>
-  <a href="SKILL.md">Current skill entrypoint</a> ·
-  <a href="evals/forward/round-2/review-batches/INDEX.md">Round-two review batches</a> ·
-  <a href="docs/design/vnext-1.1-authoritative-plan.md">Authoritative design</a> ·
-  <a href="README.md">简体中文</a>
+  <a href="README.md">简体中文</a> ·
+  <a href="SKILL.md">Skill entrypoint</a> ·
+  <a href="#2-get-started">Get started</a> ·
+  <a href="#6-validation-scope-and-limitations">Validation scope</a>
 </p>
 
 </div>
 
-This repository maintains the `human-readable-technical-writing` Codex Skill; vNext 1.1 separates the base writing operation from the permitted explanatory augmentation, while tracking source statements, user-supplied facts, external background, and inferences independently
+This repository maintains an installable Chinese writing skill
 
-Ordinary use follows the [current entrypoint](SKILL.md), [format rules](references/format-rules.md), and [novice explanation framework](references/explanation-framework.md). Structured composition is optional and does not require another agent
+It first constrains punctuation, headings, lists, terminology, code, formulas, images, and tables, then applies a novice-oriented explanation framework that supplies the prerequisites, reasons, process, outcomes, and conditions needed to continue
 
-The contracts, strict workflows, and forward-review rounds below remain specialized interfaces and historical development records, not prerequisites for ordinary writing. Historical model scores do not establish universal compliance for the current version; see the [continuation record](docs/plans/2026-09-08-two-layer/continuation-20260909.md) for the current scope and observed results
+Ordinary use reads one entrypoint and two core rule files; it does not require another agent, model voting, or the full evaluation system
 
-## 1. Purpose
+## 1 Purpose
 
-The system protects five boundaries:
+The skill addresses two recurring failures
 
-* Source completeness for transformations and translations
-* Explicit provenance for definitions, mechanisms, examples, and inferences
-* Readable structures for terminology, parallel groups, images, tables, and code
-* Minimal, digest-bound repairs instead of full-document regeneration
-* User authority over Gold and Rejected examples
+- Unstable formatting
+  - Ordinary Chinese prose does not use Chinese full stops
+  - Independent parallel items are separated and indented by semantic level
+  - Terminology, bilingual naming, code comments, formulas, images, and tables use consistent, reviewable structures
+- Explanations that assume prior knowledge
+  - Education, occupation, or earlier exposure to a term is not treated as proof of background knowledge
+  - Every key object explains what it is, why it is needed, how it works, what result it produces, and when it does not apply
+  - Source facts, conditions, quantities, negations, scope, and provenance remain intact when explanatory material is added
 
-Facts, conditions, scope, quantities, provenance, and source completeness are hard boundaries; tone and ordinary narrative choices are calibrated through user-reviewed examples
+The skill is intended for Chinese answers, transformations, explanatory translations, technical instructions, status reports, and mixed-media documents
 
-## 2. Processing Flow
+It does not automatically apply Chinese prose rules to code-only, data-only, numeric-only, or explicitly non-Chinese output
+
+## 2 Get started
+
+### 2.1 Ask a coding agent to install it
+
+Give the following request to an agent that can install skills from a GitHub repository
+
+```text
+Install the skill from the repository root of https://github.com/AIALRA-0/agent-human-readable-technical-writing at main, using the name human-readable-technical-writing
+```
+
+### 2.2 Install manually
+
+Confirm that the destination does not contain an older copy, then clone the repository into the skills directory of the active Codex home
+
+```powershell
+# Clone the latest main branch directly into the active Codex skills directory
+git clone --depth 1 https://github.com/AIALRA-0/agent-human-readable-technical-writing.git "$env:CODEX_HOME\skills\human-readable-technical-writing"
+```
+
+The skill becomes discoverable in a new task
+
+### 2.3 Invoke it explicitly
+
+Name the skill directly when predictable activation matters
+
+```text
+Use $human-readable-technical-writing to explain the following technical material to a first-time reader while preserving every fact, condition, number, and exception
+```
+
+An agent may also invoke the skill from its description, but explicit naming makes the intended writing contract clear
+
+## 3 Execution flow
+
+The ordinary path remains lightweight; one agent reads the rules, writes, reviews, and applies local repairs
+
+<div align="center">
 
 ```mermaid
 flowchart TD
-    A[Compile operation, augmentation, audience, and medium] --> B{Would ambiguity change the result}
-    B -->|Yes| C[Ask one consolidated clarification]
-    C --> A
-    B -->|No| D[Register source, background, and inference units]
-    D --> E[Build segment, parallel-group, and component coverage]
-    E --> F[Render the target document]
-    F --> G[Run deterministic and structural checks]
-    G --> H[Create digest-bound exact patches]
-    H --> I[Recheck the local change and full document]
-    I --> J[User review]
-    J -->|Accept| K[Move to Gold]
-    J -->|Reject| L[Move to Rejected and create a new Candidate]
+    A[Receive the request and source material] --> B[Read the skill entrypoint]
+    B --> C[Read the format rules and novice explanation framework]
+    C --> D[Plan the structure and write one draft]
+    D --> E[Review format, explanation, and source fidelity]
+    E --> F{Is a safe local repair available}
+    F -->|Yes| G[Submit the smallest patch through the middleware]
+    G --> E
+    F -->|No or two rounds reached| H[Deliver the current final answer]
 ```
 
-<p align="center">Figure 2.1. vNext 1.1 processing flow from task compilation to user review</p>
+<p>Figure 3.1　Ordinary writing flow from request intake to final delivery</p>
 
-Automated checks may produce a review packet; only explicit user acceptance may promote a Candidate to Gold
+</div>
 
-## 3. Task Model
+Task contracts, source mappings, strict validators, and forward cases support development, audits, and specialized evaluation; they are not prerequisites for an ordinary answer
 
-Each task combines two independent dimensions:
+## 4 Core rules
 
-* Base operation: `TRANSFORM`, `TRANSLATE`, `COMPRESS`, `EXPLAIN`, `GENERATE`, or `FORMAT_ONLY`
-* Explanatory augmentation: `NONE`, `GLOSS`, `EXPLANATORY`, `TEACHING`, or `RESEARCHED`
+### 4.1 Format first
 
-`TRANSLATE + EXPLANATORY` preserves all source information while adding separately sourced background needed by the target reader
+- Ordinary Chinese prose, headings, list items, captions, and explanations outside tables do not use Chinese full stops
+- Two or more independent definitions, steps, facts, reasons, comparison targets, or actions are placed on separate lines
+- Nested content increases indentation instead of flattening semantic levels
+- Multi-topic content uses hierarchical headings, while short single-topic content may omit headings
+- Images with figure captions and tables with table captions share centered containers when the target medium supports them
+- A wide table scrolls inside its own container rather than overflowing the page
 
-## 4. Round-Five Finalization Changes
+See the complete [top-level format rules](references/format-rules.md)
 
-The current candidate adds five general mechanisms:
+### 4.2 Teach a first-time reader
 
-* Complete first-use contracts for professional terms, including official names, definitions, name rationale, present role, and impact
-* Indented lists for Agent-declared parallel groups, regardless of whether a colon appears
-* GitHub render evidence at 1280-pixel and 390-pixel viewports in light and dark themes
-* Per-statement code coverage through legal comments or independently locatable line-by-line explanations
-* Same-line comments aligned after the longest commentable code line in each block, with line-by-line fallback for JSON and other non-commentable formats
-* AEMP content-sufficiency routing for reader tasks, first-screen information, evidence binding, three-layer drill-down, and deletion testing
-* Removal of superseded requirements unless history, audit, evidence, or revocation context explicitly requires them
+- Supply each required prerequisite before using an unfamiliar concept
+- Explain the object, input, change, result, and reason behind every key mechanism
+- Provide a complete worked example for abstract mechanisms, calculations, or multi-step operations
+- Explain conditions, negations, exceptions, scope, and common confusion where they affect use
+- Preserve images, tables, code, and logs before explaining how to read them and what they support
 
-The official lowercase `npm` form is preserved; authored prose explains it as the package-management client and package registry used by the Node.js ecosystem, without inventing `Node.js Package Manager` as an expansion
+See the complete [novice explanation framework](references/explanation-framework.md)
 
-## 5. Verification
+### 4.3 Preserve source information
 
-The current local evidence is:
+- Transformations and translations cannot retain only the gist
+- Added background cannot masquerade as an author's conclusion
+- An unsourced mechanism cannot be stated as established fact
+- A local defect changes only the affected character, phrase, sentence, or list item
+- Automated checks cannot substitute for user acceptance
 
-* Deterministic fixtures: 252/252
-* Context fixtures: 40/40
-* Lifecycle records: 82/82, comprising 32 Gold, 30 Rejected, and 20 pending round-two Candidate records
-* Exact patch tests: 18/18
-* Runtime tests: 38/38
-* Forward-review workflow tests: 9/9, covering complete finding aggregation, four five-case review pages, digest-bound decisions, idempotent transitions, rejected revisions, later-round gates, and the two-round perfect streak
-* Trigger matrix: 72/72 isolated tasks passed on fixed `gpt-5.6-sol`; raw bodies remain in a local private report and the repository stores only digests, event summaries, counts, and deidentified conclusions
-* Long-context stress matrix: 8/8 frozen isolated tasks over 1,312–1,585-character inputs; the public evidence preserves two evaluator false-positive corrections and no model rerun
-* Original forward-round acceptance: 8/20, or 40%
-* Round-two forward drafts: 20 pending manual review; deterministic checks found 14 issues across 12 punctuation-profile cases and two source-code-preservation cases
+## 5 Optional tools
 
-The 8/20 result is permanent evidence from the first unseen round; revised answers do not replace that score
+Ordinary writing does not require repository tools
 
-## 6. Manual Review
+The following entrypoints are available for complex structured material or auditable output
 
-The [round-two review index](evals/forward/round-2/review-batches/INDEX.md) divides 20 once-generated, digest-frozen first drafts into four five-case batches; the [complete packet](evals/forward/round-2/REVIEW-PACKET.md) preserves the same content and answer SHA-256 bindings
+```powershell
+# Show the structured-composition input format
+python scripts/compose_writing.py --help
 
-Round two already has mechanical hard errors and cannot count as a perfect round; round three remains blocked until every round-two rejection is revised and every current revision is explicitly accepted; rounds three and four must then both score 20/20 on first drafts to satisfy the two-round release streak
+# Inspect Chinese formatting and produce locatable findings
+python scripts/review_writing.py --help
 
-The [round-four implementation audit](docs/audits/2026-08-31-vnext-1.1-round-4/audit.md) preserves migration provenance; the [round-two broad-coverage audit](docs/audits/2026-09-01-vnext-1.1-forward-round-2/audit.md) records current counts, review interfaces, and remaining release gates
+# Show the strict task-contract, verification, repair, and reporting interfaces
+python scripts/run_vnext.py --help
+```
 
-## 7. Repository Structure
+These programs verify deterministic structure and exact modifications; they do not claim to prove universal semantic equivalence or complete understanding for every reader
 
-The active implementation is divided into focused directories:
+## 6 Validation scope and limitations
 
-* `constitution/` stores source, provenance, rule-level, and user-review boundaries
-* `runtime/` stores task compilation, source understanding, content blueprints, rendering, verification, and repair
-* `contracts/` stores JSON Schema definitions for tasks, mappings, patches, lifecycle records, and forward reports
-* `profiles/` stores operations, augmentation levels, media, components, and the Lucas profile
-* `registries/` stores terms, units, and protected patterns
-* `validators/` stores deterministic, contextual, and advisory checks
-* `patcher/` stores conflict detection, transaction validation, and the deterministic committer
-* `evals/` separates Candidate, Gold, Rejected, deterministic, and forward-test evidence
+The current `main` branch is continuously checked by [GitHub Actions](https://github.com/AIALRA-0/agent-human-readable-technical-writing/actions/workflows/quality.yml)
 
-## 8. Privacy
+Evidence registered for the current version covers
 
-The public repository stores synthetic cases, deidentified technical feedback, repository-relative paths, and public references only
+- 288 deterministic pass and fail fixtures
+- 48 contextual contracts
+- 72 trigger-matrix cases
+- 8 long-context stress cases
+- 371 passing local unit tests, with 1 intentionally skipped
+- 21 combined format cases registering all 120 format rules
 
-The following content is prohibited:
+These results show consistency among the corresponding cases, inventories, and program behavior; they do not guarantee a perfect natural-language result for arbitrary input
 
-* Raw conversations, account data, and personal absolute paths
-* Tokens, passwords, cookies, private keys, and connection strings
-* Unredacted images, unexplained remote image requests, and active SVG content
-* Unsourced additions presented as facts
+The following boundaries remain
 
-## 9. Release Boundary
+- Automated checks do not mean the user accepted the writing style
+- Semantic completeness still depends on the source, context, and user feedback
+- A medium that cannot reliably center objects or contain table scrolling must state that limitation
+- Historical evaluations and manual reviews describe their original version and sample set rather than replacing current hands-on feedback
 
-`main` remains frozen; the currently installed Skill is not final-release evidence and will not be replaced before the release gate passes; no pull request is created
+## 7 Repository map
 
-## 10. License
+- [`SKILL.md`](SKILL.md)
+  - The only entrypoint required for ordinary tasks
+- [`references/format-rules.md`](references/format-rules.md)
+  - Punctuation, structure, terminology, code, and visual formatting
+- [`references/explanation-framework.md`](references/explanation-framework.md)
+  - Novice-oriented explanation logic
+- [`runtime/`](runtime)
+  - Task compilation, composition, verification, and repair
+- [`contracts/`](contracts)
+  - Structured task, evidence, patch, and lifecycle contracts
+- [`evals/`](evals)
+  - Candidate, user-accepted, user-rejected, and automated cases
+- [`docs/design/vnext-1.1-authoritative-plan.md`](docs/design/vnext-1.1-authoritative-plan.md)
+  - Authoritative design background for `vNext 1.1`
 
-The repository uses the [MIT License](LICENSE); third-party method and license notices are recorded in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+## 8 Help, contribution, and license
+
+- Open an [Issue](https://github.com/AIALRA-0/agent-human-readable-technical-writing/issues) for usage questions and ordinary defects
+- Preserve user decisions, provenance boundaries, and minimal-patch behavior when proposing changes
+- Do not paste tokens, passwords, private keys, real account data, or internal addresses into public issues
+- The repository is available under the [MIT License](LICENSE)
+- Third-party methods and licenses are documented in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
