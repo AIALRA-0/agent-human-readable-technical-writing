@@ -98,7 +98,8 @@ for ($index = 0; $index -lt $orderedCases.Count; $index++) {
     $lines.Add('')
 }
 
-# 使用不带字节顺序标记的 UTF-8 编码写入，保证 GitHub 正确显示中文
+# 使用不带字节顺序标记的 UTF-8 编码和固定 LF 换行写入，保证各平台生成相同产物
 $utf8WithoutBom = [Text.UTF8Encoding]::new($false)
-[IO.File]::WriteAllLines($OutputPath, $lines, $utf8WithoutBom)
+$documentText = ($lines -join "`n") + "`n"
+[IO.File]::WriteAllText($OutputPath, $documentText, $utf8WithoutBom)
 Write-Output $OutputPath
