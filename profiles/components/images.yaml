@@ -1,7 +1,7 @@
 profile:
   identity:
     profile_id: image-explanation
-    revision: round-4-generalization
+    revision: centered-visual-layout-2026-09-09
     description: 图片按照零先验读者处理，并区分可见事实、背景与推断
   source_order:
     original_image:
@@ -10,9 +10,13 @@ profile:
       description: 原图始终出现在解释前面，读者可以同步核对讲解和图中证据
   presentation:
     alignment:
-      policy: github_render_verified_center
+      policy: center_object_and_caption_when_supported
       severity: PROFILE_REQUIRED
-      description: 仅当任务合同 renderer 为 github_markdown 时，GitHub 图片与图题放入同一居中 HTML 容器，并在 1280 像素与 390 像素、亮色与暗色主题中核对实际居中和横向溢出；其他媒介登记适用限制
+      description: 所有新生成或重新排版的图片与图题在目标媒介可靠支持时放入同一居中容器；逐字原图只增加外层容器，不改原图语法；不能可靠支持时登记并自然说明限制，具备实际渲染证据后才能声明最终居中
+    multi_image_table_cells:
+      policy: center_each_image_cell
+      severity: PROFILE_REQUIRED
+      description: 多图表格中的每个图片单元格单独居中；逐字原表不能安全增加单元格对齐时保留原表并说明限制
     asset_quality:
       policy: separate_from_writing_quality
       severity: ADVISORY

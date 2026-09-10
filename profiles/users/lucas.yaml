@@ -36,7 +36,7 @@ profile:
     visual_alignment:
       policy: verified_center
       severity: PROFILE_REQUIRED
-      description: 任务合同明确使用 github_markdown 时，图片和表格使用居中 HTML，Mermaid 使用原生代码块加居中题注，并以桌面、移动端、亮色和暗色实际渲染结果作为通过依据；其他媒介不伪造 GitHub 渲染证据
+      description: 图片与题注、表格与表题在媒介可靠支持时使用同一居中容器，多图表格中的图片单元格分别居中，宽表只在自身容器横向滚动；逐字原对象只增加外层容器，不能可靠实现时自然说明限制，具有实际渲染证据时再声明最终居中
     blank_lines:
       policy: one_between_semantic_blocks
       severity: PROFILE_REQUIRED

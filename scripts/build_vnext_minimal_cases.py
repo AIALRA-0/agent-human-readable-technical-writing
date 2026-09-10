@@ -565,6 +565,7 @@ def main() -> int:
     TARGET.write_text(
         "".join(json.dumps(case, ensure_ascii=False, sort_keys=True) + "\n" for case in cases),
         encoding="utf-8",
+        newline="\n",
     )
     print(json.dumps({"status": "PASS", "cases": len(cases)}, ensure_ascii=False))
     return 0

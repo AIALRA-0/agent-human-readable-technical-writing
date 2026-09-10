@@ -363,11 +363,11 @@ class FormatRegressionTests(unittest.TestCase):
 
     def test_supplied_images_need_embedded_objects_and_nonempty_alt(self):
         images = ["F:/fixtures/flow chart.png", "https://example.test/route.png"]
-        text = "![办理流程](<F:/fixtures/flow chart.png>)\n\n[第二张图](https://example.test/route.png)\n"
+        text = '<div align="center">\n\n![办理流程](<F:/fixtures/flow chart.png>)\n\n</div>\n\n[第二张图](https://example.test/route.png)\n'
         fixed, report = review.review_text(text, source_images=images)
         self.assertEqual(fixed, text)
         self.assertEqual([f["rule_id"] for f in report["format"]["findings"]], ["FORMAT_SOURCE_IMAGE_MISSING"])
-        complete = text.replace("[第二张图]", "![第二张图]")
+        complete = text.replace("[第二张图](https://example.test/route.png)", '<div align="center">\n\n![第二张图](https://example.test/route.png)\n\n</div>')
         self.assertEqual(review.review_text(complete, source_images=images)[1]["format"]["findings"], [])
         empty_alt = complete.replace("![第二张图]", "![]")
         self.assertEqual([f["rule_id"] for f in review.review_text(empty_alt, source_images=images)[1]["format"]["findings"]], ["FORMAT_SOURCE_IMAGE_ALT_MISSING"])
@@ -377,28 +377,93 @@ class FormatRegressionTests(unittest.TestCase):
         for text in ("```text\n![图](" + source + ")\n```", "`![图](" + source + ")`", "![图](https://example.test/route.png)"):
             self.assertTrue(any(f["rule_id"] == "FORMAT_SOURCE_IMAGE_MISSING" for f in review.review_text(text, source_images=[source])[1]["format"]["findings"]))
         source = "F:/fixtures/a (1).png"
-        text = '![图](F:/fixtures/a%20%281%29.png "题注")'
+        text = '<div align="center">\n\n![图](F:/fixtures/a%20%281%29.png "题注")\n\n</div>'
         self.assertEqual(review.review_text(text, source_images=[source, source])[1]["format"]["findings"], [])
         self.assertEqual(review.review_text("", source_images=[source])[1]["format"]["findings"][0]["location"], "DOCUMENT")
 
     def test_image_presence_sees_rendered_table_and_quote_images_without_decoding_url_queries(self):
         source = "https://example.test/image?name=a%26b"
-        for text in ("> ![图](" + source + ")", "| 图片 |\n| --- |\n| ![图](" + source + ") |"):
+        table = '<div align="center">\n\n| 图片 |\n|:---:|\n| ![图](' + source + ') |\n\n</div>'
+        for text in ("> ![图](" + source + ")", table):
             self.assertEqual(review.review_text(text, source_images=[source])[1]["format"]["findings"], [])
         changed = "![图](https://example.test/image?name=a&b)"
         self.assertTrue(any(f["rule_id"] == "FORMAT_SOURCE_IMAGE_MISSING" for f in review.review_text(changed, source_images=[source])[1]["format"]["findings"]))
         percent_file = "F:/fixtures/a%20b.png"
-        self.assertEqual(review.review_text("![图](F:/fixtures/a%2520b.png)", source_images=[percent_file])[1]["format"]["findings"], [])
+        percent_text = '<div align="center">\n\n![图](F:/fixtures/a%2520b.png)\n\n</div>'
+        self.assertEqual(review.review_text(percent_text, source_images=[percent_file])[1]["format"]["findings"], [])
 
     def test_local_image_addresses_and_reference_images_are_recognized(self):
         for source in ("assets/flow chart.png", "/tmp/flow chart.png"):
-            body = "![流程](" + source.replace(" ", "%20") + ")"
+            body = '<div align="center">\n\n![流程](' + source.replace(" ", "%20") + ')\n\n</div>'
             self.assertEqual(review.review_text(body, source_images=[source])[1]["format"]["findings"], [])
         for use in ("![流程][FLOW]", "![flow][]"):
-            text = use + "\n\n[flow]: https://example.test/flow.png\n"
+            text = '<div align="center">\n\n' + use + "\n\n</div>\n\n[flow]: https://example.test/flow.png\n"
             self.assertEqual(review.review_text(text, source_images=["https://example.test/flow.png"])[1]["format"]["findings"], [])
         text = "![流程][flow]\n\n```text\n[flow]: https://example.test/flow.png\n```\n"
         self.assertTrue(any(f["rule_id"] == "FORMAT_SOURCE_IMAGE_MISSING" for f in review.review_text(text, source_images=["https://example.test/flow.png"])[1]["format"]["findings"]))
+
+    def test_images_and_captions_must_share_one_centered_container(self):
+        uncentered = "![流程](flow.png)\n\n图 1 流程"
+        rules = {item["rule_id"] for item in deterministic_format_findings(uncentered)}
+        self.assertIn("FORMAT_IMAGE_NOT_CENTERED", rules)
+        self.assertIn("FORMAT_IMAGE_CAPTION_NOT_CENTERED", rules)
+
+        centered = '<div align="center">\n\n![流程](flow.png)\n\n图 1 流程\n\n</div>'
+        rules = {item["rule_id"] for item in deterministic_format_findings(centered)}
+        self.assertNotIn("FORMAT_IMAGE_NOT_CENTERED", rules)
+        self.assertNotIn("FORMAT_IMAGE_CAPTION_NOT_CENTERED", rules)
+
+        detached = '<div align="center">\n\n![流程](flow.png)\n\n</div>\n\n图 1 流程'
+        self.assertIn(
+            "FORMAT_IMAGE_CAPTION_NOT_CENTERED",
+            {item["rule_id"] for item in deterministic_format_findings(detached)},
+        )
+
+    def test_tables_captions_image_cells_and_overflow_are_checked(self):
+        raw = "| 左图 | 右图 |\n|---|---|\n| ![左](left.png) | ![右](right.png) |\n\n表 1 对照"
+        rules = {item["rule_id"] for item in deterministic_format_findings(raw)}
+        self.assertIn("FORMAT_TABLE_NOT_CENTERED", rules)
+        self.assertIn("FORMAT_TABLE_CAPTION_NOT_CENTERED", rules)
+        self.assertIn("FORMAT_TABLE_IMAGE_CELL_NOT_CENTERED", rules)
+
+        centered = (
+            '<div align="center">\n\n<div style="max-width: 100%; overflow-x: auto;">\n\n'
+            "| 左图 | 右图 |\n|:---:|:---:|\n| ![左](left.png) | ![右](right.png) |\n\n"
+            "</div>\n\n表 1 对照\n\n</div>"
+        )
+        rules = {item["rule_id"] for item in deterministic_format_findings(centered)}
+        self.assertFalse(rules & {
+            "FORMAT_IMAGE_NOT_CENTERED", "FORMAT_TABLE_NOT_CENTERED",
+            "FORMAT_TABLE_CAPTION_NOT_CENTERED", "FORMAT_TABLE_IMAGE_CELL_NOT_CENTERED",
+            "FORMAT_WIDE_TABLE_OVERFLOW_REVIEW",
+        })
+
+        wide = '<div align="center">\n\n| 第一列 | 第二列 |\n|:---:|:---:|\n| ' + "很长" * 70 + " | 内容 |\n\n</div>"
+        self.assertIn(
+            "FORMAT_WIDE_TABLE_OVERFLOW_REVIEW",
+            {item["rule_id"] for item in deterministic_format_findings(wide)},
+        )
+
+        html_table = (
+            '<div align="center">\n\n<div style="max-width: 100%; overflow-x: auto;">\n\n'
+            '<table>\n<tr><th>左图</th><th>右图</th></tr>\n'
+            '<tr><td align="center"><img src="left.png" alt="左图" /></td>'
+            '<td style="text-align: center"><img src="right.png" alt="右图" /></td></tr>\n</table>\n\n'
+            '</div>\n\n表 2 HTML 图片对照\n\n</div>'
+        )
+        rules = {item["rule_id"] for item in deterministic_format_findings(html_table)}
+        self.assertFalse(rules & {
+            "FORMAT_IMAGE_NOT_CENTERED", "FORMAT_TABLE_NOT_CENTERED",
+            "FORMAT_TABLE_CAPTION_NOT_CENTERED", "FORMAT_TABLE_IMAGE_CELL_NOT_CENTERED",
+        })
+
+        broken_html = (
+            '<div align="center">\n<table><tr><td><img src="left.png" alt="左图" /></td></tr></table>\n</div>\n\n'
+            '表 3 分离题注'
+        )
+        rules = {item["rule_id"] for item in deterministic_format_findings(broken_html)}
+        self.assertIn("FORMAT_TABLE_CAPTION_NOT_CENTERED", rules)
+        self.assertIn("FORMAT_TABLE_IMAGE_CELL_NOT_CENTERED", rules)
 
     def test_term_candidates_use_document_definitions_not_a_global_word_gate(self):
         text = (
@@ -425,11 +490,11 @@ class WritingDeliveryTests(unittest.TestCase):
     def test_source_image_address_correction_does_not_reject_other_local_repairs(self):
         old = "![流程](wrong.png)"
         new = "![流程](F:/fixtures/flow.png)"
-        text = old + "\n\n正文。\n"
-        edits = self.compact(text, old=old, new=new, scope="sentence")
-        edits["edits"].append({"node_id": "LINE-0003", "old_text": "。", "new_text": "", "scope": "token", "reason": "句末标点"})
+        text = '<div align="center">\n\n' + old + "\n\n</div>\n\n正文。\n"
+        edits = self.compact(text, old=old, new=new, node="LINE-0003", scope="sentence")
+        edits["edits"].append({"node_id": "LINE-0007", "old_text": "。", "new_text": "", "scope": "token", "reason": "句末标点"})
         fixed, report = review.review_text(text, edit_transactions=[edits], source_images=["F:/fixtures/flow.png"])
-        self.assertEqual(fixed, new + "\n\n正文\n")
+        self.assertEqual(fixed, '<div align="center">\n\n' + new + "\n\n</div>\n\n正文\n")
         self.assertEqual(report["format"]["findings"], [])
         self.assertEqual(report["format"]["repair_rounds"], 1)
         with self.assertRaises(PatchError):
@@ -452,11 +517,12 @@ class WritingDeliveryTests(unittest.TestCase):
     def test_empty_alt_can_be_filled_only_for_a_supplied_unchanged_image(self):
         old = "![](F:/fixtures/flow.png)"
         new = "![办理流程](F:/fixtures/flow.png)"
-        fixed, report = review.review_text(old, edit_transactions=[self.compact(old, old=old, new=new, scope="phrase")], source_images=["F:/fixtures/flow.png"])
-        self.assertEqual(fixed, new)
+        text = '<div align="center">\n\n' + old + "\n\n</div>"
+        fixed, report = review.review_text(text, edit_transactions=[self.compact(text, old=old, new=new, node="LINE-0003", scope="phrase")], source_images=["F:/fixtures/flow.png"])
+        self.assertEqual(fixed, '<div align="center">\n\n' + new + "\n\n</div>")
         self.assertEqual(report["format"]["findings"], [])
         with self.assertRaises(PatchError):
-            review.review_text(old, edit_transactions=[self.compact(old, old=old, new=new, scope="phrase")], source_images=["F:/fixtures/other.png"])
+            review.review_text(text, edit_transactions=[self.compact(text, old=old, new=new, node="LINE-0003", scope="phrase")], source_images=["F:/fixtures/other.png"])
 
     def compact(self, text, old="。", new="", node="LINE-0001", scope="token"):
         return {"document_sha256": sha256_text(text), "edits": [{

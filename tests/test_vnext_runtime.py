@@ -104,6 +104,8 @@ class VNextRuntimeTests(unittest.TestCase):
         self.assertEqual("round-6-self-iterative-cross-model", contract["identity"]["profile_revision"])
         self.assertTrue(contract["presentation"]["renderer"]["exact_object_alignment"])
         self.assertEqual("center", contract["presentation"]["component_alignment"]["caption"])
+        self.assertEqual("object_and_caption", contract["presentation"]["component_alignment"]["shared_container"])
+        self.assertEqual("not_applicable", contract["presentation"]["component_alignment"]["wide_table_overflow"])
         self.assertEqual(3, contract["delivery"]["iteration_policy"]["max_repair_rounds"])
 
     def test_missing_source_allocation_fails(self) -> None:
@@ -143,7 +145,8 @@ class VNextRuntimeTests(unittest.TestCase):
             "required_units": ["A", "B"], "covered_units": ["A", "B"],
             "presentation": {
                 "source_format": "mermaid", "object_alignment": "renderer_default",
-                "caption_alignment": "not_applicable", "renderer": "chat",
+                "caption_alignment": "not_applicable", "container_relationship": "not_applicable",
+                "overflow_behavior": "not_applicable", "renderer": "chat",
                 "limitation": "聊天渲染器不保证 Mermaid 对象精确居中",
             },
             "mermaid": {"direction": "LR", "post_explanation": {"node_relationships": "A 进入 B", "process_result": "流程到达 B", "evidence_boundary": "图中没有运行证据"}},
@@ -359,7 +362,7 @@ class VNextRuntimeTests(unittest.TestCase):
             "component_id": "CODE-1", "component_type": "CODE", "source_text": source,
             "source_position": 0, "explanation_position": len(source), "required_units": ["CODE-001", "CODE-002"],
             "covered_units": ["CODE-001", "CODE-002"],
-            "presentation": {"source_format": "code_fence", "object_alignment": "not_applicable", "caption_alignment": "not_applicable", "renderer": "chat", "limitation": ""},
+            "presentation": {"source_format": "code_fence", "object_alignment": "not_applicable", "caption_alignment": "not_applicable", "container_relationship": "not_applicable", "overflow_behavior": "not_applicable", "renderer": "chat", "limitation": ""},
             "mermaid": None, "table_cells": {"all": [], "covered": []},
             "code": {
                 "coverage_mode": "annotated_code", "unit_mappings": mappings, "uncovered_units": uncovered,
@@ -622,7 +625,7 @@ class VNextRuntimeTests(unittest.TestCase):
         bundle["component_coverage"] = [{
             "component_id": "IMAGE", "component_type": "IMAGE", "source_text": source,
             "source_position": 0, "explanation_position": len(source), "required_units": ["image"], "covered_units": ["image"],
-            "presentation": {"source_format": "image", "object_alignment": "center", "caption_alignment": "center", "renderer": "github_markdown", "limitation": ""},
+            "presentation": {"source_format": "image", "object_alignment": "center", "caption_alignment": "center", "container_relationship": "shared", "overflow_behavior": "not_applicable", "renderer": "github_markdown", "limitation": ""},
             "mermaid": None, "table_cells": {"all": [], "covered": []}, "code": None,
         }]
         text = source + "\n\n" + bundle["rendered_document"]["text"]
@@ -650,6 +653,51 @@ class VNextRuntimeTests(unittest.TestCase):
         bundle = self.build_bundle()
         self.add_github_image(bundle, evidence, evaluation_mode="strict")
         self.assertEqual("PASS", verify_bundle(bundle)["status"])
+
+    def test_github_table_requires_internal_overflow_container(self) -> None:
+        """A centered table cannot delegate horizontal overflow to the whole page."""
+
+        evidence = [
+            {"component_id": "TABLE", "renderer": "github_markdown", "viewport_width": width, "theme": theme,
+             "object_centered": True, "caption_centered": True, "horizontal_overflow": False, "evidence_source": f"table-{width}-{theme}.png"}
+            for width in (390, 1280) for theme in ("light", "dark")
+        ]
+        bundle = self.build_bundle()
+        source = (
+            '<div align="center"><div style="max-width:100%;overflow-x:auto">'
+            '<table><tr><th>项目</th></tr><tr><td>结果</td></tr></table></div><p>表 1 结果</p></div>'
+        )
+        bundle["task_contract"] = compile_contract({
+            "task_id": "TASK-TEST-TABLE", "base_operation": "EXPLAIN", "augmentation": "GLOSS",
+            "evaluation_mode": "strict", "audience": "general_reader", "genre": "readme",
+            "media": ["github_markdown"], "components": ["TEXT", "TABLE"], "render_evidence": evidence,
+        })
+        self.assertEqual(
+            "inside_table_container",
+            bundle["task_contract"]["presentation"]["component_alignment"]["wide_table_overflow"],
+        )
+        bundle["component_coverage"] = [{
+            "component_id": "TABLE", "component_type": "TABLE", "source_text": source,
+            "source_position": 0, "explanation_position": len(source), "required_units": ["CELL-001"],
+            "covered_units": ["CELL-001"],
+            "presentation": {
+                "source_format": "table", "object_alignment": "center", "caption_alignment": "center",
+                "container_relationship": "shared", "overflow_behavior": "inside_component", "renderer": "github_markdown", "limitation": "",
+            },
+            "mermaid": None, "table_cells": {"all": ["CELL-001"], "covered": ["CELL-001"]}, "code": None,
+        }]
+        text = source + "\n\n" + bundle["rendered_document"]["text"]
+        bundle["rendered_document"]["text"] = text
+        bundle["rendered_document"]["sha256"] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        bundle["iterations"]["final_sha256"] = bundle["rendered_document"]["sha256"]
+        self.assertEqual("PASS", verify_bundle(bundle)["status"])
+
+        bundle["component_coverage"][0]["presentation"]["overflow_behavior"] = "renderer_default"
+        self.assertIn("TABLE_OVERFLOW", {item["rule_id"] for item in verify_bundle(bundle)["findings"]})
+
+        bundle["component_coverage"][0]["presentation"]["overflow_behavior"] = "inside_component"
+        bundle["component_coverage"][0]["presentation"]["container_relationship"] = "renderer_default"
+        self.assertIn("VISUAL_SHARED_CONTAINER", {item["rule_id"] for item in verify_bundle(bundle)["findings"]})
 
     def test_light_delivery_preserves_style_advisories_and_content_findings(self) -> None:
         """Default light delivery retains layout evidence and still rejects lost source content."""

@@ -1,7 +1,7 @@
 profile:
   identity:
     profile_id: table-explanation
-    revision: round-4-generalization
+    revision: centered-visual-layout-2026-09-09
     description: 表格解释通过列定义、值词典和行映射覆盖全部数据，同时避免机械逐格复述
   source_order:
     original_table:
@@ -14,9 +14,13 @@ profile:
       description: 解释不得新增、删除、重排列或把说明塞入数据格；适配媒介时只转换外层标记，原表数据与结构必须保持可核对
   presentation:
     alignment:
-      policy: github_render_verified_html
+      policy: center_table_and_caption_when_supported
       severity: PROFILE_REQUIRED
-      description: 仅当任务合同 renderer 为 github_markdown 时，GitHub 表格使用可访问 HTML 和居中容器，表题放在表格下方，并在 1280 像素与 390 像素、亮色与暗色主题中核对实际居中和横向溢出；其他媒介登记适用限制
+      description: 所有新生成或重新排版的表格与表题在目标媒介可靠支持时放入同一居中容器；逐字原表只增加外层容器，不改原表语法；不能可靠支持时登记并自然说明限制
+    overflow:
+      policy: scroll_inside_table_container
+      severity: PROFILE_REQUIRED
+      description: 表格可能超过可用宽度时，只允许表格自身容器横向滚动，页面整体不得横向溢出
   required_coverage:
     overview:
       description: 说明表格整体回答什么

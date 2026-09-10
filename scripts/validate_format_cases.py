@@ -28,12 +28,12 @@ def main() -> None:
     ids = [item.get("id") for item in items]
     covered = {rule for item in items for rule in item.get("rules", [])}
     errors: list[str] = []
-    if len(items) != 20:
-        errors.append(f"expected 20 cases, got {len(items)}")
+    if len(items) != 21:
+        errors.append(f"expected 21 cases, got {len(items)}")
     if len(rule_ids) != len(rules):
         errors.append("format rule ids are not unique")
-    if rules != {f"FMT-{number:03d}" for number in range(1, 111)}:
-        errors.append("format rules must contain the continuous FMT-001 through FMT-110 range")
+    if rules != {f"FMT-{number:03d}" for number in range(1, 121)}:
+        errors.append("format rules must contain the continuous FMT-001 through FMT-120 range")
     if len(set(ids)) != len(ids):
         errors.append("case ids are not unique")
     if covered - rules:

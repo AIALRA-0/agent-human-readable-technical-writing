@@ -747,6 +747,194 @@ def source_image_findings(text: str, expected_images: list[str]) -> list[dict[st
     return findings
 
 
+def _html_layout_lines(text: str) -> tuple[set[int], set[int]]:
+    """Return lines covered by centered and table-scroll div containers."""
+
+    centered: set[int] = set()
+    scrolling: set[int] = set()
+    center_stack: list[bool] = []
+    scroll_stack: list[bool] = []
+    tag_pattern = re.compile(r"</?div\b[^>]*>", re.IGNORECASE)
+    for number, line in enumerate(text.splitlines(), 1):
+        line_centered = any(center_stack)
+        line_scrolling = any(scroll_stack)
+        for match in tag_pattern.finditer(line):
+            tag = match.group(0)
+            if tag.startswith("</"):
+                if center_stack:
+                    center_stack.pop()
+                    scroll_stack.pop()
+                continue
+            lower = tag.casefold()
+            own_center = bool(
+                re.search(r"\balign\s*=\s*['\"]?center\b", lower)
+                or re.search(r"text-align\s*:\s*center\b", lower)
+            )
+            own_scroll = bool(
+                re.search(r"overflow-x\s*:\s*auto\b", lower)
+                and re.search(r"max-width\s*:\s*100%\b", lower)
+            )
+            center_stack.append(own_center or any(center_stack))
+            scroll_stack.append(own_scroll or any(scroll_stack))
+            line_centered = line_centered or any(center_stack)
+            line_scrolling = line_scrolling or any(scroll_stack)
+        if line_centered:
+            centered.add(number)
+        if line_scrolling:
+            scrolling.add(number)
+    return centered, scrolling
+
+
+def _markdown_tables(text: str, code_lines: set[int]) -> list[tuple[int, int, list[str]]]:
+    """Locate simple Markdown tables by their delimiter row."""
+
+    lines = text.splitlines()
+    results: list[tuple[int, int, list[str]]] = []
+    seen: set[tuple[int, int]] = set()
+    delimiter = re.compile(r"\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*")
+    for index, line in enumerate(lines):
+        number = index + 1
+        if number in code_lines or index == 0 or not delimiter.fullmatch(line):
+            continue
+        start = index - 1
+        end = index + 1
+        while end < len(lines) and end + 1 not in code_lines and lines[end].strip() and "|" in lines[end] and not lines[end].lstrip().startswith("<"):
+            end += 1
+        key = (start + 1, end)
+        if key not in seen:
+            seen.add(key)
+            results.append((start + 1, end, lines[start:end]))
+    return results
+
+
+def _html_tables(text: str, code_lines: set[int]) -> list[tuple[int, int, str]]:
+    """Locate HTML table ranges without treating fenced examples as output."""
+
+    lines = text.splitlines()
+    results: list[tuple[int, int, str]] = []
+    index = 0
+    while index < len(lines):
+        number = index + 1
+        if number in code_lines or not re.search(r"<table\b", lines[index], re.IGNORECASE):
+            index += 1
+            continue
+        end = index
+        while end < len(lines) and not re.search(r"</table\s*>", lines[end], re.IGNORECASE):
+            end += 1
+        if end >= len(lines):
+            end = index
+        results.append((number, end + 1, "\n".join(lines[index:end + 1])))
+        index = end + 1
+    return results
+
+
+def _next_caption_line(lines: list[str], start: int, label: str) -> int | None:
+    """Find an immediately associated Chinese image or table caption."""
+
+    for index in range(start, min(len(lines), start + 6)):
+        stripped = lines[index].strip()
+        if not stripped or re.fullmatch(r"</?div\b[^>]*>", stripped, re.IGNORECASE):
+            continue
+        plain = re.sub(r"^<p>|</p>$", "", stripped, flags=re.IGNORECASE).strip()
+        plain = plain.strip("*_ ")
+        return index + 1 if re.match(label + r"(?:\s|\d|[一二三四五六七八九十])", plain) else None
+    return None
+
+
+def visual_layout_findings(text: str) -> list[dict[str, Any]]:
+    """Check observable visual containment without claiming rendered pixels."""
+
+    lines = text.splitlines()
+    code_lines = {
+        number
+        for start, _, body in _fenced_blocks(text)
+        for number in range(start, start + len(body) + 2)
+    }
+    centered, scrolling = _html_layout_lines(text)
+    findings: list[dict[str, Any]] = []
+
+    for number, line in enumerate(lines, 1):
+        if number in code_lines or line.lstrip().startswith(">"):
+            continue
+        if re.search(r"!\[[^\]\n]*\]\((?:[^()\n]|\([^()\n]*\))*\)|!\[[^\]\n]*\]\[[^\]\n]*\]|<img\b", line, re.IGNORECASE):
+            if number not in centered:
+                findings.append(_finding(
+                    "FORMAT_IMAGE_NOT_CENTERED", f"LINE-{number:04d}", line,
+                    "图片没有位于居中容器中", "sentence",
+                ))
+            caption_line = _next_caption_line(lines, number, "图")
+            if caption_line is not None and caption_line not in centered:
+                findings.append(_finding(
+                    "FORMAT_IMAGE_CAPTION_NOT_CENTERED", f"LINE-{caption_line:04d}", lines[caption_line - 1],
+                    "图片题注没有与对应图片位于同一个居中容器中", "sentence",
+                ))
+
+    for start, end, table_lines in _markdown_tables(text, code_lines):
+        if start not in centered or end not in centered:
+            findings.append(_finding(
+                "FORMAT_TABLE_NOT_CENTERED", f"LINE-{start:04d}", table_lines[0],
+                "表格没有位于页面居中容器中", "sentence",
+            ))
+        caption_line = _next_caption_line(lines, end, "表")
+        if caption_line is not None and caption_line not in centered:
+            findings.append(_finding(
+                "FORMAT_TABLE_CAPTION_NOT_CENTERED", f"LINE-{caption_line:04d}", lines[caption_line - 1],
+                "表题没有与对应表格位于同一个居中容器中", "sentence",
+            ))
+        delimiter_cells = [cell.strip() for cell in table_lines[1].strip().strip("|").split("|")]
+        for row_offset, row in enumerate(table_lines[2:], 2):
+            cells = row.strip().strip("|").split("|")
+            for column, cell in enumerate(cells):
+                if "![" in cell and column < len(delimiter_cells) and not re.fullmatch(r":-{3,}:", delimiter_cells[column]):
+                    findings.append(_finding(
+                        "FORMAT_TABLE_IMAGE_CELL_NOT_CENTERED", f"LINE-{start + row_offset:04d}", cell.strip(),
+                        "多图表格中的图片单元格没有使用居中列对齐", "token",
+                    ))
+        if any(len(line) > 120 for line in table_lines) and not all(number in scrolling for number in range(start, end + 1)):
+            findings.append(_finding(
+                "FORMAT_WIDE_TABLE_OVERFLOW_REVIEW", f"LINE-{start:04d}", table_lines[0],
+                "表格行较宽且没有可观察到的内部横向滚动容器，需核对目标媒介是否会造成页面整体溢出", "sentence", candidate=True,
+            ))
+
+    for start, end, table in _html_tables(text, code_lines):
+        if start not in centered or end not in centered:
+            findings.append(_finding(
+                "FORMAT_TABLE_NOT_CENTERED", f"LINE-{start:04d}", lines[start - 1],
+                "HTML 表格没有位于页面居中容器中", "sentence",
+            ))
+        caption_line = _next_caption_line(lines, end, "表")
+        if caption_line is not None and caption_line not in centered:
+            findings.append(_finding(
+                "FORMAT_TABLE_CAPTION_NOT_CENTERED", f"LINE-{caption_line:04d}", lines[caption_line - 1],
+                "HTML 表题没有与对应表格位于同一个居中容器中", "sentence",
+            ))
+        for match in re.finditer(r"<t[dh]\b([^>]*)>(.*?)</t[dh]\s*>", table, re.IGNORECASE | re.DOTALL):
+            attributes, cell_body = match.groups()
+            if not re.search(r"<img\b", cell_body, re.IGNORECASE):
+                continue
+            cell_centered = bool(
+                re.search(r"\balign\s*=\s*['\"]?center\b", attributes, re.IGNORECASE)
+                or re.search(r"text-align\s*:\s*center\b", attributes, re.IGNORECASE)
+                or re.search(
+                    r"<(?:div|p)\b[^>]*(?:\balign\s*=\s*['\"]?center\b|text-align\s*:\s*center\b)",
+                    cell_body, re.IGNORECASE,
+                )
+            )
+            if not cell_centered:
+                cell_line = start + table[:match.start()].count("\n")
+                findings.append(_finding(
+                    "FORMAT_TABLE_IMAGE_CELL_NOT_CENTERED", f"LINE-{cell_line:04d}", lines[cell_line - 1],
+                    "HTML 多图表格中的图片单元格没有单独居中", "sentence",
+                ))
+        if any(len(line) > 120 for line in table.splitlines()) and not all(number in scrolling for number in range(start, end + 1)):
+            findings.append(_finding(
+                "FORMAT_WIDE_TABLE_OVERFLOW_REVIEW", f"LINE-{start:04d}", lines[start - 1],
+                "HTML 表格可能过宽且没有可观察到的内部横向滚动容器", "sentence", candidate=True,
+            ))
+
+    return findings
+
+
 def deterministic_format_findings(text: str, *, host_nested_blank: bool = False) -> list[dict[str, Any]]:
     """Return format defects and REVIEW_REQUIRED candidates, never semantic proof."""
 
@@ -789,6 +977,7 @@ def deterministic_format_findings(text: str, *, host_nested_blank: bool = False)
     findings.extend(_list_spacing_findings(text, host_nested_blank=host_nested_blank))
     findings.extend(_block_spacing_findings(text, host_nested_blank=host_nested_blank))
     findings.extend(_code_findings(text))
+    findings.extend(visual_layout_findings(text))
     findings.extend(_semantic_review_candidates(text))
     unique: list[dict[str, Any]] = []
     seen: set[tuple[str, str, str]] = set()

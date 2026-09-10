@@ -125,11 +125,13 @@
           "covered_units": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
           "presentation": {
             "type": "object", "additionalProperties": false,
-            "required": ["source_format", "object_alignment", "caption_alignment", "renderer", "limitation"],
+            "required": ["source_format", "object_alignment", "caption_alignment", "container_relationship", "overflow_behavior", "renderer", "limitation"],
             "properties": {
               "source_format": {"enum": ["code_fence", "image", "table", "mermaid"]},
               "object_alignment": {"enum": ["center", "renderer_default", "not_applicable"]},
               "caption_alignment": {"enum": ["center", "renderer_default", "not_applicable"]},
+              "container_relationship": {"enum": ["shared", "renderer_default", "not_applicable"]},
+              "overflow_behavior": {"enum": ["inside_component", "renderer_default", "not_applicable"]},
               "renderer": {"enum": ["chat", "github_markdown", "html", "word", "pdf", "other"]},
               "limitation": {"type": "string"}
             }

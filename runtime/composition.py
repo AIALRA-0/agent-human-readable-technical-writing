@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import html
 import re
 from typing import Any
 
@@ -63,6 +64,37 @@ def _fence(body: str, language: Any) -> str:
     fence = "`" * max(3, longest + 1)
     ending = "" if body.endswith("\n") else "\n"
     return f"{fence}{language}\n{body}{ending}{fence}"
+
+
+def _centered_visual(body: str, caption: str | None = None, *, scroll: bool = False) -> str:
+    """Keep one visual and its caption in the same centered outer container."""
+
+    visual = body
+    if scroll:
+        visual = '<div style="max-width: 100%; overflow-x: auto;">\n\n' + body + "\n\n</div>"
+    parts = ['<div align="center">', visual]
+    if caption is not None:
+        parts.append("<p>" + html.escape(caption, quote=False) + "</p>")
+    parts.append("</div>")
+    return _join(parts)
+
+
+def _center_markdown_table(value: Any) -> str:
+    """Center generated table columns without changing headers, rows, order, or data."""
+
+    body = _text(value, "table.text", multiline=True).strip("\r\n")
+    lines = body.splitlines()
+    if len(lines) < 2:
+        raise ValueError("table.text: expected a Markdown table")
+    delimiter = lines[1]
+    if not re.fullmatch(r"\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*", delimiter):
+        raise ValueError("table.text: second line must be a Markdown delimiter row")
+    leading = delimiter.lstrip().startswith("|")
+    trailing = delimiter.rstrip().endswith("|")
+    cells = delimiter.strip().strip("|").split("|")
+    centered = [":" + cell.strip().strip(":") + ":" for cell in cells]
+    lines[1] = ("|" if leading else "") + "|".join(centered) + ("|" if trailing else "")
+    return "\n".join(lines)
 
 
 def render_document(document: Any, *, sources: dict[str, str] | None = None,
@@ -130,7 +162,7 @@ def render_document(document: Any, *, sources: dict[str, str] | None = None,
                 else:
                     rendered.append(term)
             elif kind == "source":
-                _object(block, {"type", "id"}, {"presentation", "language"}, "source")
+                _object(block, {"type", "id"}, {"presentation", "language", "layout", "caption"}, "source")
                 identifier = block["id"]
                 if not isinstance(identifier, str) or identifier not in originals:
                     raise ValueError("source: unknown identifier")
@@ -138,8 +170,22 @@ def render_document(document: Any, *, sources: dict[str, str] | None = None,
                 presentation = block.get("presentation", "raw")
                 if presentation != "code" and "language" in block:
                     raise ValueError("source.language requires code presentation")
+                layout = block.get("layout")
+                if layout is not None and presentation != "raw":
+                    raise ValueError("source.layout requires raw presentation")
+                if "caption" in block and layout not in {"centered_image", "centered_table"}:
+                    raise ValueError("source.caption requires a centered visual layout")
                 if presentation == "raw":
-                    rendered.append(body)
+                    if layout == "centered_image":
+                        caption = _text(block["caption"], "source.caption") if "caption" in block else None
+                        rendered.append(_centered_visual(body, caption))
+                    elif layout == "centered_table":
+                        caption = _text(block["caption"], "source.caption") if "caption" in block else None
+                        rendered.append(_centered_visual(body, caption, scroll=True))
+                    elif layout is None:
+                        rendered.append(body)
+                    else:
+                        raise ValueError("source.layout: unknown layout")
                 elif presentation == "quote":
                     rendered.append("".join("> " + line for line in body.splitlines(keepends=True)))
                 elif presentation == "code":
@@ -158,9 +204,14 @@ def render_document(document: Any, *, sources: dict[str, str] | None = None,
                     raise ValueError("image.alt: square brackets require a literal source object")
                 if not isinstance(url, str) or not url.strip() or any(char in url for char in "\r\n<>\x00"):
                     raise ValueError("image.url: invalid address")
-                escaped_alt = alt.replace("\\", "\\\\")
-                obj = f"![{escaped_alt}](<{url}>)"
-                rendered.append(_join([obj, _text(block["caption"], "image.caption")]) if "caption" in block else obj)
+                obj = f'<img src="{html.escape(url, quote=True)}" alt="{html.escape(alt, quote=True)}" />'
+                caption = _text(block["caption"], "image.caption") if "caption" in block else None
+                rendered.append(_centered_visual(obj, caption))
+            elif kind == "table":
+                _object(block, {"type", "text"}, {"caption"}, "table")
+                table = _center_markdown_table(block["text"])
+                caption = _text(block["caption"], "table.caption") if "caption" in block else None
+                rendered.append(_centered_visual(table, caption, scroll=True))
             elif kind == "formula":
                 _object(block, {"type", "text"}, set(), "formula")
                 body = _text(block["text"], "formula.text", multiline=True)

@@ -102,10 +102,15 @@ def compile_contract(specification: dict[str, Any]) -> dict[str, Any]:
     component_alignment = dict(specification.get("component_alignment", {}))
     component_alignment.setdefault("object", "center" if has_visual else "not_applicable")
     component_alignment.setdefault("caption", "center" if has_visual else "not_applicable")
+    component_alignment.setdefault("shared_container", "object_and_caption" if any(item in {"IMAGE", "TABLE"} for item in specification["components"]) else "not_applicable")
+    component_alignment.setdefault("wide_table_overflow", "inside_table_container" if "TABLE" in specification["components"] else "not_applicable")
     component_alignment.setdefault(
         "fallback",
-        "GitHub 输出使用经过实际渲染验证的 HTML 容器或原生 Mermaid 加居中题注"
-        if renderer_name == "github_markdown" and has_visual else "当前媒介能够执行登记的对齐方式",
+        "GitHub 输出使用经过实际渲染验证的居中容器，宽表只在自身容器横向滚动"
+        if renderer_name == "github_markdown" and has_visual
+        else "目标媒介支持对象与题注共同居中，宽表只在自身容器横向滚动"
+        if exact_alignment and has_visual
+        else "目标媒介不能可靠保证对象、题注或宽表滚动范围，必须自然说明限制",
     )
 
     input_char_count = int(specification.get("input_char_count", 1))
@@ -740,6 +745,21 @@ def verify_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
             findings.append(_finding("COMPONENT_ALIGNMENT", component_id, "当前渲染器支持精确居中，但对象没有登记为居中", "视觉对象偏离用户的默认布局要求", "把对象与题注一起设为居中"))
         if requested["caption"] == "center" and renderer["exact_caption_alignment"] and presentation["caption_alignment"] != "center":
             findings.append(_finding("CAPTION_ALIGNMENT", component_id, "当前渲染器支持题注居中，但题注没有登记为居中", "题注与对象的视觉关系不一致", "把题注设为居中"))
+        if (
+            component["component_type"] in {"IMAGE", "TABLE"}
+            and requested.get("shared_container") == "object_and_caption"
+            and renderer["exact_object_alignment"]
+            and renderer["exact_caption_alignment"]
+            and presentation.get("container_relationship") != "shared"
+        ):
+            findings.append(_finding("VISUAL_SHARED_CONTAINER", component_id, "对象与题注没有登记为位于同一个居中容器", "对象与题注可能分别居中却失去共同版式关系", "把对象与题注放入同一个居中容器"))
+        if (
+            component["component_type"] == "TABLE"
+            and requested.get("wide_table_overflow") == "inside_table_container"
+            and renderer["exact_object_alignment"]
+            and presentation.get("overflow_behavior") != "inside_component"
+        ):
+            findings.append(_finding("TABLE_OVERFLOW", component_id, "表格没有登记为只在自身容器横向滚动", "宽表可能造成页面整体横向溢出", "把横向滚动限制在表格组件内部"))
         if requested["object"] == "center" and not renderer["exact_object_alignment"] and not presentation["limitation"].strip():
             findings.append(_finding("ALIGNMENT_LIMITATION", component_id, "渲染器不能保证对象精确居中，但覆盖记录没有说明限制", "系统可能把无法保证的布局误报为已经实现", "说明渲染限制，并完成实际渲染检查"))
         if renderer["name"] == "github_markdown" and component["component_type"] in {"IMAGE", "TABLE", "FLOWCHART"}:

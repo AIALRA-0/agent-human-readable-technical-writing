@@ -6,7 +6,7 @@ profile:
     chat:
       description: 使用短段和必要列表，避免把回答写成完整报告
     markdown:
-      description: 使用可渲染标题、列表、表格、链接和 Mermaid；图表与题注优先居中，渲染器不支持时登记限制
+      description: 使用可渲染标题、列表、表格、链接和 Mermaid；图片与题注、表格与表题在可靠支持时使用同一居中容器，宽表只在自身容器滚动，渲染器不支持时登记并自然说明限制
     word:
       description: 保留可访问标题层级、题注和分页关系
     pdf:

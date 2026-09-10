@@ -296,10 +296,12 @@
         },
         "component_alignment": {
           "type": "object", "additionalProperties": false,
-          "required": ["object", "caption", "fallback"],
+          "required": ["object", "caption", "shared_container", "wide_table_overflow", "fallback"],
           "properties": {
             "object": {"enum": ["center", "renderer_default", "not_applicable"]},
             "caption": {"enum": ["center", "renderer_default", "not_applicable"]},
+            "shared_container": {"enum": ["object_and_caption", "renderer_default", "not_applicable"]},
+            "wide_table_overflow": {"enum": ["inside_table_container", "renderer_default", "not_applicable"]},
             "fallback": {"type": "string"}
           }
         },

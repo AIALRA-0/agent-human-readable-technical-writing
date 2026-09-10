@@ -241,16 +241,41 @@ class CompositionRenderingTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             render_document(document(*blocks[:2]), sources=sources)
 
-    def test_image_precedes_caption_and_url_is_angle_wrapped(self):
+    def test_image_and_caption_share_a_centered_container(self):
         block = {"type": "image", "alt": "  流程图。 ", "url": "https://example.test/a(b).png"}
-        expected = "![流程图](<https://example.test/a(b).png>)"
+        expected = '<div align="center">\n\n<img src="https://example.test/a(b).png" alt="流程图" />\n\n</div>'
         self.assertBody(render_document(document(block)), expected)
         block["caption"] = "  图一； "
-        self.assertBody(render_document(document(block)), expected + "\n\n图一")
+        expected = '<div align="center">\n\n<img src="https://example.test/a(b).png" alt="流程图" />\n\n<p>图一</p>\n\n</div>'
+        self.assertBody(render_document(document(block)), expected)
 
     def test_image_alt_trailing_backslash_cannot_escape_closing_bracket(self):
         block = {"type": "image", "alt": "路径\\", "url": "https://example.test/a.png"}
-        self.assertBody(render_document(document(block)), "![路径\\\\](<https://example.test/a.png>)")
+        expected = '<div align="center">\n\n<img src="https://example.test/a.png" alt="路径\\" />\n\n</div>'
+        self.assertBody(render_document(document(block)), expected)
+
+    def test_generated_table_is_centered_scrollable_and_keeps_data(self):
+        table = "| 名称 | 状态 |\n|---|---:|\n| A | 2 |"
+        block = {"type": "table", "text": table, "caption": "表一；"}
+        expected = (
+            '<div align="center">\n\n<div style="max-width: 100%; overflow-x: auto;">\n\n'
+            '| 名称 | 状态 |\n|:---:|:---:|\n| A | 2 |\n\n</div>\n\n<p>表一</p>\n\n</div>'
+        )
+        self.assertBody(render_document(document(block)), expected)
+        self.assertIn("| A | 2 |", render_document(document(block)))
+
+    def test_literal_visual_layout_only_adds_outer_containers(self):
+        image = "![原图](asset.png)"
+        table = "| 原表头 | 数值 |\n|---|---:|\n| 原行 | 7 |"
+        blocks = [
+            {"type": "source", "id": "image", "layout": "centered_image", "caption": "原图题注"},
+            {"type": "source", "id": "table", "layout": "centered_table", "caption": "原表题"},
+        ]
+        output = render_document(document(*blocks), sources={"image": image, "table": table})
+        self.assertIn(image, output)
+        self.assertIn(table, output)
+        self.assertIn('<div style="max-width: 100%; overflow-x: auto;">', output)
+        self.assertEqual(output.count('<div align="center">'), 2)
 
     def test_formula_is_separate_and_its_characters_are_protected(self):
         payload = "  x_{i+1} = x_i + 1 \\\\\r\n\\text{原样。；}  "
