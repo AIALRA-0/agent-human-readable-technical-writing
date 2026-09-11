@@ -670,6 +670,180 @@ def _semantic_review_candidates(text: str) -> list[dict[str, Any]]:
     return findings
 
 
+def _heading_structure_findings(text: str) -> list[dict[str, Any]]:
+    """Check observable heading shape without guessing semantic section boundaries."""
+
+    lines = text.splitlines()
+    protected = _protected_lines(text)
+    headings: list[tuple[int, int, str]] = []
+    for number, line in enumerate(lines, 1):
+        if number in protected:
+            continue
+        match = re.match(r"^\s{0,3}(#{1,6})\s+(.+?)\s*$", line)
+        if match:
+            headings.append((number, len(match.group(1)), match.group(2)))
+    findings: list[dict[str, Any]] = []
+    for previous, current in zip(headings, headings[1:]):
+        if current[1] > previous[1] + 1:
+            findings.append(_finding(
+                "FORMAT_HEADING_LEVEL_SKIP", f"LINE-{current[0]:04d}", lines[current[0] - 1],
+                "标题从上一个标题跳过了必要层级，不能只为视觉大小跨级", "sentence",
+            ))
+    by_level: dict[int, list[tuple[int, str]]] = {}
+    for number, level, title in headings:
+        by_level.setdefault(level, []).append((number, title))
+    number_prefix = re.compile(r"^\d+(?:\.\d+)*(?:[.、]?\s+)")
+    for level, peers in by_level.items():
+        if len(peers) < 2:
+            continue
+        numbered = [bool(number_prefix.match(title)) for _, title in peers]
+        if any(numbered) and not all(numbered):
+            number, title = peers[numbered.index(False)]
+            findings.append(_finding(
+                "FORMAT_HEADING_NUMBERING_REVIEW", f"LINE-{number:04d}", lines[number - 1],
+                f"同一层级的标题混用编号与无编号形式，需核对当前文档的统一标题体系，标题层级为 {level}",
+                "sentence", candidate=True,
+            ))
+    if headings:
+        first_heading = headings[0][0]
+        intro = [
+            (number, line) for number, line in enumerate(lines[:first_heading - 1], 1)
+            if number not in protected and line.strip() and not re.match(r"^\s*</?(?:div|p|h1)\b", line, re.IGNORECASE)
+        ]
+        paragraph_groups = 0
+        previous_number: int | None = None
+        for number, _ in intro:
+            if previous_number is None or number > previous_number + 1:
+                paragraph_groups += 1
+            previous_number = number
+        if paragraph_groups > 1 or any(re.match(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)", line) for _, line in intro):
+            number, line = intro[0]
+            findings.append(_finding(
+                "FORMAT_HEADING_INTRO_SCOPE_REVIEW", f"LINE-{number:04d}", line,
+                "第一处标题前存在多个正文块或列表，需核对它们是否已经承载独立内容；标题前导语只能概括全文目标",
+                "sentence", candidate=True,
+            ))
+    return findings
+
+
+def _display_math_blocks(text: str) -> list[tuple[int, int, str]]:
+    """Return displayed math outside fenced code, quotes, and tables."""
+
+    lines = text.splitlines()
+    fenced_lines: set[int] = set()
+    for start, _, body in _fenced_blocks(text):
+        fenced_lines.update(range(start, min(len(lines), start + len(body) + 1) + 1))
+    blocks: list[tuple[int, int, str]] = []
+    index = 0
+    while index < len(lines):
+        number = index + 1
+        stripped = lines[index].strip()
+        if number in fenced_lines or lines[index].lstrip().startswith(">"):
+            index += 1
+            continue
+        opening = next((item for item in (("$$", "$$"), (r"\[", r"\]")) if stripped.startswith(item[0])), None)
+        if opening is None:
+            index += 1
+            continue
+        start = number
+        body = stripped[len(opening[0]):]
+        if opening[1] in body:
+            expression = body.split(opening[1], 1)[0]
+            blocks.append((start, start, expression))
+            index += 1
+            continue
+        collected: list[str] = []
+        if body:
+            collected.append(body)
+        index += 1
+        while index < len(lines):
+            current = lines[index]
+            if opening[1] in current:
+                collected.append(current.split(opening[1], 1)[0])
+                break
+            collected.append(current)
+            index += 1
+        end = min(index + 1, len(lines))
+        blocks.append((start, end, "\n".join(collected)))
+        index += 1
+    return blocks
+
+
+def _formula_symbols(expression: str) -> list[str]:
+    """Extract conservative single-letter free-symbol candidates from common TeX."""
+
+    greek_names = (
+        "alpha", "beta", "gamma", "delta", "epsilon", "varepsilon", "zeta", "eta", "theta", "vartheta",
+        "iota", "kappa", "lambda", "mu", "nu", "xi", "omicron", "pi", "varpi", "rho", "varrho",
+        "sigma", "varsigma", "tau", "upsilon", "phi", "varphi", "chi", "psi", "omega",
+        "Gamma", "Delta", "Theta", "Lambda", "Xi", "Pi", "Sigma", "Upsilon", "Phi", "Psi", "Omega",
+    )
+    greek_pattern = r"\\(?:" + "|".join(greek_names) + r")(?![A-Za-z])"
+    symbols = set(re.findall(greek_pattern, expression))
+    cleaned = re.sub(r"\\(?:text|mathrm|operatorname)\s*\{[^{}]*\}", " ", expression)
+    cleaned = re.sub(r"\\[A-Za-z]+", " ", cleaned)
+    symbols.update(re.findall(r"(?<![A-Za-z])[A-Za-z](?![A-Za-z])", cleaned))
+    return sorted(symbols)
+
+
+def _formula_review_candidates(text: str) -> list[dict[str, Any]]:
+    """Point to observable formula-explanation gaps without certifying meaning."""
+
+    lines = text.splitlines()
+    findings: list[dict[str, Any]] = []
+    heading_pattern = re.compile(r"^\s{0,3}#{1,6}\s+")
+    seen_symbols: set[str] = set()
+    for start, end, expression in _display_math_blocks(text):
+        before = lines[max(0, start - 13):start - 1]
+        after = lines[end:min(len(lines), end + 32)]
+        context = "\n".join([*before, *after])
+        if not any(heading_pattern.match(line) for line in lines[:start - 1]):
+            findings.append(_finding(
+                "FORMAT_FORMULA_HEADING_REVIEW", f"LINE-{start:04d}", lines[start - 1],
+                "独立公式附近没有可观察到的所属标题，需核对它是附带公式还是应当使用说明用途的相对大标题",
+                "sentence", candidate=True,
+            ))
+        symbols = _formula_symbols(expression)
+        new_symbols = [symbol for symbol in symbols if symbol not in seen_symbols]
+        missing = []
+        for symbol in new_symbols:
+            listed = re.search(
+                r"(?m)^\s*[-*+]\s+[^\n]*\$[^$\n]*" + re.escape(symbol) + r"[^$\n]*\$[^\n]+",
+                context,
+            )
+            if listed is None:
+                missing.append(symbol)
+        if missing:
+            findings.append(_finding(
+                "FORMAT_FORMULA_SYMBOL_REVIEW", f"LINE-{start:04d}", lines[start - 1],
+                "独立公式中的符号没有全部出现在附近的连续列表项说明中，需核对：" + "、".join(missing),
+                "sentence", candidate=True,
+            ))
+        complex_formula = bool(
+            re.search(r"\\(?:frac|sum|prod|int|nabla|partial)|[_^]|\([^)]*[+\-*/][^)]*\)", expression)
+        )
+        component_line = False
+        for line in after:
+            if not re.match(r"^\s*[-*+]\s+", line):
+                continue
+            inline_formulas = re.findall(r"\$([^$\n]+)\$", line)
+            joined = " ".join(inline_formulas)
+            if len(_formula_symbols(joined)) >= 2 or any(
+                re.search(r"\\(?:frac|sum|prod|int|nabla|partial)|[+\-*/]", formula)
+                for formula in inline_formulas
+            ):
+                component_line = True
+                break
+        if complex_formula and new_symbols and not component_line:
+            findings.append(_finding(
+                "FORMAT_FORMULA_COMPONENT_REVIEW", f"LINE-{start:04d}", lines[start - 1],
+                "公式含有组合结构，但附近没有可观察到的多符号组分列表项，需核对关键分子、分母、差值、加权项或矩阵乘积是否已经解释",
+                "sentence", candidate=True,
+            ))
+        seen_symbols.update(symbols)
+    return findings
+
+
 def _image_address(address: str, *, markdown: bool = False) -> str:
     address = address.strip().removeprefix("<").removesuffix(">")
     if markdown and not re.match(r"^[A-Za-z][A-Za-z0-9+.-]*://", address):
@@ -978,6 +1152,8 @@ def deterministic_format_findings(text: str, *, host_nested_blank: bool = False)
     findings.extend(_block_spacing_findings(text, host_nested_blank=host_nested_blank))
     findings.extend(_code_findings(text))
     findings.extend(visual_layout_findings(text))
+    findings.extend(_heading_structure_findings(text))
+    findings.extend(_formula_review_candidates(text))
     findings.extend(_semantic_review_candidates(text))
     unique: list[dict[str, Any]] = []
     seen: set[tuple[str, str, str]] = set()

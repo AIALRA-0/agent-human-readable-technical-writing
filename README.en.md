@@ -100,7 +100,7 @@ Task contracts, source mappings, strict validators, and forward cases support de
 - Ordinary Chinese prose, headings, list items, captions, and explanations outside tables do not use Chinese full stops
 - Two or more independent definitions, steps, facts, reasons, comparison targets, or actions are placed on separate lines
 - Nested content increases indentation instead of flattening semantic levels
-- Multi-topic content uses hierarchical headings, while short single-topic content may omit headings
+- One continuous semantic block may omit a heading; once an answer contains multiple independent semantic blocks, every peer block uses a peer heading and numbering follows the current document
 - Images with figure captions and tables with table captions share centered containers when the target medium supports them
 - A wide table scrolls inside its own container rather than overflowing the page
 
@@ -111,10 +111,13 @@ See the complete [top-level format rules](references/format-rules.md)
 - Supply each required prerequisite before using an unfamiliar concept
 - Explain the object, input, change, result, and reason behind every key mechanism
 - Provide a complete worked example for abstract mechanisms, calculations, or multi-step operations
+- Introduce a principal formula through its intuitive purpose, then explain every first-use symbol, meaningful component, operation path, reproducible example, result interpretation, applicability boundary, and formal definition
 - Explain conditions, negations, exceptions, scope, and common confusion where they affect use
 - Preserve images, tables, code, and logs before explaining how to read them and what they support
 
 See the complete [novice explanation framework](references/explanation-framework.md)
+
+For formula explanations, load the [formula explanation rules](references/formula-explanation.md) only when needed
 
 ### 4.3 Preserve source information
 
@@ -153,7 +156,7 @@ Evidence registered for the current version covers
 - 48 contextual contracts
 - 72 trigger-matrix cases
 - 8 long-context stress cases
-- 371 passing local unit tests, with 1 intentionally skipped
+- 379 passing local unit tests, with 1 intentionally skipped
 - 21 combined format cases registering all 120 format rules
 
 These results show consistency among the corresponding cases, inventories, and program behavior; they do not guarantee a perfect natural-language result for arbitrary input
@@ -173,6 +176,8 @@ The following boundaries remain
   - Punctuation, structure, terminology, code, and visual formatting
 - [`references/explanation-framework.md`](references/explanation-framework.md)
   - Novice-oriented explanation logic
+- [`references/formula-explanation.md`](references/formula-explanation.md)
+  - Intuitive framing, symbols, components, operations, worked examples, boundaries, and formal definitions for formulas
 - [`runtime/`](runtime)
   - Task compilation, composition, verification, and repair
 - [`contracts/`](contracts)

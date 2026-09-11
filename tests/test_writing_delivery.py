@@ -235,6 +235,100 @@ class FormatRegressionTests(unittest.TestCase):
         self.assertTrue(all(item["status"] == "REVIEW_REQUIRED" for item in findings))
         self.assertTrue(all(item["severity"] == "MACHINE_CANDIDATE" for item in findings))
 
+    def test_heading_hierarchy_rejects_skipped_levels(self):
+        text = "## 公式说明\n\n#### 每个符号代表什么\n\n- `$x$` 表示输入值"
+        findings = deterministic_format_findings(text)
+        skipped = [item for item in findings if item["rule_id"] == "FORMAT_HEADING_LEVEL_SKIP"]
+        self.assertEqual(len(skipped), 1)
+        self.assertEqual(skipped[0]["status"], "FAIL")
+        self.assertEqual(skipped[0]["location"], "LINE-0003")
+
+    def test_heading_numbering_inherits_one_peer_style(self):
+        consistent = "## 当前状态\n\n内容甲\n\n## 下一步\n\n内容乙"
+        self.assertFalse(any(
+            item["rule_id"] == "FORMAT_HEADING_NUMBERING_REVIEW"
+            for item in deterministic_format_findings(consistent)
+        ))
+        mixed = "## 1. 当前状态\n\n内容甲\n\n## 下一步\n\n内容乙"
+        findings = deterministic_format_findings(mixed)
+        numbering = [item for item in findings if item["rule_id"] == "FORMAT_HEADING_NUMBERING_REVIEW"]
+        self.assertEqual(len(numbering), 1)
+        self.assertEqual(numbering[0]["status"], "REVIEW_REQUIRED")
+
+    def test_one_semantic_block_needs_no_heading(self):
+        text = "当前版本已保存全部修改，下一步可以运行本地检查"
+        heading_rules = {
+            item["rule_id"] for item in deterministic_format_findings(text)
+            if item["rule_id"].startswith("FORMAT_HEADING_")
+        }
+        self.assertEqual(heading_rules, set())
+
+    def test_independent_intro_blocks_before_heading_require_review(self):
+        text = "第一块说明\n\n第二块说明\n\n## 后续步骤\n\n继续处理"
+        findings = deterministic_format_findings(text)
+        intro = [item for item in findings if item["rule_id"] == "FORMAT_HEADING_INTRO_SCOPE_REVIEW"]
+        self.assertEqual(len(intro), 1)
+        self.assertEqual(intro[0]["status"], "REVIEW_REQUIRED")
+
+    def test_complete_formula_explanation_has_no_formula_candidates(self):
+        text = (
+            "## 平均速度公式\n\n"
+            "这条关系把总路程和总时间换算成平均每秒经过的路程\n\n"
+            "$$\n"
+            "v = \\frac{d}{t}\n"
+            "$$\n\n"
+            "### 每个符号代表什么\n\n"
+            "- `$v$` 表示平均速度，是最终结果，单位由路程单位和时间单位共同决定\n"
+            "- `$d$` 表示总路程，是需要被平均的总量\n"
+            "- `$t$` 表示总时间，是计算的时间范围，并且必须大于零\n\n"
+            "### 公式组分怎样理解\n\n"
+            "- `$d / t$` 表示总路程除以总时间，得到单位时间内经过的平均路程\n"
+        )
+        findings = deterministic_format_findings(text)
+        formula_rules = {item["rule_id"] for item in findings if item["rule_id"].startswith("FORMAT_FORMULA_")}
+        self.assertEqual(formula_rules, set())
+
+    def test_incomplete_formula_explanation_identifies_review_targets(self):
+        text = "$$\ny_k = x_k + \\beta_k(x_k - x_{k-1})\n$$"
+        findings = deterministic_format_findings(text)
+        formula_rules = {item["rule_id"] for item in findings if item["rule_id"].startswith("FORMAT_FORMULA_")}
+        self.assertEqual(formula_rules, {
+            "FORMAT_FORMULA_HEADING_REVIEW",
+            "FORMAT_FORMULA_SYMBOL_REVIEW",
+            "FORMAT_FORMULA_COMPONENT_REVIEW",
+        })
+        self.assertTrue(all(
+            item["status"] == "REVIEW_REQUIRED"
+            for item in findings if item["rule_id"].startswith("FORMAT_FORMULA_")
+        ))
+        symbol_finding = next(item for item in findings if item["rule_id"] == "FORMAT_FORMULA_SYMBOL_REVIEW")
+        self.assertIn(r"\beta", symbol_finding["reason"])
+
+    def test_formula_scanner_ignores_literal_code_and_quotes(self):
+        text = "> $$ x = y $$\n\n```text\n$$\nx = y\n$$\n```"
+        self.assertFalse(any(
+            item["rule_id"].startswith("FORMAT_FORMULA_")
+            for item in deterministic_format_findings(text)
+        ))
+
+    def test_follow_up_substitution_does_not_repeat_formula_definitions(self):
+        text = (
+            "## 长方形面积公式\n\n"
+            "$$\nA = w \\times h\n$$\n\n"
+            "### 每个符号代表什么\n\n"
+            "- `$A$` 表示面积，是最终结果\n"
+            "- `$w$` 表示宽度，是第一个输入\n"
+            "- `$h$` 表示高度，是第二个输入\n"
+            "- `$w \\times h$` 表示宽度乘以高度，得到覆盖的平面大小\n\n"
+            "### 代入一个具体例子\n\n"
+            "$$\nA = 3 \\times 2 = 6\n$$\n\n"
+            "这个演示结果表示长方形覆盖了 6 个单位面积\n"
+        )
+        self.assertFalse(any(
+            item["rule_id"].startswith("FORMAT_FORMULA_")
+            for item in deterministic_format_findings(text)
+        ))
+
     def test_punctuation_after_display_math_is_still_prose(self):
         for formula in (r"$$\text{原样。}$$。", r"\[\text{原样。}\]。"):
             findings = deterministic_format_findings(formula)
