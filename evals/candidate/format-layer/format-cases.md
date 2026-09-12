@@ -203,19 +203,21 @@
 
 ## 9. FMT-CASE-009 普通英文大小写与官方名称
 
-覆盖规则：`FMT-048`、`FMT-050`、`FMT-062`、`FMT-063`、`FMT-064`、`FMT-065`、`FMT-066`
+覆盖规则：`FMT-048`、`FMT-050`、`FMT-062`、`FMT-063`、`FMT-064`、`FMT-065`、`FMT-066`、`FMT-121`
 
 ### 请求
 
-修正普通英文名称的大小写，但保留官方专名
+修正普通英文名称的大小写，保留官方专名，并把中文别名移到英文括号外
 
 ### 原始输入
 
-使用 cloud storage 和 github Actions，连接 PostgreSQL
+使用 cloud storage 和 github Actions，连接 PostgreSQL；材料确认解析布局的官方英文为 Layout Resolution，中文别名为布局解析，原稿写成解析布局（Layout Resolution，也称 布局解析）
 
 ### 条款示意片段
 
 使用云存储（Cloud Storage）和 GitHub 自动化工作流（GitHub Actions），连接数据库系统（PostgreSQL）
+
+解析布局（Layout Resolution），中文别名为“布局解析”
 
 ## 10. FMT-CASE-010 专业术语首次定义
 

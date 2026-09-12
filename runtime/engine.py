@@ -11,6 +11,7 @@ from typing import Any, Iterable
 import jsonschema
 from referencing import Registry, Resource
 
+from runtime.format_validation import parenthetical_term_payload_issue
 from runtime.guidance import resolve_guidance, split_findings
 
 
@@ -571,6 +572,20 @@ def verify_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
                     "生成正文没有使用术语登记表中的官方大小写",
                     "品牌、缩写或正式名称可能被错误改写",
                     "只把该术语恢复为登记的 official_form",
+                ))
+            observed_parenthetical = authored["parenthetical_form"]
+            expected_english = requirement["official_english"]
+            payload_issue = parenthetical_term_payload_issue(observed_parenthetical or "")
+            if observed_parenthetical is not None and (
+                payload_issue is not None
+                or expected_english is None
+                or observed_parenthetical != expected_english
+            ):
+                findings.append(_finding(
+                    "PARENTHETICAL_TERM_CONTENT", requirement["term_id"],
+                    payload_issue or "括号内容不是登记并核实的官方英文名称本体",
+                    "别名、解释、缩写或未经核实的英文可能被误认成官方名称",
+                    "只保留与 official_english 完全一致的括号内容；缩写移到中文术语前，别名和解释移到括号外",
                 ))
             expected_parenthetical = requirement["parenthetical_form"]
             if expected_parenthetical is not None and authored["parenthetical_form"] != expected_parenthetical:

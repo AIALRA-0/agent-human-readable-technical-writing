@@ -518,6 +518,24 @@ class CleanAgentFormatMatrixTests(unittest.TestCase):
         findings = deterministic_format_findings("审核人员（auditor）")
         self.assertIn("FORMAT_PARENTHETICAL_ENGLISH_CASE", {item["rule_id"] for item in findings})
 
+    def test_closure_checker_rejects_mixed_parenthetical_term_payload(self) -> None:
+        manifest = {
+            "term_uses": [{
+                "term": "解析布局",
+                "official_english": "Layout Resolution",
+                "first_use_text": "解析布局（Layout Resolution，也称布局解析）",
+            }],
+            "parallel_groups": [],
+            "section_plan": {"headings_required": False, "heading_levels": []},
+            "boundary_visibility": {"mode": "internal", "material_reason": None},
+        }
+        findings = forward_matrix.closure_deterministic_findings(
+            "解析布局（Layout Resolution，也称布局解析）",
+            manifest,
+            {"source_text_for_parenthetical_english": "官方英文名称为 Layout Resolution"},
+        )
+        self.assertIn("PARENTHETICAL_TERM_CONTENT", {item["rule_id"] for item in findings})
+
     def test_blank_line_inside_unheaded_list_is_hard_rejected(self) -> None:
         text = "- 可以确认甲\n- 可以确认乙\n\n- 不能确认丙\n- 不能确认丁"
         rules = {item["rule_id"] for item in deterministic_format_findings(text)}

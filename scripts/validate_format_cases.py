@@ -32,8 +32,8 @@ def main() -> None:
         errors.append(f"expected 21 cases, got {len(items)}")
     if len(rule_ids) != len(rules):
         errors.append("format rule ids are not unique")
-    if rules != {f"FMT-{number:03d}" for number in range(1, 121)}:
-        errors.append("format rules must contain the continuous FMT-001 through FMT-120 range")
+    if rules != {f"FMT-{number:03d}" for number in range(1, 122)}:
+        errors.append("format rules must contain the continuous FMT-001 through FMT-121 range")
     if len(set(ids)) != len(ids):
         errors.append("case ids are not unique")
     if covered - rules:

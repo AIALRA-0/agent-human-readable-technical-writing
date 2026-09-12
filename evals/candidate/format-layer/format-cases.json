@@ -124,11 +124,12 @@
         "FMT-063",
         "FMT-064",
         "FMT-065",
-        "FMT-066"
+        "FMT-066",
+        "FMT-121"
       ],
-      "request": "修正普通英文名称的大小写，但保留官方专名",
-      "input": "使用 cloud storage 和 github Actions，连接 PostgreSQL",
-      "output": "使用云存储（Cloud Storage）和 GitHub 自动化工作流（GitHub Actions），连接数据库系统（PostgreSQL）"
+      "request": "修正普通英文名称的大小写，保留官方专名，并把中文别名移到英文括号外",
+      "input": "使用 cloud storage 和 github Actions，连接 PostgreSQL；材料确认解析布局的官方英文为 Layout Resolution，中文别名为布局解析，原稿写成解析布局（Layout Resolution，也称 布局解析）",
+      "output": "使用云存储（Cloud Storage）和 GitHub 自动化工作流（GitHub Actions），连接数据库系统（PostgreSQL）\n\n解析布局（Layout Resolution），中文别名为“布局解析”"
     },
     {
       "id": "FMT-CASE-010",

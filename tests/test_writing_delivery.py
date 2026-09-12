@@ -31,6 +31,35 @@ def exact_patch(text: str, old: str, new: str, node: str = "LINE-0001") -> dict:
 
 
 class FormatRegressionTests(unittest.TestCase):
+    def test_parenthetical_term_payload_rejects_aliases_explanations_and_separators(self):
+        invalid = (
+            "解析布局（Layout Resolution，也称 布局解析）",
+            "解析布局（Layout Resolution，布局解析）",
+            "解析布局（Layout Resolution, Layout Parsing）",
+            "解析布局（Layout Resolution also known as Layout Parsing）",
+            "应用程序接口（Application Programming Interface，API）",
+            "解析布局（Layout Resolution；负责解析布局）",
+        )
+        for text in invalid:
+            with self.subTest(text=text):
+                rules = {item["rule_id"] for item in deterministic_format_findings(text)}
+                self.assertIn("FORMAT_PARENTHETICAL_TERM_CONTENT", rules)
+
+    def test_parenthetical_term_payload_preserves_valid_and_protected_content(self):
+        valid = (
+            "解析布局（Layout Resolution），中文别名为“布局解析”",
+            "API 应用程序接口（Application Programming Interface）",
+            "解析布局，也称布局解析",
+            "本次共 3 项（其中 1 项待核对）",
+            "Node.js（在服务端运行 JavaScript）负责接收请求",
+            "> 原文写成解析布局（Layout Resolution，也称布局解析）\n",
+            "```text\n解析布局（Layout Resolution，也称布局解析）\n```\n",
+        )
+        for text in valid:
+            with self.subTest(text=text):
+                rules = {item["rule_id"] for item in deterministic_format_findings(text)}
+                self.assertNotIn("FORMAT_PARENTHETICAL_TERM_CONTENT", rules)
+
     def test_host_nested_blank_is_explicit_and_does_not_loosen_peer_spacing(self):
         source = "1. 主步骤\n\n   - 子项甲\n\n   - 子项乙\n\n2. 下一步\n"
         expected = "1. 主步骤\n\n   - 子项甲\n   - 子项乙\n2. 下一步\n"

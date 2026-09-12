@@ -276,6 +276,26 @@ class VNextRuntimeTests(unittest.TestCase):
         self.assertEqual("FAIL", report["status"])
         self.assertIn("PARENTHETICAL_ENGLISH_CASE", {item["rule_id"] for item in report["findings"]})
 
+    def test_registered_parenthetical_cannot_mix_alias_or_abbreviation(self) -> None:
+        bundle = self.build_bundle()
+        requirement = {
+            "term_id": "CI", "official_form": "CI 持续集成（Continuous Integration）",
+            "official_english": "Continuous Integration", "abbreviation": "CI", "registered": True,
+            "official_case_verified": True, "parenthetical_english_case": "title_case",
+            "parenthetical_form": "Continuous Integration", "official_case_precedence": True,
+            "acronym_expansion_allowed": True, "name_rationale": "持续把改动合入共同代码并自动检查",
+            "name_rationale_source": "registry:CI", "required_meanings": ["definition"],
+        }
+        use = {
+            "term_id": "CI", "official_form": "CI 持续集成（Continuous Integration，CI）",
+            "parenthetical_form": "Continuous Integration，CI", "claimed_expansion": None,
+            "context": "authored_prose", "meanings_covered": ["definition"], "sentence_id": "SENT-001",
+        }
+        self.add_term(bundle, requirement, use, "CI 持续集成（Continuous Integration，CI）会自动检查代码")
+        report = verify_bundle(bundle)
+        self.assertEqual("FAIL", report["status"])
+        self.assertIn("PARENTHETICAL_TERM_CONTENT", {item["rule_id"] for item in report["findings"]})
+
     def test_prohibited_acronym_expansion_fails(self) -> None:
         """The runtime rejects an invented expansion for a registered non-acronym name."""
 

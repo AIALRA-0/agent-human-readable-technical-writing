@@ -12,7 +12,7 @@ registry:
         known_terms_source: task_contract
         description: 连续文档只复用任务合同已经登记并实际解释过的术语
     natural_embedding:
-      parenthesis_content: official_english_or_abbreviation_only
+      parenthesis_content: verified_official_english_name_only
       parenthetical_english_case: title_case
       official_case_precedence: true
       prose_content:
@@ -20,7 +20,7 @@ registry:
         - current_use
         - observable_behavior
         - actual_impact
-      description: 括号内普通英文名称和类别使用标题式大小写，官方写法保持原样并具有最高优先级，解释通过相邻正文自然完成
+      description: 中文术语后的全角括号只包含经用户明确确认、当前登记来源或可核对官方来源确认的官方英文名称本体；缩写位于中文术语之前，别名和解释位于括号外；未知官方英文名时省略括号且不直译造名
   terms:
     LOCKOUT:
       official_form: 上锁隔离（Lockout）

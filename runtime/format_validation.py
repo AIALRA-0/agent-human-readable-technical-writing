@@ -38,6 +38,18 @@ def _without_inline_code(line: str) -> str:
     return _INLINE_MATERIAL.sub(lambda match: " " * len(match.group(0)), line)
 
 
+def parenthetical_term_payload_issue(payload: str) -> str | None:
+    """Return one observable impurity in a full-width English-name payload."""
+
+    if re.search(r"[,，;；、]", payload):
+        return "全角英文括号内混入逗号、分号或并列分隔符"
+    if re.search(r"(?:也称|又称|简称|别名|亦称)|\b(?:also\s+known\s+as|a\.?k\.?a\.?|alias|short\s+for|meaning|means)\b", payload, re.IGNORECASE):
+        return "全角英文括号内混入别名、简称或解释性表达"
+    if re.search(r"[A-Za-z]", payload) and re.search(r"[\u3400-\u9fff]", payload):
+        return "全角英文括号内混入中文别名或解释"
+    return None
+
+
 # Mask complete objects only: punctuation following a link or formula is prose.
 _INLINE_MATERIAL = re.compile(
     r"(?<!`)(`+)(?!`).*?(?<!`)\1(?!`)"
@@ -1140,6 +1152,14 @@ def deterministic_format_findings(text: str, *, host_nested_blank: bool = False)
                 "FORMAT_INTERNAL_BOUNDARY_LABEL", location, line,
                 "Markdown 标题直接暴露了内部边界字段", "phrase",
             ))
+        for match in re.finditer(r"(?<=[\u3400-\u9fff])（([^（）\n]{1,160})）", prose):
+            issue = parenthetical_term_payload_issue(match.group(1))
+            if issue:
+                findings.append(_finding(
+                    "FORMAT_PARENTHETICAL_TERM_CONTENT", location, match.group(0),
+                    f"{issue}；中文术语后的全角括号只能保留经证据确认的官方英文名称本体",
+                    "phrase",
+                ))
         for match in re.finditer(r"（([a-z][A-Za-z0-9 -]*)）", prose):
             findings.append(_finding(
                 "FORMAT_PARENTHETICAL_ENGLISH_CASE", location, match.group(1),

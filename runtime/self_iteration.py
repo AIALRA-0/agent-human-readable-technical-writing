@@ -7,6 +7,7 @@ import re
 from typing import Any, Callable, Iterable, Mapping, Sequence
 
 from patcher.deterministic_committer import apply_minimal_transaction, sha256_text
+from runtime.format_validation import parenthetical_term_payload_issue
 from runtime.guidance import normalize_mode, split_findings, task_guidance
 
 
@@ -148,6 +149,14 @@ def deterministic_findings(
                 "INTERNAL_BOUNDARY_LABEL", location, line,
                 "内部证据字段泄漏到用户可见正文", "sentence",
             ))
+        parenthetical_prose = re.sub(r"`[^`\n]*`", lambda match: " " * len(match.group(0)), line)
+        for match in re.finditer(r"(?<=[\u3400-\u9fff])（([^（）\n]{1,160})）", parenthetical_prose):
+            issue = parenthetical_term_payload_issue(match.group(1))
+            if issue:
+                findings.append(_finding(
+                    "PARENTHETICAL_TERM_CONTENT", location, match.group(0),
+                    f"{issue}；全角括号只能保留经证据确认的官方英文名称本体", "phrase",
+                ))
         parenthetical_pattern = (
             r"[（(]([A-Za-z][A-Za-z0-9'’+./ -]{1,80})[）)]"
             if supported_parenthetical_source is not None

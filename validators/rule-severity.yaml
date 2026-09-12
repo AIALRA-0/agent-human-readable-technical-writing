@@ -42,7 +42,10 @@ registry:
       description: 登记表已经确认的品牌、缩写和正式名称必须使用登记大小写
     PARENTHETICAL_ENGLISH_CASE:
       severity: MACHINE_FINAL
-      description: 登记表已经确认的括号英文名称和类别必须使用标题式大小写或官方写法
+      description: 登记表已经确认的括号英文名称必须使用官方写法
+    PARENTHETICAL_TERM_CONTENT:
+      severity: MACHINE_FINAL
+      description: 中文术语后的全角括号只能包含与证据完全一致的官方英文名称本体，不得混入别名、解释、缩写或分隔内容
     ACRONYM_EXPANSION:
       severity: MACHINE_FINAL
       description: 登记表明确禁止展开的名称不能伪造成首字母缩写

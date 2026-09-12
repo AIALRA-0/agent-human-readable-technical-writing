@@ -67,9 +67,9 @@ profile:
       severity: PROFILE_REQUIRED
       description: 独立阅读单元和独立测试的 known_terms 为空，每个单元重新证明首次解释能力
     natural_embedding:
-      policy: formal_name_then_natural_prose
+      policy: verified_official_english_name_only
       severity: PROFILE_REQUIRED
-      description: 括号只放正式英文全称、通用英文类别或缩写；普通英文名称和类别使用标题式大小写，官方品牌和正式名称保持官方大小写；定义、用途、表现和影响写在括号外的自然正文中
+      description: 中文术语后的全角括号只放经证据确认的官方英文名称本体；缩写放在中文术语之前，别名、定义、用途、表现和影响放在括号外；无法确认官方英文名时省略英文括号，不直译造名
     professional_first_use:
       policy: five_part_first_use_definition
       severity: PROFILE_REQUIRED
