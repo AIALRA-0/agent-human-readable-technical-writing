@@ -1,5 +1,5 @@
 {
-  "source": "references\\format-rules.md",
+  "source": "references/format-rules.md",
   "cases": [
     {
       "id": "FMT-CASE-001",

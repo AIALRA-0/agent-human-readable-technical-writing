@@ -245,7 +245,7 @@ def write_outputs(items: list[dict[str, object]]) -> None:
     json_path = OUT_DIR / "format-cases.json"
     md_path = OUT_DIR / "format-cases.md"
     json_path.write_text(
-        json.dumps({"source": str(RULES_PATH.relative_to(ROOT)), "cases": items}, ensure_ascii=False, indent=2) + "\n",
+        json.dumps({"source": RULES_PATH.relative_to(ROOT).as_posix(), "cases": items}, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
     chunks = [
