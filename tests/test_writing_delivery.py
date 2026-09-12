@@ -31,6 +31,26 @@ def exact_patch(text: str, old: str, new: str, node: str = "LINE-0001") -> dict:
 
 
 class FormatRegressionTests(unittest.TestCase):
+    def test_local_review_trigger_contract_is_consistent(self):
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        local_review = (ROOT / "references" / "local-review.md").read_text(encoding="utf-8")
+        for content in (skill, readme, local_review):
+            self.assertIn("纯聊天", content)
+            self.assertIn("本地文档", content)
+            self.assertIn("用户明确要求", content)
+        self.assertNotIn("有本地工具时先把内部初稿", skill)
+        self.assertNotIn("普通写作不要求运行仓库工具", readme)
+
+    def test_source_contradiction_rule_keeps_relation_and_field_uncertainty(self):
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        explanation = (ROOT / "references" / "explanation-framework.md").read_text(encoding="utf-8")
+        for content in (skill, explanation):
+            self.assertIn("核算", content)
+            self.assertIn("仅凭当前材料无法确定哪个原始字段有误", content)
+            self.assertIn("原始字段", content)
+            self.assertIn("不能停在计算结果", content)
+
     def test_parenthetical_term_payload_rejects_aliases_explanations_and_separators(self):
         invalid = (
             "解析布局（Layout Resolution，也称 布局解析）",

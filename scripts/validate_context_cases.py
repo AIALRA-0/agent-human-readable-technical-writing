@@ -52,12 +52,26 @@ def main() -> int:
             errors.append("CTX-R2-016: unknown official casing must require review")
         if case.get("case_id") == "CTX-R4-004" and case.get("expected_disposition") != "review_required":
             errors.append("CTX-R4-004: unknown professional-term form must require review")
+    round_eight = [case for case in cases if str(case.get("case_id", "")).startswith("CTX-R8-")]
+    expected_round_eight_dimensions = {
+        "condition_inheritance", "source_contradiction", "dependency_consistency",
+        "local_review_trigger", "material_instruction_boundary",
+    }
+    round_eight_counts = Counter(case.get("dimension") for case in round_eight)
+    if len(round_eight) != 10 or set(round_eight_counts) != expected_round_eight_dimensions or any(count != 2 for count in round_eight_counts.values()):
+        errors.append("round eight must contain one triggering and one non-triggering case for each accepted P04/P05/P09/P10/P11 dimension")
+    if any(case.get("automatic_decision") for case in round_eight):
+        errors.append("round-eight semantic cases cannot be decided automatically")
+    source_conflict_case = next((case for case in round_eight if case.get("case_id") == "CTX-R8-003"), {})
+    source_conflict_basis = str(source_conflict_case.get("decision_basis", ""))
+    if "核算" not in source_conflict_basis or "无法确定" not in source_conflict_basis or "原始字段" not in source_conflict_basis:
+        errors.append("CTX-R8-003 must preserve both the computable relation and the unresolved original-field boundary")
     status = "PASS" if not errors else "FAIL"
     report = {
         "status": status,
         "results": {"cases": len(cases), "contract_valid": len(cases) - len(errors), "dimension_counts": dict(counts)},
         "reason": f"{len(cases)} 个语境案例具有完整结构，机器形式与语义复核边界已分别登记" if not errors else "语境案例的结构或职责边界存在错误",
-        "impact": "检查器能够区分已登记大小写、原文豁免和未知官方写法，不会把未登记名称当成确定答案" if not errors else "当前语境集合不能用于回归校准",
+        "impact": "检查器能够分别登记格式边界、内容充分性、结论条件、原文矛盾、依赖修复、本地检查触发和材料指令边界，不会把语义候选自动写成用户决定" if not errors else "当前语境集合不能用于回归校准",
         "next": "在真实生成中使用这些案例检查泛化表现" if not errors else "修复列出的结构错误后重试",
         "errors": errors,
     }

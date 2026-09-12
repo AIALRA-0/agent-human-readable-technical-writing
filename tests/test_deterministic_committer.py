@@ -343,6 +343,50 @@ class DeterministicCommitterTests(unittest.TestCase):
         with self.assertRaisesRegex(PatchError, "at least one patch"):
             apply_minimal_transaction(self.text, [], self.nodes)
 
+    def test_dependency_closure_updates_related_locations_only(self) -> None:
+        text = (
+            "概览：请求已接收，处理已经开始\n"
+            "流程：状态 31 表示任务已经开始处理\n"
+            "结论：任务正在执行\n"
+            "说明：自动重试上限为 3 次\n"
+        )
+        starts = [text.index(label) for label in ("概览：", "流程：", "结论：", "说明：")]
+        nodes = {
+            "LINE-0001": (starts[0], starts[1]),
+            "LINE-0002": (starts[1], starts[2]),
+            "LINE-0003": (starts[2], starts[3]),
+            "LINE-0004": (starts[3], len(text)),
+        }
+        patches = [
+            make_patch(text, patch_id="PATCH-DEP-1", node_id="LINE-0001", old_text="处理已经开始", new_text="处理尚未开始"),
+            make_patch(text, patch_id="PATCH-DEP-2", node_id="LINE-0002", old_text="已经开始处理", new_text="尚未开始处理"),
+            make_patch(text, patch_id="PATCH-DEP-3", node_id="LINE-0003", old_text="任务正在执行", new_text="任务尚未开始执行"),
+        ]
+        result = apply_minimal_transaction(text, patches, nodes)
+        self.assertIn("处理尚未开始", result)
+        self.assertIn("状态 31 表示任务尚未开始处理", result)
+        self.assertIn("任务尚未开始执行", result)
+        self.assertIn("说明：自动重试上限为 3 次", result)
+
+    def test_dependency_closure_rejects_entire_stale_batch(self) -> None:
+        text = "概览：旧判断\n结论：旧判断\n无关：保持不变\n"
+        nodes = {
+            "LINE-0001": (0, text.index("结论：")),
+            "LINE-0002": (text.index("结论："), text.index("无关：")),
+            "LINE-0003": (text.index("无关："), len(text)),
+        }
+        patches = [
+            make_patch(text, patch_id="PATCH-DEP-4", node_id="LINE-0001", old_text="旧判断", new_text="新判断"),
+            make_patch(text, patch_id="PATCH-DEP-5", node_id="LINE-0002", old_text="已经变化的旧判断", new_text="新判断"),
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            document = Path(directory) / "document.md"
+            document.write_text(text, encoding="utf-8")
+            before = document.read_bytes()
+            with self.assertRaises(PatchError):
+                commit_document(document, patches, nodes)
+            self.assertEqual(before, document.read_bytes())
+
 
 if __name__ == "__main__":
     unittest.main()

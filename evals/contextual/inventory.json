@@ -1,18 +1,23 @@
 {
   "schema_version": 1,
   "grouping_key": "dimension",
-  "total_rows": 48,
+  "total_rows": 58,
   "distribution": {
     "actor_clarity": 4,
     "code_coverage": 2,
     "comment_alignment": 2,
+    "condition_inheritance": 2,
     "content_sufficiency": 3,
+    "dependency_consistency": 2,
     "local_consistency": 3,
+    "local_review_trigger": 2,
     "long_context": 10,
+    "material_instruction_boundary": 2,
     "official_term_form": 5,
     "paragraph_boundary": 3,
     "parallel_group": 5,
     "punctuation_choice": 5,
+    "source_contradiction": 2,
     "supersession": 2,
     "term_boundary": 4
   },
@@ -48,6 +53,18 @@
         "paragraph_boundary": 1,
         "parallel_group": 1,
         "punctuation_choice": 1
+      }
+    },
+    {
+      "path": "round-8-trust-boundary-context-cases.jsonl",
+      "sha256": "3de47bbdb59c38243eab570533c923aaa2c85617aa92132de07fded91962ac45",
+      "rows": 10,
+      "distribution": {
+        "condition_inheritance": 2,
+        "dependency_consistency": 2,
+        "local_review_trigger": 2,
+        "material_instruction_boundary": 2,
+        "source_contradiction": 2
       }
     }
   ]
