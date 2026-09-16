@@ -312,6 +312,58 @@ class FormatRegressionTests(unittest.TestCase):
         }
         self.assertEqual(heading_rules, set())
 
+    def test_numeric_heading_suffix_is_review_only_and_never_autofixed(self):
+        for heading in ("## 1 概览", "### 1.1 方法", "#### 1.1.1 细节", "## 1、概览", "### 1.1.方法"):
+            with self.subTest(heading=heading):
+                fixed, report = review.review_text(heading, fix_safe=True)
+                matches = [item for item in report["format"]["candidates"]
+                           if item["rule_id"] == "FORMAT_HEADING_NUMBER_SUFFIX_REVIEW"]
+                self.assertEqual(len(matches), 1)
+                self.assertEqual(fixed, heading)
+                self.assertFalse(report["format"]["delivery_blocked"])
+
+    def test_numbering_does_not_rewrite_dates_quantities_or_literal_material(self):
+        for text in (
+            "## 1. 概览\n\n### 1.1. 方法\n\n#### 1.1.1. 细节",
+            "## 概览\n\n内容\n\n## 方法",
+            "## 2026 年记录\n\n## 3 种方法\n\n原文第 1.1 条",
+            "> ## 1 原文标题\n\n```text\n## 1.1 原文编号\n```",
+        ):
+            with self.subTest(text=text):
+                fixed, report = review.review_text(text, fix_safe=True)
+                self.assertEqual(fixed, text)
+                self.assertFalse(any(item["rule_id"].startswith("FORMAT_HEADING_NUMBER")
+                                     for item in report["format"]["findings"]))
+                if "2026" not in text:
+                    self.assertFalse(any(item["rule_id"] == "FORMAT_HEADING_NUMBER_SUFFIX_REVIEW"
+                                         for item in report["format"]["candidates"]))
+
+    def test_confirmed_heading_patch_only_changes_selected_numbering(self):
+        text = "## 1 概览\n\n原件编号 1.1 不变\n\n## 2026 年记录\n"
+        edits = {"document_sha256": sha256_text(text), "edits": [{
+            "node_id": "LINE-0001", "old_text": "1 概览", "new_text": "1. 概览",
+            "scope": "phrase", "reason": "已确认本标题采用层级编号，只补编号末尾点号",
+        }]}
+        fixed, report = review.review_text(text, edit_transactions=[edits])
+        self.assertEqual(fixed, text.replace("1 概览", "1. 概览", 1))
+        self.assertEqual(report["format"]["repair_rounds"], 1)
+        self.assertEqual(report["content"]["user_acceptance"], "NOT_ASSESSED")
+
+    def test_name_shape_does_not_certify_evidence_or_expand_intrinsic_acronyms(self):
+        for text in (
+            "问题名称（P versus NP）",
+            "待查概念（Unverified Example）",
+            "公式中的变量 $P$ 与版本号 v2 保持原样",
+            "名称存在歧义，当前材料尚不足以确定英文对应",
+        ):
+            with self.subTest(text=text):
+                fixed, report = review.review_text(text, fix_safe=True)
+                self.assertEqual(fixed, text)
+                self.assertFalse(any(item["rule_id"] == "FORMAT_PARENTHETICAL_TERM_CONTENT"
+                                     for item in report["format"]["findings"]))
+                self.assertEqual(report["content"]["status"], "SAME_AGENT_REVIEW_REQUIRED")
+                self.assertEqual(report["content"]["user_acceptance"], "NOT_ASSESSED")
+
     def test_independent_intro_blocks_before_heading_require_review(self):
         text = "第一块说明\n\n第二块说明\n\n## 后续步骤\n\n继续处理"
         findings = deterministic_format_findings(text)
@@ -607,6 +659,64 @@ class FormatRegressionTests(unittest.TestCase):
         rules = {item["rule_id"] for item in deterministic_format_findings(broken_html)}
         self.assertIn("FORMAT_TABLE_CAPTION_NOT_CENTERED", rules)
         self.assertIn("FORMAT_TABLE_IMAGE_CELL_NOT_CENTERED", rules)
+
+    def test_collapsible_nested_centering_and_inherited_scroll(self):
+        text = (
+            '<details>\n<summary>展开查看</summary>\n<div align="center">\n'
+            '<div style="max-width: 100%; overflow-x: auto;">\n\n'
+            '| 项目 | 值 |\n|---|---|\n| 甲 | 1 |\n\n</div>\n\n'
+            '表 1 原始记录\n\n![记录图](a.png)\n\n图 1 原始记录\n\n</div>\n</details>'
+        )
+        rules = {item["rule_id"] for item in deterministic_format_findings(text)}
+        self.assertFalse(rules & {"FORMAT_IMAGE_NOT_CENTERED", "FORMAT_IMAGE_CAPTION_NOT_CENTERED",
+                                 "FORMAT_TABLE_NOT_CENTERED", "FORMAT_TABLE_CAPTION_NOT_CENTERED"})
+
+    def test_inner_alignment_overrides_centered_wrapper(self):
+        for container in ("div", "details", "section", "figure"):
+            for alignment in ('align="left"', 'style="text-align: right"',
+                              'align="center" style="text-align: left"'):
+                with self.subTest(container=container, alignment=alignment):
+                    text = (f'<div align="center">\n<{container} {alignment}>\n\n'
+                            f'![内容](a.png)\n\n图 1 内容\n\n</{container}>\n</div>')
+                    rules = {item["rule_id"] for item in deterministic_format_findings(text)}
+                    self.assertIn("FORMAT_IMAGE_NOT_CENTERED", rules)
+                    self.assertIn("FORMAT_IMAGE_CAPTION_NOT_CENTERED", rules)
+
+    def test_separate_centered_containers_do_not_satisfy_shared_caption(self):
+        for body, caption, rule in (
+            ("![图](a.png)", "图 1 内容", "FORMAT_IMAGE_CAPTION_NOT_CENTERED"),
+            ("| 项目 |\n|---|\n| 甲 |", "表 1 内容", "FORMAT_TABLE_CAPTION_NOT_CENTERED"),
+            ("<table><tr><td>甲</td></tr></table>", "表 1 内容", "FORMAT_TABLE_CAPTION_NOT_CENTERED"),
+        ):
+            text = f'<div align="center">\n\n{body}\n\n</div>\n<div align="center">\n{caption}\n</div>'
+            with self.subTest(body=body):
+                self.assertIn(rule, {item["rule_id"] for item in deterministic_format_findings(text)})
+
+    def test_layout_examples_in_literal_material_cannot_center_later_objects(self):
+        for prefix in ('```html\n<div align="center">\n```', '> <div align="center">',
+                       '<div align="center"></div>'):
+            text = prefix + '\n\n![内容](a.png)'
+            self.assertIn("FORMAT_IMAGE_NOT_CENTERED", {item["rule_id"] for item in deterministic_format_findings(text)})
+        same_line = '<div align="center"></div>![内容](a.png)'
+        self.assertIn("FORMAT_IMAGE_NOT_CENTERED", {item["rule_id"] for item in deterministic_format_findings(same_line)})
+
+    def test_label_and_link_semantics_are_not_certified_by_format_pass(self):
+        for text in (
+            "图中把路线标为最优，并标注驾车用时 10.92 小时",
+            "图中已经证明路线最优，实测驾车用时 10.92 小时",
+            "[扩展阅读](https://example.test/topic)",
+        ):
+            fixed, report = review.review_text(text)
+            self.assertEqual(fixed, text)
+            self.assertEqual(report["content"]["status"], "SAME_AGENT_REVIEW_REQUIRED")
+            self.assertEqual(report["content"]["beginner_understanding"], "NOT_ASSESSED")
+
+    def test_original_placeholder_is_preserved_without_invented_body_explanation(self):
+        text = '> 原件片段\n> <img src="spacer.gif" alt="" width="1">\n\n资源清单保留原件与来源，已根据源样式确认仅作间距\n'
+        fixed, report = review.review_text(text, fix_safe=True)
+        self.assertEqual(fixed, text)
+        self.assertEqual(report["format"]["source_images_checked"], [])
+        self.assertEqual(report["content"]["status"], "SAME_AGENT_REVIEW_REQUIRED")
 
     def test_term_candidates_use_document_definitions_not_a_global_word_gate(self):
         text = (

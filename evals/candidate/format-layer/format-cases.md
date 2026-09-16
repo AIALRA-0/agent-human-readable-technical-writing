@@ -261,13 +261,13 @@
 
 ### 原始输入
 
-Agent 读取 README 后调用 API，并把结果写入 Dashboard
+Agent 读取 README 后调用 API，并把结果写入 Dashboard；另一处只出现“解析布局”四字，未提供语境，查询也未能消除所指概念的歧义
 
 ### 条款示意片段
 
 智能代理（Agent）读取项目说明文件（README），调用 API 应用程序接口（Application Programming Interface），并把结果写入控制面板（Dashboard）
 
-未确认官方英文名的术语只保留自然中文，不自行创造英文形式
+材料中的“解析布局”缺少上下文，现有查询仍不能确定它指哪个概念，因此还不能可靠配对英文名称或解释其具体作用
 
 ## 13. FMT-CASE-013 LaTeX 公式的由浅入深解释
 

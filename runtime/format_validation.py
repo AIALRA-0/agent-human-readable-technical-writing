@@ -695,6 +695,13 @@ def _heading_structure_findings(text: str) -> list[dict[str, Any]]:
         if match:
             headings.append((number, len(match.group(1)), match.group(2)))
     findings: list[dict[str, Any]] = []
+    for number, _, title in headings:
+        prefix = re.match(r"^(\d+(?:\.\d+)*)([.、]?)(\s*)(?=[^\d\s])", title)
+        if prefix and (prefix[2] != "." or not prefix[3]):
+            findings.append(_finding(
+                "FORMAT_HEADING_NUMBER_SUFFIX_REVIEW", f"LINE-{number:04d}", lines[number - 1],
+                "若此数字是当前采用的阿拉伯数字层级编号，完整编号后应有点号和空格；先区分年份、数量、原文语义编号和原样保留内容，不自动修改", "phrase", candidate=True,
+            ))
     for previous, current in zip(headings, headings[1:]):
         if current[1] > previous[1] + 1:
             findings.append(_finding(
@@ -933,42 +940,62 @@ def source_image_findings(text: str, expected_images: list[str]) -> list[dict[st
     return findings
 
 
-def _html_layout_lines(text: str) -> tuple[set[int], set[int]]:
-    """Return lines covered by centered and table-scroll div containers."""
+def _html_layout_lines(text: str) -> tuple[set[int], set[int], dict[int, set[int]]]:
+    """Inspect inline container hints, not computed CSS or rendered geometry."""
 
     centered: set[int] = set()
     scrolling: set[int] = set()
-    center_stack: list[bool] = []
-    scroll_stack: list[bool] = []
-    tag_pattern = re.compile(r"</?div\b[^>]*>", re.IGNORECASE)
+    scopes: dict[int, set[int]] = {}
+    stack: list[tuple[str, set[int], bool]] = []
+    tag_pattern = re.compile(r"</?(div|details|section|figure|p)\b[^>]*>", re.IGNORECASE)
+    protected = {
+        number for start, _, body in _fenced_blocks(text)
+        for number in range(start, start + len(body) + 2)
+    }
+    next_scope = 0
     for number, line in enumerate(text.splitlines(), 1):
-        line_centered = any(center_stack)
-        line_scrolling = any(scroll_stack)
+        if number in protected or line.lstrip().startswith(">"):
+            continue
+        content_scopes: list[set[int]] = []
+        content_scroll: list[bool] = []
+        cursor = 0
         for match in tag_pattern.finditer(line):
+            if line[cursor:match.start()].strip():
+                content_scopes.append(set(stack[-1][1]) if stack else set())
+                content_scroll.append(stack[-1][2] if stack else False)
+            cursor = match.end()
             tag = match.group(0)
+            name = match.group(1).casefold()
             if tag.startswith("</"):
-                if center_stack:
-                    center_stack.pop()
-                    scroll_stack.pop()
+                if stack and stack[-1][0] == name:
+                    stack.pop()
                 continue
             lower = tag.casefold()
-            own_center = bool(
-                re.search(r"\balign\s*=\s*['\"]?center\b", lower)
-                or re.search(r"text-align\s*:\s*center\b", lower)
-            )
+            inherited = set(stack[-1][1]) if stack else set()
+            # An inner explicit alignment overrides inheritance; CSS beats align.
+            css = re.findall(r"text-align\s*:\s*(center|left|right|start|end|justify)\b", lower)
+            attribute = re.search(r"\balign\s*=\s*['\"]?(center|left|right|justify)\b", lower)
+            alignment = css[-1] if css else attribute[1] if attribute else None
+            if alignment == "center":
+                next_scope += 1
+                inherited.add(next_scope)
+            elif alignment is not None:
+                inherited.clear()
             own_scroll = bool(
                 re.search(r"overflow-x\s*:\s*auto\b", lower)
                 and re.search(r"max-width\s*:\s*100%\b", lower)
             )
-            center_stack.append(own_center or any(center_stack))
-            scroll_stack.append(own_scroll or any(scroll_stack))
-            line_centered = line_centered or any(center_stack)
-            line_scrolling = line_scrolling or any(scroll_stack)
-        if line_centered:
+            stack.append((name, inherited, own_scroll or (stack[-1][2] if stack else False)))
+        if line[cursor:].strip():
+            content_scopes.append(set(stack[-1][1]) if stack else set())
+            content_scroll.append(stack[-1][2] if stack else False)
+        common = set.intersection(*content_scopes) if content_scopes else set()
+        scopes[number] = common
+        if common:
             centered.add(number)
-        if line_scrolling:
+        if content_scroll and all(content_scroll):
             scrolling.add(number)
-    return centered, scrolling
+    return centered, scrolling, scopes
 
 
 def _markdown_tables(text: str, code_lines: set[int]) -> list[tuple[int, int, list[str]]]:
@@ -977,10 +1004,10 @@ def _markdown_tables(text: str, code_lines: set[int]) -> list[tuple[int, int, li
     lines = text.splitlines()
     results: list[tuple[int, int, list[str]]] = []
     seen: set[tuple[int, int]] = set()
-    delimiter = re.compile(r"\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*")
+    delimiter = re.compile(r"\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)*\|?\s*")
     for index, line in enumerate(lines):
         number = index + 1
-        if number in code_lines or index == 0 or not delimiter.fullmatch(line):
+        if number in code_lines or index == 0 or "|" not in line or not delimiter.fullmatch(line):
             continue
         start = index - 1
         end = index + 1
@@ -1019,7 +1046,7 @@ def _next_caption_line(lines: list[str], start: int, label: str) -> int | None:
 
     for index in range(start, min(len(lines), start + 6)):
         stripped = lines[index].strip()
-        if not stripped or re.fullmatch(r"</?div\b[^>]*>", stripped, re.IGNORECASE):
+        if not stripped or re.fullmatch(r"</?(?:div|details|section|figure)\b[^>]*>", stripped, re.IGNORECASE):
             continue
         plain = re.sub(r"^<p>|</p>$", "", stripped, flags=re.IGNORECASE).strip()
         plain = plain.strip("*_ ")
@@ -1036,7 +1063,7 @@ def visual_layout_findings(text: str) -> list[dict[str, Any]]:
         for start, _, body in _fenced_blocks(text)
         for number in range(start, start + len(body) + 2)
     }
-    centered, scrolling = _html_layout_lines(text)
+    centered, scrolling, scopes = _html_layout_lines(text)
     findings: list[dict[str, Any]] = []
 
     for number, line in enumerate(lines, 1):
@@ -1049,7 +1076,7 @@ def visual_layout_findings(text: str) -> list[dict[str, Any]]:
                     "图片没有位于居中容器中", "sentence",
                 ))
             caption_line = _next_caption_line(lines, number, "图")
-            if caption_line is not None and caption_line not in centered:
+            if caption_line is not None and not (scopes.get(number, set()) & scopes.get(caption_line, set())):
                 findings.append(_finding(
                     "FORMAT_IMAGE_CAPTION_NOT_CENTERED", f"LINE-{caption_line:04d}", lines[caption_line - 1],
                     "图片题注没有与对应图片位于同一个居中容器中", "sentence",
@@ -1062,7 +1089,7 @@ def visual_layout_findings(text: str) -> list[dict[str, Any]]:
                 "表格没有位于页面居中容器中", "sentence",
             ))
         caption_line = _next_caption_line(lines, end, "表")
-        if caption_line is not None and caption_line not in centered:
+        if caption_line is not None and not (scopes.get(start, set()) & scopes.get(caption_line, set())):
             findings.append(_finding(
                 "FORMAT_TABLE_CAPTION_NOT_CENTERED", f"LINE-{caption_line:04d}", lines[caption_line - 1],
                 "表题没有与对应表格位于同一个居中容器中", "sentence",
@@ -1089,7 +1116,7 @@ def visual_layout_findings(text: str) -> list[dict[str, Any]]:
                 "HTML 表格没有位于页面居中容器中", "sentence",
             ))
         caption_line = _next_caption_line(lines, end, "表")
-        if caption_line is not None and caption_line not in centered:
+        if caption_line is not None and not (scopes.get(start, set()) & scopes.get(caption_line, set())):
             findings.append(_finding(
                 "FORMAT_TABLE_CAPTION_NOT_CENTERED", f"LINE-{caption_line:04d}", lines[caption_line - 1],
                 "HTML 表题没有与对应表格位于同一个居中容器中", "sentence",
@@ -1157,13 +1184,13 @@ def deterministic_format_findings(text: str, *, host_nested_blank: bool = False)
             if issue:
                 findings.append(_finding(
                     "FORMAT_PARENTHETICAL_TERM_CONTENT", location, match.group(0),
-                    f"{issue}；中文术语后的全角括号只能保留经证据确认的官方英文名称本体",
+                    f"{issue}；中文术语后的全角括号只能保留经适用来源核实的英文名称本体，名称真实性仍需语义核查",
                     "phrase",
                 ))
         for match in re.finditer(r"（([a-z][A-Za-z0-9 -]*)）", prose):
             findings.append(_finding(
                 "FORMAT_PARENTHETICAL_ENGLISH_CASE", location, match.group(1),
-                "括号英文以小写开头，须先核对是否为官方名称，再判断大小写", candidate=True,
+                "括号英文以小写开头，须先核对官方名称或可靠学术来源中的名称本体，再判断适用的大小写，不能据大小写推断名称真实性", candidate=True,
             ))
     blank_numbers = {number for number, line in authored if not line.strip()}
     if any(number - 1 in blank_numbers for number in blank_numbers):
